@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A0A0A">
+    <title>Scan Prescription - Pristin Healthcare</title>
+
+    <link rel="manifest" href="/static/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <style>
+        body {
+            background: var(--bg-primary);
+            position: relative;
+        }
+
+        /* Gradient glow background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 20%, rgba(196, 255, 13, 0.12) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            right: -30%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle at 70% 80%, rgba(196, 255, 13, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+
+        .page-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: var(--radius-lg);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(196, 255, 13, 0.02);
+        }
+
+        .upload-area.has-file {
+            border-color: var(--success);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .upload-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--radius-lg);
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .language-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .language-option {
+            padding: 1.25rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .language-option:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .language-option input {
+            display: none;
+        }
+
+        .language-option:has(input:checked) {
+            border-color: var(--primary);
+            background: rgba(196, 255, 13, 0.05);
+        }
+
+        .language-option:has(input:checked) .lang-name {
+            color: var(--primary);
+        }
+
+        .lang-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .lang-name {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .lang-native {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .features-list {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .features-title {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .features-title i {
+            color: var(--primary);
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+        }
+
+        .feature-item i {
+            color: var(--success);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back</span>
+                </a>
+                <span class="page-title">Scan Prescription</span>
+                <a href="{{ url_for('prescription_history') }}" class="btn btn-sm btn-ghost">
+                    <i class="fas fa-history"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="form-card">
+                <div class="form-header">
+                    <div class="form-icon">
+                        <i class="fas fa-prescription"></i>
+                    </div>
+                    <h1 class="form-title">Scan Your Prescription</h1>
+                    <p class="form-subtitle">Upload a photo or take a picture to extract medicine details</p>
+                </div>
+
+                <form action="{{ url_for('new_prescription') }}" method="POST" enctype="multipart/form-data"
+                    id="prescriptionForm">
+                    <!-- Upload/Camera Toggle -->
+                    <div class="upload-toggle">
+                        <button type="button" class="toggle-btn active" id="uploadToggle">
+                            <i class="fas fa-upload"></i> Upload File
+                        </button>
+                        <button type="button" class="toggle-btn" id="cameraToggle">
+                            <i class="fas fa-camera"></i> Use Camera
+                        </button>
+                    </div>
+
+                    <!-- File Upload Area -->
+                    <label class="upload-area" id="uploadArea">
+                        <input type="file" name="prescription_image" accept="image/*" hidden id="imageInput">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-title">Tap to Upload</div>
+                        <div class="upload-text">Select from gallery</div>
+                        <div class="upload-hint">Supports JPG, PNG (max 5MB)</div>
+                        <img class="image-preview" id="imagePreview" alt="Preview">
+                    </label>
+
+                    <!-- Camera Area (hidden by default) -->
+                    <div class="camera-area" id="cameraArea" style="display: none;">
+                        <div class="camera-container">
+                            <video id="cameraVideo" autoplay playsinline></video>
+                            <canvas id="cameraCanvas" style="display: none;"></canvas>
+                            <img class="camera-preview" id="cameraPreview" alt="Captured" style="display: none;">
+                        </div>
+                        <div class="camera-controls">
+                            <button type="button" class="camera-btn switch-btn" id="switchCamera" title="Switch Camera">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button type="button" class="camera-btn capture-btn" id="captureBtn" title="Capture">
+                                <i class="fas fa-circle"></i>
+                            </button>
+                            <button type="button" class="camera-btn retake-btn" id="retakeBtn" style="display: none;"
+                                title="Retake">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                        <input type="hidden" name="camera_image" id="cameraImageData">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Select Prescription Language</label>
+                        <div class="language-selector">
+                            <label class="language-option">
+                                <input type="radio" name="language" value="english" checked>
+                                <div class="lang-icon">🇬🇧</div>
+                                <div class="lang-name">English</div>
+                                <div class="lang-native">English</div>
+                            </label>
+                            <label class="language-option">
+                                <input type="radio" name="language" value="hindi">
+                                <div class="lang-icon">🇮🇳</div>
+                                <div class="lang-name">Hindi</div>
+                                <div class="lang-native">हिंदी</div>
+                            </label>
+                            <label class="language-option">
+                                <input type="radio" name="language" value="tamil">
+                                <div class="lang-icon">🇮🇳</div>
+                                <div class="lang-name">Tamil</div>
+                                <div class="lang-native">தமிழ்</div>
+                            </label>
+                            <label class="language-option">
+                                <input type="radio" name="language" value="telugu">
+                                <div class="lang-icon">🇮🇳</div>
+                                <div class="lang-name">Telugu</div>
+                                <div class="lang-native">తెలుగు</div>
+                            </label>
+                            <label class="language-option">
+                                <input type="radio" name="language" value="marathi">
+                                <div class="lang-icon">🇮🇳</div>
+                                <div class="lang-name">Marathi</div>
+                                <div class="lang-native">मराठी</div>
+                            </label>
+                            <label class="language-option">
+                                <input type="radio" name="language" value="bengali">
+                                <div class="lang-icon">🇮🇳</div>
+                                <div class="lang-name">Bengali</div>
+                                <div class="lang-native">বাংলা</div>
+                            </label>
+                            <label class="language-option">
+                                <input type="radio" name="language" value="gujarati">
+                                <div class="lang-icon">🇮🇳</div>
+                                <div class="lang-name">Gujarati</div>
+                                <div class="lang-native">ગુજરાતી</div>
+                            </label>
+                            <label class="language-option">
+                                <input type="radio" name="language" value="kannada">
+                                <div class="lang-icon">🇮🇳</div>
+                                <div class="lang-name">Kannada</div>
+                                <div class="lang-native">ಕನ್ನಡ</div>
+                            </label>
+                            <label class="language-option">
+                                <input type="radio" name="language" value="malayalam">
+                                <div class="lang-icon">🇮🇳</div>
+                                <div class="lang-name">Malayalam</div>
+                                <div class="lang-native">മലയാളം</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary submit-btn" id="submitBtn">
+                        <i class="fas fa-magic"></i>
+                        Extract Medicine Details
+                    </button>
+
+                    <div class="features-list">
+                        <div class="features-title">
+                            <i class="fas fa-check-circle"></i>
+                            What we can extract
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            Medicine names and brands
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            Dosage information
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            Frequency (how often to take)
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            Duration of treatment
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            Doctor's name
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .upload-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .toggle-btn.active {
+            border-color: var(--primary);
+            background: rgba(196, 255, 13, 0.05);
+            color: var(--primary);
+        }
+
+        .camera-area {
+            margin-bottom: 1.5rem;
+        }
+
+        .camera-container {
+            position: relative;
+            background: #000;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            aspect-ratio: 4/3;
+        }
+
+        .camera-container video,
+        .camera-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .camera-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .camera-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+
+        .switch-btn {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1.25rem;
+        }
+
+        .switch-btn:hover {
+            background: var(--bg-card);
+        }
+
+        .capture-btn {
+            background: var(--primary);
+            color: var(--bg-primary);
+            font-size: 2rem;
+            width: 72px;
+            height: 72px;
+            box-shadow: 0 0 20px rgba(196, 255, 13, 0.3);
+        }
+
+        .capture-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .retake-btn {
+            background: var(--warning);
+            color: var(--bg-primary);
+            font-size: 1.25rem;
+        }
+
+        .language-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 480px) {
+            .language-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const imagePreview = document.getElementById('imagePreview');
+        const cameraArea = document.getElementById('cameraArea');
+        const uploadToggle = document.getElementById('uploadToggle');
+        const cameraToggle = document.getElementById('cameraToggle');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraCanvas = document.getElementById('cameraCanvas');
+        const cameraPreview = document.getElementById('cameraPreview');
+        const captureBtn = document.getElementById('captureBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const switchCamera = document.getElementById('switchCamera');
+        const cameraImageData = document.getElementById('cameraImageData');
+        const submitBtn = document.getElementById('submitBtn');
+
+        let currentStream = null;
+        let facingMode = 'environment'; // 'environment' = back, 'user' = front
+        let capturedImage = false;
+
+        // Image file upload preview
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    uploadArea.classList.add('has-file');
+                    cameraImageData.value = ''; // Clear camera data
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Toggle between upload and camera
+        uploadToggle.addEventListener('click', () => {
+            uploadToggle.classList.add('active');
+            cameraToggle.classList.remove('active');
+            uploadArea.style.display = 'flex';
+            cameraArea.style.display = 'none';
+            stopCamera();
+        });
+
+        cameraToggle.addEventListener('click', async () => {
+            cameraToggle.classList.add('active');
+            uploadToggle.classList.remove('active');
+            uploadArea.style.display = 'none';
+            cameraArea.style.display = 'block';
+            await startCamera();
+        });
+
+        // Camera functions
+        async function startCamera() {
+            try {
+                if (currentStream) {
+                    stopCamera();
+                }
+
+                const constraints = {
+                    video: {
+                        facingMode: facingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 960 }
+                    }
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraVideo.srcObject = currentStream;
+                cameraVideo.style.display = 'block';
+                cameraPreview.style.display = 'none';
+                captureBtn.style.display = 'flex';
+                retakeBtn.style.display = 'none';
+                capturedImage = false;
+
+            } catch (err) {
+                console.error('Camera error:', err);
+                alert('Could not access camera. Please check permissions or use file upload.');
+                uploadToggle.click();
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        // Switch front/back camera
+        switchCamera.addEventListener('click', async () => {
+            facingMode = facingMode === 'environment' ? 'user' : 'environment';
+            await startCamera();
+        });
+
+        // Capture photo
+        captureBtn.addEventListener('click', () => {
+            const context = cameraCanvas.getContext('2d');
+            cameraCanvas.width = cameraVideo.videoWidth;
+            cameraCanvas.height = cameraVideo.videoHeight;
+            context.drawImage(cameraVideo, 0, 0);
+
+            const imageData = cameraCanvas.toDataURL('image/jpeg', 0.85);
+            cameraPreview.src = imageData;
+            cameraImageData.value = imageData;
+
+            cameraVideo.style.display = 'none';
+            cameraPreview.style.display = 'block';
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'flex';
+            capturedImage = true;
+
+            // Clear file input
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            uploadArea.classList.remove('has-file');
+        });
+
+        // Retake photo
+        retakeBtn.addEventListener('click', async () => {
+            cameraImageData.value = '';
+            capturedImage = false;
+            await startCamera();
+        });
+
+        // Form validation
+        document.getElementById('prescriptionForm').addEventListener('submit', (e) => {
+            const hasFile = imageInput.files.length > 0;
+            const hasCamera = cameraImageData.value !== '';
+
+            if (!hasFile && !hasCamera) {
+                e.preventDefault();
+                alert('Please upload an image or capture a photo of your prescription.');
+                return false;
+            }
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            stopCamera();
+        });
+    </script>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

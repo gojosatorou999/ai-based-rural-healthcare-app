@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prescription Results - Pristin Healthcare</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back</span>
+                </a>
+                <span class="page-title">Prescription Results</span>
+                <a href="{{ url_for('prescription_upload') }}" class="btn btn-sm btn-ghost">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Success Banner -->
+            <div class="success-banner">
+                <i class="fas fa-check-circle"></i>
+                <span>Prescription scanned successfully!</span>
+            </div>
+
+            <!-- Prescription Image -->
+            <div class="result-card">
+                <div class="card-header">
+                    <i class="fas fa-image"></i>
+                    <span>Uploaded Image</span>
+                </div>
+                <div class="image-container">
+                    <img src="{{ result.image_url }}" alt="Prescription">
+                </div>
+            </div>
+
+            <!-- OCR Confidence -->
+            <div class="result-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Recognition Quality</span>
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: {{ (result.confidence * 100)|int }}%"></div>
+                </div>
+                <div class="confidence-text">{{ (result.confidence * 100)|int }}% confidence · {{ result.language|title
+                    }}</div>
+            </div>
+
+            <!-- Extracted Text -->
+            <div class="result-card">
+                <div class="card-header">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Extracted Text</span>
+                </div>
+                <div class="text-box">
+                    <pre>{{ result.raw_text or 'No text could be extracted. Try a clearer image.' }}</pre>
+                </div>
+            </div>
+
+            <!-- Parsed Medicines -->
+            {% if result.parsed and result.parsed.medicines %}
+            <div class="result-card">
+                <div class="card-header">
+                    <i class="fas fa-pills"></i>
+                    <span>Medicines Found</span>
+                </div>
+                <div class="medicine-list">
+                    {% for medicine in result.parsed.medicines %}
+                    <div class="medicine-item">
+                        <div class="medicine-name">{{ medicine.name }}</div>
+                        <div class="medicine-details">
+                            {% if medicine.dosage %}<span class="tag">{{ medicine.dosage }}</span>{% endif %}
+                            {% if medicine.frequency %}<span class="tag">{{ medicine.frequency }}</span>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Parsed Instructions -->
+            {% if result.parsed and result.parsed.instructions %}
+            <div class="result-card">
+                <div class="card-header">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Instructions</span>
+                </div>
+                <ul class="instruction-list">
+                    {% for instruction in result.parsed.instructions %}
+                    <li>{{ instruction }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{{ url_for('prescription_upload') }}" class="btn btn-primary">
+                    <i class="fas fa-camera"></i>
+                    Scan Another
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .success-banner {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .card-header i {
+            color: var(--primary);
+        }
+
+        .image-container img {
+            width: 100%;
+            border-radius: var(--radius-md);
+        }
+
+        .confidence-bar {
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #10b981);
+            border-radius: 4px;
+        }
+
+        .confidence-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .text-box {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+        }
+
+        .text-box pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-family: inherit;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .medicine-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .medicine-item {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+        }
+
+        .medicine-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .medicine-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            background: rgba(196, 255, 13, 0.1);
+            color: var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+        }
+
+        .instruction-list {
+            padding-left: 1.25rem;
+            color: var(--text-primary);
+        }
+
+        .instruction-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+        }
+    </style>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

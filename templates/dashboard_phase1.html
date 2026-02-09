@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#C4FF0D">
+    <title>Dashboard - Rural Telemedicine</title>
+
+    <link rel="manifest" href="/static/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <style>
+        body {
+            background: var(--bg-primary);
+        }
+
+        /* Navbar */
+        .navbar {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .navbar-brand i {
+            color: var(--primary);
+        }
+
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+
+        .online-status {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .online-status.online {
+            color: var(--success);
+        }
+
+        .online-status.offline {
+            background: rgba(255, 77, 77, 0.1);
+            color: var(--error);
+        }
+
+        .online-status::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s ease infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Dashboard Grid */
+        .dashboard {
+            padding: var(--spacing-2xl) 0;
+        }
+
+        .dashboard-header {
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .dashboard-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .dashboard-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .stat-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .stat-box.warning::before {
+            background: var(--warning);
+        }
+
+        .stat-box.error::before {
+            background: var(--error);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-label {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+        }
+
+        /* Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-2xl);
+            transition: all var(--transition-base);
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg), var(--glow-green);
+        }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .feature-icon-lg {
+            width: 64px;
+            height: 64px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .feature-info h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .feature-info p {
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .feature-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        /* Activity Feed */
+        .activity-section {
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .activity-feed {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+        }
+
+        .activity-item {
+            padding: var(--spacing-lg);
+            border-left: 3px solid var(--primary);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .activity-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .activity-time {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .activity-content {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .empty-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .empty-text {
+            color: var(--text-tertiary);
+            margin-bottom: var(--spacing-lg);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="navbar-content">
+                <div class="navbar-brand">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Pristin Healthcare</span>
+                </div>
+
+                <div class="navbar-user">
+                    <div id="online-status" class="online-status online">
+                        <span>Online</span>
+                    </div>
+
+                    <div class="flex items-center gap-md">
+                        <span class="text-secondary">👤 {{ user.username }}</span>
+                        <a href="{{ url_for('logout') }}" class="btn btn-sm btn-ghost">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard -->
+    <main class="dashboard">
+        <div class="container">
+            <!-- Header -->
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Welcome back, {{ user.username }}! 👋</h1>
+                <p class="dashboard-subtitle">Here's what's happening with your health today</p>
+            </div>
+
+            <!-- Alerts -->
+            {% if trends.warnings %}
+            <div class="alert alert-error mb-xl">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>Health Alerts</strong>
+                    <ul style="margin: 0.5rem 0 0 1.25rem;">
+                        {% for warning in trends.warnings %}
+                        <li>{{ warning }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if pending_recommendations > 0 %}
+            <div class="alert alert-info mb-xl">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    You have <strong>{{ pending_recommendations }}</strong> AI recommendations pending doctor review.
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-box">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-notes-medical"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ recent_symptoms|length }}</div>
+                    <div class="stat-label">Recent Symptoms</div>
+                </div>
+
+                <div class="stat-box">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ recent_vitals|length }}</div>
+                    <div class="stat-label">Vital Records</div>
+                </div>
+
+                <div class="stat-box {% if pending_recommendations > 0 %}warning{% endif %}">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ pending_recommendations }}</div>
+                    <div class="stat-label">Pending Reviews</div>
+                </div>
+
+                <div class="stat-box {% if trends.trends|length > 0 %}warning{% endif %}">
+                    <div class="stat-header">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value">{{ trends.trends|length }}</div>
+                    <div class="stat-label">Health Trends</div>
+                </div>
+            </div>
+
+            <!-- Feature Cards -->
+            <div class="features-grid">
+                <!-- Symptom Checker -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon-lg">
+                            <i class="fas fa-notes-medical"></i>
+                        </div>
+                        <div class="feature-info">
+                            <h3>Report Symptoms</h3>
+                            <p>Get AI-powered recommendations</p>
+                        </div>
+                    </div>
+                    <div class="feature-actions">
+                        <a href="{{ url_for('symptom_input') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            New Report
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Prescription Reader -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon-lg">
+                            <i class="fas fa-prescription"></i>
+                        </div>
+                        <div class="feature-info">
+                            <h3>Prescription Reader</h3>
+                            <p>OCR for English & Telugu</p>
+                        </div>
+                    </div>
+                    <div class="feature-actions">
+                        <a href="{{ url_for('prescription_upload') }}" class="btn btn-primary">
+                            <i class="fas fa-camera"></i>
+                            Upload
+                        </a>
+                        <a href="{{ url_for('prescription_history') }}" class="btn btn-secondary">
+                            <i class="fas fa-history"></i>
+                            History
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Health Timeline -->
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <div class="feature-icon-lg">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="feature-info">
+                            <h3>Health Timeline</h3>
+                            <p>Track vitals & trends</p>
+                        </div>
+                    </div>
+                    <div class="feature-actions">
+                        <a href="{{ url_for('vitals_input') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Log Vitals
+                        </a>
+                        <a href="{{ url_for('vitals_timeline') }}" class="btn btn-secondary">
+                            <i class="fas fa-chart-area"></i>
+                            Timeline
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="activity-section">
+                <h2 class="section-title">
+                    <i class="fas fa-clock"></i>
+                    Recent Activity
+                </h2>
+
+                <div class="activity-feed">
+                    {% if recent_symptoms or recent_vitals %}
+                    {% for symptom in recent_symptoms[:3] %}
+                    <div class="activity-item">
+                        <div class="activity-header">
+                            <div class="activity-title">
+                                <i class="fas fa-notes-medical" style="color: var(--primary);"></i>
+                                Symptom Report
+                            </div>
+                            <div class="activity-time">{{ symptom.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                        <div class="activity-content">
+                            {{ symptom.symptom_description[:100] }}...
+                            <div class="mt-sm">
+                                <span
+                                    class="badge badge-{% if symptom.severity == 'severe' %}error{% elif symptom.severity == 'moderate' %}warning{% else %}success{% endif %}">
+                                    {{ symptom.severity }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    {% for vital in recent_vitals[:3] %}
+                    <div class="activity-item">
+                        <div class="activity-header">
+                            <div class="activity-title">
+                                <i class="fas fa-heartbeat" style="color: var(--primary);"></i>
+                                Vital Signs
+                            </div>
+                            <div class="activity-time">{{ vital.measured_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                        <div class="activity-content">
+                            {% if vital.blood_pressure_systolic %}BP: {{ vital.blood_pressure_systolic }}/{{
+                            vital.blood_pressure_diastolic }} | {% endif %}
+                            {% if vital.glucose_level %}Glucose: {{ vital.glucose_level }} mg/dL | {% endif %}
+                            {% if vital.temperature %}Temp: {{ vital.temperature }}°C{% endif %}
+                            <div class="mt-sm">
+                                {% if vital.is_abnormal %}
+                                <span class="badge badge-error">
+                                    <i class="fas fa-exclamation-circle"></i> Abnormal
+                                </span>
+                                {% else %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check-circle"></i> Normal
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                        <div class="empty-title">No recent activity</div>
+                        <div class="empty-text">Start by reporting symptoms or logging vitals!</div>
+                        <a href="{{ url_for('symptom_input') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            Get Started
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Health Trends -->
+            {% if trends.trends %}
+            <div class="activity-section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Health Trends
+                </h2>
+
+                <div class="activity-feed">
+                    {% for trend in trends.trends %}
+                    <div class="activity-item">
+                        <div class="activity-content">
+                            <i class="fas fa-arrow-trend-up" style="color: var(--warning);"></i>
+                            {{ trend }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+    <!-- Scripts -->
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

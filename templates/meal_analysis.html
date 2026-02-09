@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Analysis - Pristin Healthcare</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back</span>
+                </a>
+                <span class="page-title">Meal Analysis</span>
+                <div style="width: 48px;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="form-card">
+                <div class="form-header">
+                    <div class="form-icon" style="background: linear-gradient(135deg, #10b981, #22c55e);">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <h1 class="form-title">AI Meal Analysis</h1>
+                    <p class="form-subtitle">Snap a photo of your meal for nutritional insights</p>
+                </div>
+
+                <form id="mealForm" action="{{ url_for('upload_meal') }}" method="POST" enctype="multipart/form-data">
+                    <!-- Upload/Camera Toggle -->
+                    <div class="upload-toggle">
+                        <button type="button" class="toggle-btn active" id="uploadToggle">
+                            <i class="fas fa-upload"></i> Upload
+                        </button>
+                        <button type="button" class="toggle-btn" id="cameraToggle">
+                            <i class="fas fa-camera"></i> Camera
+                        </button>
+                    </div>
+
+                    <!-- File Upload Area -->
+                    <label class="upload-area" id="uploadArea">
+                        <input type="file" name="meal_image" accept="image/*" hidden id="imageInput">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-title">Upload Meal Photo</div>
+                        <div class="upload-text">Select from gallery</div>
+                        <img class="image-preview" id="imagePreview" alt="Preview">
+                    </label>
+
+                    <!-- Camera Area -->
+                    <div class="camera-area" id="cameraArea" style="display: none;">
+                        <div class="camera-container">
+                            <video id="cameraVideo" autoplay playsinline></video>
+                            <canvas id="cameraCanvas" style="display: none;"></canvas>
+                            <img class="camera-preview" id="cameraPreview" alt="Captured" style="display: none;">
+                        </div>
+                        <div class="camera-controls">
+                            <button type="button" class="camera-btn switch-btn" id="switchCamera">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button type="button" class="camera-btn capture-btn" id="captureBtn">
+                                <i class="fas fa-circle"></i>
+                            </button>
+                            <button type="button" class="camera-btn retake-btn" id="retakeBtn" style="display: none;">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                        <input type="hidden" name="camera_image" id="cameraImageData">
+                    </div>
+
+                    <!-- Health Info (optional) -->
+                    <div class="health-info-section">
+                        <div class="section-title">
+                            <i class="fas fa-user-md"></i>
+                            Personal Info (Optional)
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Age</label>
+                                <input type="number" name="age" class="form-input" placeholder="Years">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Weight</label>
+                                <input type="number" name="weight" class="form-input" placeholder="kg">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Height</label>
+                                <input type="number" name="height" class="form-input" placeholder="cm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary submit-btn" id="submitBtn">
+                        <i class="fas fa-search"></i>
+                        Analyze Meal
+                    </button>
+                </form>
+
+                <!-- Results -->
+                <div id="mealResult" class="result-section" style="display: none;">
+                    <div class="result-header">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Analysis Results</span>
+                    </div>
+                    <div id="resultContent"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .upload-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .toggle-btn.active {
+            border-color: var(--primary);
+            background: rgba(196, 255, 13, 0.05);
+            color: var(--primary);
+        }
+
+        .upload-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: border-color var(--transition-fast);
+            margin-bottom: 1.5rem;
+            min-height: 180px;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+        }
+
+        .upload-area.has-file .upload-icon,
+        .upload-area.has-file .upload-title,
+        .upload-area.has-file .upload-text {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.75rem;
+        }
+
+        .upload-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .upload-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: var(--radius-md);
+            display: none;
+        }
+
+        .camera-area {
+            margin-bottom: 1.5rem;
+        }
+
+        .camera-container {
+            position: relative;
+            background: #000;
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            aspect-ratio: 4/3;
+        }
+
+        .camera-container video,
+        .camera-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .camera-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .camera-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+
+        .switch-btn {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1.25rem;
+        }
+
+        .capture-btn {
+            background: var(--primary);
+            color: var(--bg-primary);
+            font-size: 2rem;
+            width: 72px;
+            height: 72px;
+        }
+
+        .retake-btn {
+            background: var(--warning);
+            color: var(--bg-primary);
+            font-size: 1.25rem;
+        }
+
+        .health-info-section {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .result-section {
+            margin-top: 1.5rem;
+            background: var(--bg-secondary);
+            padding: 1.25rem;
+            border-radius: var(--radius-lg);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            color: var(--text-secondary);
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .advice-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-top: 1rem;
+        }
+
+        .advice-title {
+            font-weight: 600;
+            color: #10b981;
+            margin-bottom: 0.5rem;
+        }
+
+        .advice-text {
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+    </style>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const imagePreview = document.getElementById('imagePreview');
+        const cameraArea = document.getElementById('cameraArea');
+        const uploadToggle = document.getElementById('uploadToggle');
+        const cameraToggle = document.getElementById('cameraToggle');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraCanvas = document.getElementById('cameraCanvas');
+        const cameraPreview = document.getElementById('cameraPreview');
+        const captureBtn = document.getElementById('captureBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const switchCamera = document.getElementById('switchCamera');
+        const cameraImageData = document.getElementById('cameraImageData');
+        const mealResult = document.getElementById('mealResult');
+        const resultContent = document.getElementById('resultContent');
+
+        let currentStream = null;
+        let facingMode = 'environment';
+
+        // Image upload preview
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    uploadArea.classList.add('has-file');
+                    cameraImageData.value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Toggle between upload and camera
+        uploadToggle.addEventListener('click', () => {
+            uploadToggle.classList.add('active');
+            cameraToggle.classList.remove('active');
+            uploadArea.style.display = 'flex';
+            cameraArea.style.display = 'none';
+            stopCamera();
+        });
+
+        cameraToggle.addEventListener('click', async () => {
+            cameraToggle.classList.add('active');
+            uploadToggle.classList.remove('active');
+            uploadArea.style.display = 'none';
+            cameraArea.style.display = 'block';
+            await startCamera();
+        });
+
+        async function startCamera() {
+            try {
+                if (currentStream) stopCamera();
+
+                const constraints = {
+                    video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 960 } }
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraVideo.srcObject = currentStream;
+                cameraVideo.style.display = 'block';
+                cameraPreview.style.display = 'none';
+                captureBtn.style.display = 'flex';
+                retakeBtn.style.display = 'none';
+            } catch (err) {
+                console.error('Camera error:', err);
+                alert('Could not access camera. Please use file upload.');
+                uploadToggle.click();
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        switchCamera.addEventListener('click', async () => {
+            facingMode = facingMode === 'environment' ? 'user' : 'environment';
+            await startCamera();
+        });
+
+        captureBtn.addEventListener('click', () => {
+            const context = cameraCanvas.getContext('2d');
+            cameraCanvas.width = cameraVideo.videoWidth;
+            cameraCanvas.height = cameraVideo.videoHeight;
+            context.drawImage(cameraVideo, 0, 0);
+
+            const imageData = cameraCanvas.toDataURL('image/jpeg', 0.85);
+            cameraPreview.src = imageData;
+            cameraImageData.value = imageData;
+
+            cameraVideo.style.display = 'none';
+            cameraPreview.style.display = 'block';
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'flex';
+
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            uploadArea.classList.remove('has-file');
+        });
+
+        retakeBtn.addEventListener('click', async () => {
+            cameraImageData.value = '';
+            await startCamera();
+        });
+
+        // Form submission with AJAX
+        document.getElementById('mealForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const hasFile = imageInput.files.length > 0;
+            const hasCamera = cameraImageData.value !== '';
+
+            if (!hasFile && !hasCamera) {
+                alert('Please upload an image or capture a photo of your meal.');
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+
+            try {
+                const response = await fetch('/upload_meal', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    displayResults(data);
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                alert('An error occurred. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-search"></i> Analyze Meal';
+            }
+        });
+
+        function displayResults(data) {
+            mealResult.style.display = 'block';
+            resultContent.innerHTML = `
+                <div class="result-item">
+                    <span class="result-label">Estimated Calories</span>
+                    <span class="result-value">${data.calories || 'N/A'} kcal</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Protein</span>
+                    <span class="result-value">${data.nutrients?.Protein || 'N/A'}g</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Carbohydrates</span>
+                    <span class="result-value">${data.nutrients?.Carbs || 'N/A'}g</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Fats</span>
+                    <span class="result-value">${data.nutrients?.Fats || 'N/A'}g</span>
+                </div>
+                <div class="advice-box">
+                    <div class="advice-title"><i class="fas fa-lightbulb"></i> Recommendation</div>
+                    <div class="advice-text">${data.advice || 'Upload a meal image for personalized advice.'}</div>
+                </div>
+            `;
+            mealResult.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        window.addEventListener('beforeunload', () => stopCamera());
+    </script>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

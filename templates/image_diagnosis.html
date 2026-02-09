@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image-Based Diagnosis</title>
+</head>
+<body>
+    <h1>Image-Based Diagnosis</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <label for="file">Upload an image (e.g., rash, wound):</label>
+        <input type="file" name="file" required>
+        <br>
+        <button type="submit">Analyze Image</button>
+    </form>
+
+    {% if prediction %}
+        <h2>AI Prediction:</h2>
+        <p>{{ prediction }}</p>
+    {% endif %}
+
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+</body>
+</html>

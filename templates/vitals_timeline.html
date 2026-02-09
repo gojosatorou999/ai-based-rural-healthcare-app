@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A0A0A">
+    <title>Health Timeline - Pristin Healthcare</title>
+
+    <link rel="manifest" href="/static/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <style>
+        body {
+            background: var(--bg-primary);
+            position: relative;
+        }
+
+        /* Gradient glow background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 20%, rgba(196, 255, 13, 0.12) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            right: -30%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle at 70% 80%, rgba(196, 255, 13, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+
+        .page-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .summary-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: var(--radius-md);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .summary-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-label {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-title i {
+            color: var(--primary);
+        }
+
+        .chart-container {
+            height: 250px;
+        }
+
+        .trends-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .trend-item {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.75rem;
+        }
+
+        .trend-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .trend-icon.warning {
+            background: rgba(255, 184, 0, 0.1);
+            color: var(--warning);
+        }
+
+        .trend-icon.error {
+            background: rgba(255, 77, 77, 0.1);
+            color: var(--error);
+        }
+
+        .trend-icon.success {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+        }
+
+        .trend-content {
+            flex: 1;
+        }
+
+        .trend-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .trend-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .empty-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-text {
+            color: var(--text-tertiary);
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back</span>
+                </a>
+                <span class="page-title">Health Timeline</span>
+                <a href="{{ url_for('vitals_input') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            {% if records %}
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="summary-value">{{ records|length }}</div>
+                    <div class="summary-label">Total Records</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="summary-value">{% if records[0].bp_systolic %}{{ records[0].bp_systolic }}/{{
+                        records[0].bp_diastolic }}{% else %}-{% endif %}</div>
+                    <div class="summary-label">Latest BP</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="summary-value">{{ records[0].blood_glucose|default('-') }}</div>
+                    <div class="summary-label">Latest Glucose</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="fas fa-thermometer-half"></i>
+                    </div>
+                    <div class="summary-value">{% if records[0].temperature %}{{ records[0].temperature }}°{% else %}-{%
+                        endif %}</div>
+                    <div class="summary-label">Latest Temp</div>
+                </div>
+            </div>
+
+            <!-- Alert Records -->
+            {% set critical_records = records|selectattr('alert_level', 'equalto', 'critical')|list %}
+            {% set warning_records = records|selectattr('alert_level', 'equalto', 'warning')|list %}
+            {% if critical_records or warning_records %}
+            <div class="trends-section">
+                <div class="section-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Health Insights
+                </div>
+
+                {% for record in critical_records[:3] %}
+                <div class="trend-item">
+                    <div class="trend-icon error">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="trend-content">
+                        <div class="trend-title">Critical Alert - {{ record.created_at.strftime('%b %d') }}</div>
+                        <div class="trend-text">BP: {{ record.bp_systolic }}/{{ record.bp_diastolic }} {% if
+                            record.blood_glucose %}| Glucose: {{ record.blood_glucose }}{% endif %}</div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% for record in warning_records[:3] %}
+                <div class="trend-item">
+                    <div class="trend-icon warning">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="trend-content">
+                        <div class="trend-title">Warning - {{ record.created_at.strftime('%b %d') }}</div>
+                        <div class="trend-text">BP: {{ record.bp_systolic }}/{{ record.bp_diastolic }} {% if
+                            record.temperature %}| Temp: {{ record.temperature }}°F{% endif %}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Blood Pressure Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-heart"></i>
+                        Blood Pressure
+                    </div>
+                </div>
+                <div class="chart-container" id="bpChart"></div>
+            </div>
+
+            <!-- Glucose Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-tint"></i>
+                        Blood Glucose
+                    </div>
+                </div>
+                <div class="chart-container" id="glucoseChart"></div>
+            </div>
+
+            <!-- Temperature Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-thermometer-half"></i>
+                        Temperature
+                    </div>
+                </div>
+                <div class="chart-container" id="tempChart"></div>
+            </div>
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="chart-card">
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="empty-title">No Vitals Recorded Yet</div>
+                    <div class="empty-text">Start tracking your health by logging your first vital signs</div>
+                    <a href="{{ url_for('vitals_input') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Log Your First Vitals
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    {% if records %}
+    <script>
+        // Dark theme for Plotly
+        const darkLayout = {
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            font: { color: '#B3B3B3', family: 'Inter' },
+            margin: { t: 20, r: 20, b: 40, l: 50 },
+            xaxis: {
+                gridcolor: '#2A2A2A',
+                linecolor: '#2A2A2A',
+                tickfont: { size: 11 }
+            },
+            yaxis: {
+                gridcolor: '#2A2A2A',
+                linecolor: '#2A2A2A',
+                tickfont: { size: 11 }
+            },
+            showlegend: false
+        };
+
+        const config = { displayModeBar: false, responsive: true };
+
+        // Prepare data from chart_data
+        const dates = {{ chart_data.dates | tojson | safe }};
+        const systolic = {{ chart_data.systolic | tojson | safe }};
+        const diastolic = {{ chart_data.diastolic | tojson | safe }};
+        const glucose = {{ chart_data.glucose | tojson | safe }};
+        const temperature = {{ chart_data.temperature | tojson | safe }};
+
+        // Blood Pressure Chart
+        Plotly.newPlot('bpChart', [
+            {
+                x: dates,
+                y: systolic,
+                name: 'Systolic',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#C4FF0D', width: 2 },
+                marker: { size: 6, color: '#C4FF0D' }
+            },
+            {
+                x: dates,
+                y: diastolic,
+                name: 'Diastolic',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#00D9FF', width: 2 },
+                marker: { size: 6, color: '#00D9FF' }
+            }
+        ], { ...darkLayout, showlegend: true, legend: { x: 0, y: 1.1, orientation: 'h' } }, config);
+
+        // Glucose Chart
+        Plotly.newPlot('glucoseChart', [{
+            x: dates,
+            y: glucose,
+            type: 'scatter',
+            mode: 'lines+markers',
+            fill: 'tozeroy',
+            fillcolor: 'rgba(196, 255, 13, 0.1)',
+            line: { color: '#C4FF0D', width: 2 },
+            marker: { size: 6, color: '#C4FF0D' }
+        }], darkLayout, config);
+
+        // Temperature Chart
+        Plotly.newPlot('tempChart', [{
+            x: dates,
+            y: temperature,
+            type: 'scatter',
+            mode: 'lines+markers',
+            line: { color: '#FF6B35', width: 2 },
+            marker: { size: 6, color: '#FF6B35' }
+        }], darkLayout, config);
+    </script>
+    {% endif %}
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

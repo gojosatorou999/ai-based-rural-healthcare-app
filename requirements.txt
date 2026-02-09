@@ -1,0 +1,27 @@
+# Core Flask dependencies
+flask
+flask-sqlalchemy
+flask-bcrypt
+flask-login
+werkzeug
+
+# Image processing
+pillow
+opencv-python
+numpy
+
+# OCR for prescription reading
+pytesseract
+easyocr
+
+# Data visualization
+plotly
+python-dateutil
+
+# Optional: AI/ML
+tensorflow
+transformers
+
+# Remote access
+pyngrok
+

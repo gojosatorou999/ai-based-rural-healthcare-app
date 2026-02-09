@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Management - Pristin Healthcare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <style>
+        body {
+            background: var(--bg-primary);
+        }
+
+        .page-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .member-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .member-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .member-avatar {
+            width: 48px;
+            height: 48px;
+            background: rgba(196, 255, 13, 0.1);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .member-details h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .member-details p {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .add-form {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .badge-proxy {
+            background: rgba(0, 217, 255, 0.15);
+            color: var(--info);
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="page-header">
+        <div class="container">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <h1 style="font-size: 1.25rem; font-weight: 700;">Family Access</h1>
+                <div style="width: 100px;"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container container-sm">
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <!-- My Family (I manage them) -->
+        <div class="section-card">
+            <div class="card-title">
+                <i class="fas fa-users"></i> Family Members I Manage
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                You can view health records and reports for these family members.
+            </p>
+
+            <div class="member-list">
+                {% for item in family %}
+                <div class="member-item">
+                    <div class="member-info">
+                        <div class="member-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="member-details">
+                            <h3>{{ item.user.username }}</h3>
+                            <p>{{ item.relationship }} • {{ item.user.age }} yrs</p>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('family_view', user_id=item.user.id) }}" class="btn btn-primary btn-sm">
+                        View Dashboard
+                    </a>
+                </div>
+                {% else %}
+                <div style="text-align: center; color: var(--text-tertiary); padding: 1rem;">
+                    No family members added yet.
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Add Family Form -->
+            <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 1rem;">Add Family Member</h4>
+                <form action="{{ url_for('family_add') }}" method="POST" class="add-form">
+                    <input type="hidden" name="action" value="add_member">
+                    <div class="form-group">
+                        <label class="form-label">Their Email Address</label>
+                        <input type="email" name="email" class="form-control" placeholder="relative@example.com"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Relationship to You</label>
+                        <select name="relationship" class="form-control" required>
+                            <option value="Child">Child</option>
+                            <option value="Parent">Parent</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Sibling">Sibling</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-plus"></i> Add Member
+                    </button>
+                    <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.5rem;">
+                        Note: They must already have a Pristin account.
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Who Manages Me -->
+        <div class="section-card">
+            <div class="card-title">
+                <i class="fas fa-shield-alt"></i> Who Can View My Data
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                These people have permission to view your health dashboard.
+            </p>
+
+            <div class="member-list">
+                {% for item in proxies %}
+                <div class="member-item">
+                    <div class="member-info">
+                        <div class="member-avatar" style="background: rgba(0, 217, 255, 0.1); color: var(--info);">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="member-details">
+                            <h3>{{ item.user.username }}</h3>
+                            <p>{{ item.relationship }}</p>
+                        </div>
+                    </div>
+                    <span class="badge-proxy">Has Access</span>
+                </div>
+                {% else %}
+                <div style="text-align: center; color: var(--text-tertiary); padding: 1rem;">
+                    You haven't granted access to anyone.
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Grant Access Form -->
+            <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 1rem;">Grant Access to Someone
+                </h4>
+                <form action="{{ url_for('family_add') }}" method="POST" class="add-form">
+                    <input type="hidden" name="action" value="add_proxy">
+                    <div class="form-group">
+                        <label class="form-label">Their Email Address</label>
+                        <input type="email" name="email" class="form-control" placeholder="parent@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Relationship</label>
+                        <select name="relationship" class="form-control" required>
+                            <option value="Parent">Parent</option>
+                            <option value="Spouse">Spouse</option>
+                            <option value="Child">Child</option>
+                            <option value="Caregiver">Caregiver</option>
+                            <option value="Doctor">Doctor</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-key"></i> Grant Access
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symptom Analysis - Pristin Healthcare</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back</span>
+                </a>
+                <span class="page-title">Health Analysis</span>
+                <div style="width: 48px;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <!-- Your Symptoms -->
+            <div class="result-card">
+                <div class="card-header">
+                    <i class="fas fa-stethoscope"></i>
+                    <span>Your Symptoms</span>
+                </div>
+                <div class="symptom-summary">
+                    <p><strong>Description:</strong> {{ symptoms }}</p>
+                    {% if affected_area %}
+                    <p><strong>Affected Area:</strong> {{ affected_area }}</p>
+                    {% endif %}
+                    <p><strong>Severity:</strong>
+                        <span class="severity-tag severity-{{ severity }}">{{ severity|title }}</span>
+                    </p>
+                    {% if duration %}
+                    <p><strong>Duration:</strong> {{ duration }}</p>
+                    {% endif %}
+                </div>
+                {% if image_path %}
+                <div class="symptom-image">
+                    <img src="{{ image_path }}" alt="Symptom image">
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- AI Analysis -->
+            {% if prediction %}
+            <div class="result-card analysis-card">
+                <div class="card-header">
+                    <i class="fas fa-brain"></i>
+                    <span>AI Health Analysis</span>
+                    {% if confidence_score %}
+                    <span class="confidence-badge">{{ confidence_score }}% Confidence</span>
+                    {% endif %}
+                </div>
+
+                <!-- Urgency Indicator -->
+                {% if prediction.urgency %}
+                <div class="urgency-indicator urgency-{{ prediction.urgency|lower }}">
+                    <i
+                        class="fas fa-{% if prediction.urgency == 'High' %}exclamation-triangle{% elif prediction.urgency == 'Medium' %}info-circle{% else %}check-circle{% endif %}"></i>
+                    <span>{{ prediction.urgency }} Priority</span>
+                </div>
+                {% endif %}
+
+                <div class="disease-prediction">
+                    <div class="disease-name">{{ prediction.disease }}</div>
+                    <p class="disease-description">{{ prediction.description }}</p>
+                </div>
+
+                <!-- Warnings -->
+                {% if prediction.warnings %}
+                <div class="warnings-section">
+                    <div class="info-title"><i class="fas fa-exclamation-circle"></i> Important Warnings</div>
+                    <ul class="warning-list">
+                        {% for warning in prediction.warnings %}
+                        <li><i class="fas fa-exclamation"></i> {{ warning }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- AI Reasoning -->
+                {% if prediction.reasoning %}
+                <div class="info-section reasoning-section">
+                    <div class="info-title"><i class="fas fa-lightbulb"></i> AI Reasoning</div>
+                    <ul class="reasoning-list">
+                        {% for reason in prediction.reasoning %}
+                        <li>{{ reason }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div class="info-section">
+                    <div class="info-title"><i class="fas fa-question-circle"></i> Possible Causes</div>
+                    <p>{{ prediction.causes }}</p>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-title"><i class="fas fa-list"></i> Common Symptoms</div>
+                    <p>{{ prediction.symptoms }}</p>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-title"><i class="fas fa-medkit"></i> Suggested Treatment</div>
+                    <p>{{ prediction.treatment }}</p>
+                </div>
+
+                <!-- Rural Pharmacy Medicines -->
+                {% if prediction.rural_medicines %}
+                <div class="info-section medicines-section">
+                    <div class="info-title"><i class="fas fa-pills"></i> Available at Rural Pharmacy</div>
+                    <div class="medicine-cards">
+                        {% for med in prediction.rural_medicines %}
+                        <div class="medicine-card">
+                            <div class="medicine-name">{{ med.name }}</div>
+                            <div class="medicine-usage">{{ med.usage }}</div>
+                            <div class="medicine-price">{{ med.price }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="doctor-recommendation">
+                    <i class="fas fa-user-md"></i>
+                    <div>
+                        <strong>Recommended Specialist</strong>
+                        <p>{{ prediction.doctor }}</p>
+                    </div>
+                </div>
+
+                <!-- Verification Status -->
+                {% if not prediction.doctor_approved %}
+                <div class="verification-status pending">
+                    <i class="fas fa-clock"></i>
+                    <span>Pending Doctor Verification</span>
+                </div>
+                {% else %}
+                <div class="verification-status verified">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Verified by Doctor</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Disclaimer -->
+            <div class="disclaimer">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>This AI analysis is for informational purposes only and should not replace professional medical
+                    advice. Please consult a qualified healthcare provider for proper diagnosis and treatment.</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{{ url_for('symptom_input') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Report New Symptom
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .card-header i {
+            color: var(--primary);
+        }
+
+        .symptom-summary p {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .severity-tag {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .severity-mild {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .severity-moderate {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .severity-severe {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .symptom-image {
+            margin-top: 1rem;
+        }
+
+        .symptom-image img {
+            width: 100%;
+            border-radius: var(--radius-md);
+        }
+
+        .analysis-card {
+            border-color: rgba(196, 255, 13, 0.3);
+            background: linear-gradient(135deg, var(--bg-card), rgba(196, 255, 13, 0.02));
+        }
+
+        .disease-prediction {
+            background: rgba(196, 255, 13, 0.1);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+        }
+
+        .disease-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .disease-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .info-section {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .info-section:last-of-type {
+            border-bottom: none;
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-title i {
+            color: var(--text-secondary);
+        }
+
+        .info-section p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .doctor-recommendation {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+        }
+
+        .doctor-recommendation i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .doctor-recommendation strong {
+            display: block;
+            color: var(--text-primary);
+        }
+
+        .doctor-recommendation p {
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .disclaimer {
+            display: flex;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: var(--radius-lg);
+            margin-bottom: 1.5rem;
+        }
+
+        .disclaimer i {
+            color: #f59e0b;
+            flex-shrink: 0;
+        }
+
+        .disclaimer p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+
+        /* Confidence Badge */
+        .confidence-badge {
+            margin-left: auto;
+            background: linear-gradient(135deg, var(--primary), #9acd32);
+            color: #0a0a0a;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* Urgency Indicators */
+        .urgency-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .urgency-high {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+        }
+
+        .urgency-medium {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #f59e0b;
+        }
+
+        .urgency-low {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #10b981;
+        }
+
+        /* Warnings Section */
+        .warnings-section {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .warning-list {
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .warning-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #ef4444;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Reasoning Section */
+        .reasoning-section {
+            background: rgba(196, 255, 13, 0.05);
+        }
+
+        .reasoning-list {
+            list-style: disc;
+            padding-left: 1.5rem;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .reasoning-list li {
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Medicine Cards */
+        .medicine-cards {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .medicine-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.75rem;
+        }
+
+        .medicine-name {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .medicine-usage {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .medicine-price {
+            font-size: 0.8rem;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        /* Verification Status */
+        .verification-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            margin-top: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .verification-status.pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .verification-status.verified {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+    </style>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

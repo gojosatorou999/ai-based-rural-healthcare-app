@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHW Dashboard - Pristin Healthcare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <style>
+        body {
+            background: var(--bg-primary);
+        }
+
+        .chw-header {
+            background: linear-gradient(135deg, var(--bg-card), rgba(0, 217, 255, 0.1));
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+        }
+
+        .chw-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 217, 255, 0.15);
+            color: var(--info);
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tool-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .tool-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: var(--glow-green);
+        }
+
+        .tool-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            background: rgba(196, 255, 13, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.75rem;
+        }
+
+        .tool-icon i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .tool-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title i {
+            color: var(--info);
+        }
+
+        .recent-list {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+        }
+
+        .recent-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-pending {
+            background: var(--warning);
+        }
+
+        .status-approved {
+            background: var(--success);
+        }
+
+        .recent-info {
+            flex: 1;
+        }
+
+        .recent-symptoms {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .recent-meta {
+            color: var(--text-tertiary);
+            font-size: 0.75rem;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .quick-action-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            text-align: center;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            transition: all 0.2s ease;
+        }
+
+        .quick-action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-tertiary);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="chw-header">
+        <div class="container">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <h1 style="font-size: 1.5rem; margin-bottom: 0.25rem;">CHW Dashboard</h1>
+                    <span class="chw-badge">
+                        <i class="fas fa-hands-helping"></i>
+                        Community Health Worker
+                    </span>
+                </div>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">
+                    <i class="fas fa-home"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container">
+            <!-- Quick Tools -->
+            <div class="section-title">
+                <i class="fas fa-tools"></i> Quick Screening Tools
+            </div>
+
+            <div class="tools-grid">
+                {% for tool in tools %}
+                <a href="{{ url_for(tool.url) }}" class="tool-card">
+                    <div class="tool-icon">
+                        <i class="fas fa-{{ tool.icon }}"></i>
+                    </div>
+                    <div class="tool-name">{{ tool.name }}</div>
+                </a>
+                {% endfor %}
+            </div>
+
+            <!-- Screening Checklists -->
+            <div class="quick-actions">
+                <a href="{{ url_for('screening_checklist') }}" class="quick-action-btn">
+                    <i class="fas fa-list-check"></i> Maternal Checklist
+                </a>
+                <a href="{{ url_for('screening_checklist') }}" class="quick-action-btn">
+                    <i class="fas fa-baby"></i> Child Health
+                </a>
+                <a href="{{ url_for('screening_checklist') }}" class="quick-action-btn">
+                    <i class="fas fa-notes-medical"></i> General
+                </a>
+            </div>
+
+            <!-- Recent Entries -->
+            <div class="section-title" style="margin-top: 2rem;">
+                <i class="fas fa-history"></i> Recent Patient Entries
+            </div>
+
+            {% if recent_reports %}
+            <div class="recent-list">
+                {% for report in recent_reports %}
+                <div class="recent-item">
+                    <span
+                        class="status-dot {% if report.doctor_approved %}status-approved{% else %}status-pending{% endif %}"></span>
+                    <div class="recent-info">
+                        <div class="recent-symptoms">{{ report.symptoms_text[:40] }}{% if report.symptoms_text|length >
+                            40 %}...{% endif %}</div>
+                        <div class="recent-meta">{{ report.created_at.strftime('%b %d, %H:%M') }} - {% if
+                            report.doctor_approved %}Verified{% else %}Pending{% endif %}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"
+                    style="font-size: 2rem; color: var(--text-muted); margin-bottom: 0.5rem;"></i>
+                <p>No recent entries</p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</body>
+
+</html>

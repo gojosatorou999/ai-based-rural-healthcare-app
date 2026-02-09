@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Report - Pristin Healthcare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <style>
+        body {
+            background: var(--bg-primary);
+        }
+
+        .review-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .review-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        .patient-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .info-item {
+            background: var(--bg-secondary);
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .symptoms-text {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .ai-prediction {
+            background: linear-gradient(135deg, var(--bg-secondary), rgba(196, 255, 13, 0.05));
+            border: 1px solid rgba(196, 255, 13, 0.2);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-top: 1rem;
+        }
+
+        .ai-disease {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .ai-confidence {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(196, 255, 13, 0.15);
+            color: var(--primary);
+            border-radius: var(--radius-full);
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+
+        .approval-form {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+        }
+
+        .form-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-approve {
+            background: var(--success);
+            color: var(--bg-primary);
+        }
+
+        .btn-reject {
+            background: var(--error);
+            color: white;
+        }
+
+        .btn-modify {
+            background: var(--warning);
+            color: var(--bg-primary);
+        }
+
+        .modify-section {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .modify-section.show {
+            display: block;
+        }
+
+        .symptom-image {
+            margin-top: 1rem;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .symptom-image img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+        }
+
+        .warnings-list {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .warnings-list li {
+            color: var(--error);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="review-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-ghost">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+                <span style="font-weight: 600;">Report #{{ report.id }}</span>
+                <div style="width: 100px;"></div>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container container-sm">
+            <!-- Patient Info -->
+            <div class="review-card">
+                <div class="card-title">
+                    <i class="fas fa-user"></i> Patient Information
+                </div>
+                <div class="patient-info">
+                    <div class="info-item">
+                        <div class="info-label">Name</div>
+                        <div class="info-value">{{ patient.username }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Age</div>
+                        <div class="info-value">{{ patient.age or 'Not specified' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Gender</div>
+                        <div class="info-value">{{ patient.gender or 'Not specified' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Conditions</div>
+                        <div class="info-value">{{ patient.existing_conditions or 'None' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Symptom Details -->
+            <div class="review-card">
+                <div class="card-title">
+                    <i class="fas fa-stethoscope"></i> Symptom Report
+                </div>
+                <div class="patient-info" style="margin-bottom: 1rem;">
+                    <div class="info-item">
+                        <div class="info-label">Affected Area</div>
+                        <div class="info-value">{{ report.affected_area or 'Not specified' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Severity</div>
+                        <div class="info-value">{{ report.severity }}/10</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Duration</div>
+                        <div class="info-value">{{ report.duration or 'Not specified' }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Reported</div>
+                        <div class="info-value">{{ report.created_at.strftime('%b %d, %Y %H:%M') }}</div>
+                    </div>
+                </div>
+                <div class="symptoms-text">{{ report.symptoms_text }}</div>
+
+                {% if report.image_path %}
+                <div class="symptom-image">
+                    <img src="{{ url_for('static', filename=report.image_path) }}" alt="Symptom image">
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- AI Analysis -->
+            {% if ai_analysis %}
+            <div class="review-card">
+                <div class="card-title">
+                    <i class="fas fa-brain"></i> AI Analysis
+                </div>
+                <div class="ai-prediction">
+                    <div class="ai-disease">{{ ai_analysis.disease }}</div>
+                    <span class="ai-confidence">{{ (report.confidence_score * 100)|round|int if report.confidence_score
+                        else 70 }}% Confidence</span>
+                    <p style="margin-top: 0.75rem; color: var(--text-secondary);">
+                        {{ ai_analysis.description or 'AI-generated preliminary diagnosis based on reported symptoms.'
+                        }}
+                    </p>
+                </div>
+
+                {% if ai_analysis.warnings %}
+                <ul class="warnings-list">
+                    {% for warning in ai_analysis.warnings %}
+                    <li><i class="fas fa-exclamation-triangle"></i> {{ warning }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+
+                {% if ai_analysis.rural_medicines %}
+                <div style="margin-top: 1rem;">
+                    <div class="info-label">Suggested Rural Medicines</div>
+                    {% for med in ai_analysis.rural_medicines %}
+                    <span class="badge badge-primary" style="margin: 0.25rem;">{{ med.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Approval Form -->
+            <form action="{{ url_for('doctor_approve', report_id=report.id) }}" method="POST" class="approval-form">
+                <div class="form-title">Doctor Verification</div>
+
+                <div class="modify-section" id="modifySection">
+                    <label class="form-label">Modified Diagnosis</label>
+                    <input type="text" name="modified_diagnosis" class="form-control"
+                        placeholder="Enter your diagnosis if different from AI">
+                </div>
+
+                <label class="form-label">Doctor Notes (optional)</label>
+                <textarea name="doctor_notes"
+                    placeholder="Add any notes, observations, or recommendations..."></textarea>
+
+                <div class="action-buttons">
+                    <button type="submit" name="action" value="approve" class="btn btn-approve">
+                        <i class="fas fa-check"></i> Approve AI Diagnosis
+                    </button>
+                    <button type="button" onclick="toggleModify()" class="btn btn-modify">
+                        <i class="fas fa-edit"></i> Modify Diagnosis
+                    </button>
+                    <button type="submit" name="action" value="reject" class="btn btn-reject">
+                        <i class="fas fa-times"></i> Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        function toggleModify() {
+            const section = document.getElementById('modifySection');
+            section.classList.toggle('show');
+            if (section.classList.contains('show')) {
+                section.querySelector('input').focus();
+            }
+        }
+    </script>
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

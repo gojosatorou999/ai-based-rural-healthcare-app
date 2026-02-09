@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A0A0A">
+    <title>AI Recommendation - Pristin Healthcare</title>
+
+    <link rel="manifest" href="/static/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <style>
+        body {
+            background: var(--bg-primary);
+            position: relative;
+        }
+
+        /* Gradient glow background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 20%, rgba(196, 255, 13, 0.12) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            right: -30%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle at 70% 80%, rgba(196, 255, 13, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+
+        .page-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .main-content {
+            padding: 2rem 0;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        .condition-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .condition-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .condition-name {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .confidence-meter {
+            margin: 1.5rem auto;
+            max-width: 300px;
+        }
+
+        .confidence-bar {
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: var(--radius-full);
+            transition: width 0.5s ease;
+        }
+
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .confidence-value {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .confidence-text {
+            color: var(--text-tertiary);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: rgba(255, 184, 0, 0.1);
+            color: var(--warning);
+        }
+
+        .status-approved {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+        }
+
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .section-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .symptoms-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .symptom-tag {
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .medication-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: 0.5rem;
+        }
+
+        .medication-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+
+        .medication-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .disclaimer {
+            background: rgba(255, 184, 0, 0.05);
+            border: 1px solid rgba(255, 184, 0, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+
+        .disclaimer-title {
+            font-weight: 700;
+            color: var(--warning);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .disclaimer-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back</span>
+                </a>
+                <span class="page-title">AI Recommendation</span>
+                <div style="width: 60px;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Condition Card -->
+            <div class="condition-card">
+                <div class="condition-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h1 class="condition-name">{{ recommendation.condition_identified }}</h1>
+
+                <div class="confidence-meter">
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" style="width: {{ recommendation.confidence_score }}%"></div>
+                    </div>
+                    <div class="confidence-label">
+                        <span class="confidence-text">Confidence</span>
+                        <span class="confidence-value">{{ recommendation.confidence_score|round(1) }}%</span>
+                    </div>
+                </div>
+
+                <span
+                    class="status-badge {% if recommendation.status == 'approved' %}status-approved{% else %}status-pending{% endif %}">
+                    <i
+                        class="fas fa-{% if recommendation.status == 'approved' %}check-circle{% else %}clock{% endif %}"></i>
+                    {{ recommendation.status|replace('_', ' ')|title }}
+                </span>
+            </div>
+
+            <!-- Matched Symptoms -->
+            {% if recommendation.symptoms_matched %}
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <div class="section-title">Matched Symptoms</div>
+                </div>
+                <div class="symptoms-list">
+                    {% for symptom in recommendation.symptoms_matched.split(',') %}
+                    <span class="symptom-tag">{{ symptom.strip() }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Reasoning -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <div class="section-title">Why This Recommendation</div>
+                </div>
+                <div class="section-content">
+                    {{ recommendation.reasoning }}
+                </div>
+            </div>
+
+            <!-- Treatment -->
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-stethoscope"></i>
+                    </div>
+                    <div class="section-title">Suggested Treatment</div>
+                </div>
+                <div class="section-content">
+                    {{ recommendation.treatment_suggestion }}
+                </div>
+            </div>
+
+            <!-- Medications -->
+            {% if recommendation.medications %}
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-pills"></i>
+                    </div>
+                    <div class="section-title">Suggested Medications</div>
+                </div>
+                {% for med in recommendation.medications.split(',') %}
+                <div class="medication-item">
+                    <div class="medication-icon">
+                        <i class="fas fa-capsules"></i>
+                    </div>
+                    <span class="medication-name">{{ med.strip() }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Lifestyle -->
+            {% if recommendation.lifestyle_advice %}
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="section-title">Lifestyle Advice</div>
+                </div>
+                <div class="section-content">
+                    {{ recommendation.lifestyle_advice }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Disclaimer -->
+            <div class="disclaimer">
+                <div class="disclaimer-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Important Note
+                </div>
+                <div class="disclaimer-text">
+                    This is an AI-generated recommendation and should not replace professional medical advice. Always
+                    consult a qualified healthcare provider for diagnosis and treatment.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

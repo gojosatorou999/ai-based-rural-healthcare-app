@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A0A0A">
+    <title>Dashboard - Pristin Healthcare</title>
+
+    <link rel="manifest" href="/static/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <style>
+        body {
+            background: var(--bg-primary);
+            overflow-x: hidden;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-primary);
+            font-size: 1.5rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            color: var(--text-secondary);
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--bg-secondary);
+            color: var(--primary);
+        }
+
+        .nav-link i {
+            width: 24px;
+            text-align: center;
+            font-size: 1.25rem;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(196, 255, 13, 0.1);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .user-info h4 {
+            font-size: 0.9rem;
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .user-info p {
+            font-size: 0.75rem;
+            margin: 0;
+            color: var(--text-tertiary);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            max-width: calc(100vw - 280px);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-text h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-text p {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .status-offline {
+            background: rgba(255, 77, 77, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(255, 77, 77, 0.2);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            color: var(--text-tertiary);
+            font-size: 0.9rem;
+        }
+
+        /* Action Grid */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .action-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card:hover {
+            border-color: var(--primary);
+            background: var(--bg-secondary);
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .action-card:hover::before {
+            opacity: 1;
+        }
+
+        .action-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .action-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .action-desc {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            line-height: 1.4;
+        }
+
+        /* Recent Activity */
+        .activity-section {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-color);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .activity-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s ease;
+        }
+
+        .activity-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .activity-icon-box.symptom {
+            background: rgba(255, 184, 0, 0.15);
+            color: var(--warning);
+        }
+
+        .activity-icon-box.vital {
+            background: rgba(0, 217, 255, 0.15);
+            color: var(--info);
+        }
+
+        .activity-icon-box.prescription {
+            background: rgba(196, 255, 13, 0.15);
+            color: var(--primary);
+        }
+
+        .activity-icon-box.recommendation {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--success);
+        }
+
+        .activity-details {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-meta {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+        }
+
+        /* Mobile Styles */
+        .mobile-nav-toggle {
+            display: none;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+                box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+                padding: 1.5rem;
+            }
+
+            .mobile-nav-toggle {
+                display: block;
+                font-size: 1.5rem;
+                color: var(--text-primary);
+                background: none;
+                border: none;
+                cursor: pointer;
+            }
+
+            .dashboard-header {
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <span class="logo-text">Pristin</span>
+        </div>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="nav-link active">
+                <i class="fas fa-home"></i>
+                <span>Overview</span>
+            </a>
+            <a href="{{ url_for('symptom_input') }}" class="nav-link">
+                <i class="fas fa-notes-medical"></i>
+                <span>Symptoms</span>
+            </a>
+            <a href="{{ url_for('vitals_timeline') }}" class="nav-link">
+                <i class="fas fa-heartbeat"></i>
+                <span>Vitals</span>
+            </a>
+            <a href="{{ url_for('prescription_history') }}" class="nav-link">
+                <i class="fas fa-file-prescription"></i>
+                <span>Prescriptions</span>
+            </a>
+            <a href="{{ url_for('family_manage') }}" class="nav-link">
+                <i class="fas fa-users"></i>
+                <span>Family</span>
+            </a>
+            <a href="{{ url_for('pharmacy_map') }}" class="nav-link">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Pharmacy</span>
+            </a>
+            <!-- Video Consult Link -->
+            <a href="{{ url_for('video_start') }}" class="nav-link">
+                <i class="fas fa-video"></i>
+                <span>Consultation</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-info">
+                    <h4>{{ current_user.username }}</h4>
+                    <p>{{ current_user.role|capitalize }}</p>
+                </div>
+                <a href="{{ url_for('logout') }}" style="margin-left: auto; color: var(--error);">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <button class="mobile-nav-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="welcome-text">
+                <h1>Dashboard</h1>
+                <p>Overview of your health metrics</p>
+            </div>
+            <div class="status-badge status-online" id="connectionStatus">
+                <i class="fas fa-wifi"></i>
+                <span>Online</span>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-notes-medical"></i>
+                </div>
+                <div class="stat-value">{{ symptom_count|default(0) }}</div>
+                <div class="stat-label">Symptoms Reports</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="stat-value">{{ vital_count|default(0) }}</div>
+                <div class="stat-label">Vitals Recorded</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-medical"></i>
+                </div>
+                <div class="stat-value">{{ prescription_count|default(0) }}</div>
+                <div class="stat-label">Prescriptions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="stat-value">{{ recommendation_count|default(0) }}</div>
+                <div class="stat-label">AI Insights</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="section-header">
+            <h3>Quick Actions</h3>
+        </div>
+        <div class="actions-grid">
+            <a href="{{ url_for('symptom_input') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="action-title">Report New Symptom</div>
+                <div class="action-desc">Describe how you feel and get instant AI analysis.</div>
+            </a>
+
+            <a href="{{ url_for('vitals_input') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-heart-pulse"></i>
+                </div>
+                <div class="action-title">Log Vital Signs</div>
+                <div class="action-desc">Record BP, Glucose, Temp, etc.</div>
+            </a>
+
+            <a href="{{ url_for('prescription_upload') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+                <div class="action-title">Upload Prescription</div>
+                <div class="action-desc">Digitize your paper prescriptions with OCR.</div>
+            </a>
+
+            <a href="{{ url_for('video_start') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-video"></i>
+                </div>
+                <div class="action-title">Start Video Call</div>
+                <div class="action-desc">Connect with a doctor instantly.</div>
+            </a>
+
+            <a href="{{ url_for('pharmacy_map') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-map"></i>
+                </div>
+                <div class="action-title">Find Pharmacy</div>
+                <div class="action-desc">Locate nearby medicine stores.</div>
+            </a>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section-header">
+            <h3>Recent Activity</h3>
+        </div>
+        <div class="activity-section">
+            {% if recent_activity %}
+            {% for item in recent_activity[:5] %}
+            <div class="activity-item">
+                <div class="activity-icon-box {{ item.type }}">
+                    <i class="fas fa-{{ item.icon }}"></i>
+                </div>
+                <div class="activity-details">
+                    <div class="activity-text">{{ item.text }}</div>
+                    <div class="activity-meta">{{ item.time }}</div>
+                </div>
+                <div style="color: var(--text-tertiary);">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="padding: 3rem; text-align: center; color: var(--text-tertiary);">
+                <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>No activity yet. Start by using the Quick Actions above!</p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebarOverlay"
+        style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none;"
+        onclick="toggleSidebar()"></div>
+
+    <!-- AI Assistant Floating Button -->
+    <a href="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev/" target="_blank"
+        class="floating-ai-btn" title="AI Health Assistant">
+        <i class="fas fa-robot"></i>
+    </a>
+    <style>
+        .floating-ai-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), #9acd32);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0a0a0a;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 20px rgba(196, 255, 13, 0.4);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            animation: pulse-glow 2s infinite;
+        }
+
+        .floating-ai-btn:hover {
+            transform: scale(1.1);
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 20px rgba(196, 255, 13, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 4px 30px rgba(196, 255, 13, 0.7);
+            }
+        }
+    </style>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div id="notification-container" style="position: fixed; top: 2rem; right: 2rem; z-index: 2000; max-width: 400px;">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} slide-down" style="box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
+            <div>{{ message }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('active');
+            overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
+        }
+
+        // Connection status
+        function updateConnectionStatus() {
+            const statusEl = document.getElementById('connectionStatus');
+            if (navigator.onLine) {
+                statusEl.className = 'status-badge status-online';
+                statusEl.innerHTML = '<i class="fas fa-wifi"></i><span>Online</span>';
+            } else {
+                statusEl.className = 'status-badge status-offline';
+                statusEl.innerHTML = '<i class="fas fa-wifi-slash"></i><span>Offline</span>';
+            }
+        }
+
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        updateConnectionStatus();
+
+        // Auto-hide alerts
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/sw.js')
+                .then(r => console.log('SW Registered'))
+                .catch(e => console.log('SW Fail', e));
+        }
+    </script>
+    <script src="/static/js/offline-db.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

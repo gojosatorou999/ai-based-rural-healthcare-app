@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eye Disease Detection</title>
+</head>
+<body>
+    <h2>Eye Disease Detection</h2>
+    <form action="{{ url_for('eye_disease') }}" method="post" enctype="multipart/form-data">
+        <input type="file" name="image" required>
+        <button type="submit">Scan</button>
+    </form>
+
+    {% if image %}
+        <h3>Uploaded Image:</h3>
+        <img src="{{ image }}" alt="Uploaded Image" width="200">
+        <h3>Prediction: {{ result }}</h3>
+    {% elif error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>

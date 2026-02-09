@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A0A0A">
+    <title>Report Symptoms - Pristin Healthcare</title>
+
+    <link rel="manifest" href="/static/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+
+    <style>
+        body {
+            background: var(--bg-primary);
+            position: relative;
+        }
+
+        /* Gradient glow background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 20%, rgba(196, 255, 13, 0.12) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -30%;
+            right: -30%;
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle at 70% 80%, rgba(196, 255, 13, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+
+        .page-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.9375rem;
+        }
+
+        .back-btn:hover {
+            color: var(--primary);
+        }
+
+        .page-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .main-content {
+            padding: 2rem 0;
+        }
+
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .form-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: var(--radius-lg);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+        }
+
+        .severity-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .severity-option {
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .severity-option:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .severity-option input {
+            display: none;
+        }
+
+        .severity-option input:checked+.severity-content {
+            color: var(--primary);
+        }
+
+        .severity-option:has(input:checked) {
+            border-color: var(--primary);
+            background: rgba(196, 255, 13, 0.05);
+        }
+
+        .severity-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .severity-label {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .severity-mild .severity-icon {
+            color: var(--success);
+        }
+
+        .severity-moderate .severity-icon {
+            color: var(--warning);
+        }
+
+        .severity-severe .severity-icon {
+            color: var(--error);
+        }
+
+        .image-upload {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .image-upload:hover {
+            border-color: var(--primary);
+            background: rgba(196, 255, 13, 0.02);
+        }
+
+        .image-upload.has-file {
+            border-color: var(--success);
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.8125rem;
+            color: var(--text-tertiary);
+        }
+
+        .image-preview {
+            max-width: 200px;
+            border-radius: var(--radius-md);
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .submit-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .note-box {
+            background: rgba(196, 255, 13, 0.05);
+            border: 1px solid rgba(196, 255, 13, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .note-box i {
+            color: var(--primary);
+            margin-right: 0.5rem;
+        }
+
+        .note-box p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back</span>
+                </a>
+                <span class="page-title">Report Symptoms</span>
+                <div style="width: 60px;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="form-card">
+                <div class="form-header">
+                    <div class="form-icon">
+                        <i class="fas fa-notes-medical"></i>
+                    </div>
+                    <h1 class="form-title">Describe Your Symptoms</h1>
+                    <p class="form-subtitle">Provide details for accurate AI recommendations</p>
+                </div>
+
+                <form action="{{ url_for('new_symptom_report') }}" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label class="form-label">What symptoms are you experiencing?</label>
+                        <textarea name="symptom_description" class="form-control" rows="4"
+                            placeholder="Describe your symptoms in detail. For example: 'I have had a headache and fever for the past 2 days. The headache is on the right side and gets worse at night.'"
+                            required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Affected Body Area</label>
+                        <select name="affected_area" class="form-control">
+                            <option value="">Select affected area</option>
+                            <option value="head">Head / Face</option>
+                            <option value="chest">Chest</option>
+                            <option value="abdomen">Abdomen / Stomach</option>
+                            <option value="back">Back</option>
+                            <option value="arms">Arms / Hands</option>
+                            <option value="legs">Legs / Feet</option>
+                            <option value="skin">Skin</option>
+                            <option value="general">General / Whole Body</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Severity</label>
+                        <div class="severity-options">
+                            <label class="severity-option severity-mild">
+                                <input type="radio" name="severity" value="mild">
+                                <div class="severity-content">
+                                    <div class="severity-icon">
+                                        <i class="fas fa-smile"></i>
+                                    </div>
+                                    <div class="severity-label">Mild</div>
+                                </div>
+                            </label>
+                            <label class="severity-option severity-moderate">
+                                <input type="radio" name="severity" value="moderate" checked>
+                                <div class="severity-content">
+                                    <div class="severity-icon">
+                                        <i class="fas fa-meh"></i>
+                                    </div>
+                                    <div class="severity-label">Moderate</div>
+                                </div>
+                            </label>
+                            <label class="severity-option severity-severe">
+                                <input type="radio" name="severity" value="severe">
+                                <div class="severity-content">
+                                    <div class="severity-icon">
+                                        <i class="fas fa-frown"></i>
+                                    </div>
+                                    <div class="severity-label">Severe</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">How long have you had these symptoms?</label>
+                        <input type="text" name="duration" class="form-control"
+                            placeholder="e.g., 2 days, 1 week, a few hours">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Upload Photo (Optional)</label>
+
+                        <!-- Upload/Camera Toggle -->
+                        <div class="upload-toggle">
+                            <button type="button" class="toggle-btn active" id="uploadToggle">
+                                <i class="fas fa-upload"></i> Upload
+                            </button>
+                            <button type="button" class="toggle-btn" id="cameraToggle">
+                                <i class="fas fa-camera"></i> Camera
+                            </button>
+                        </div>
+
+                        <!-- File Upload Area -->
+                        <label class="image-upload" id="imageUpload">
+                            <input type="file" name="symptom_image" accept="image/*" hidden id="imageInput">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="upload-text">Tap to upload a photo</div>
+                            <div class="upload-hint">Supports JPG, PNG (max 5MB)</div>
+                            <img class="image-preview" id="imagePreview" alt="Preview">
+                        </label>
+
+                        <!-- Camera Area (hidden by default) -->
+                        <div class="camera-area" id="cameraArea" style="display: none;">
+                            <div class="camera-container">
+                                <video id="cameraVideo" autoplay playsinline></video>
+                                <canvas id="cameraCanvas" style="display: none;"></canvas>
+                                <img class="camera-preview-img" id="cameraPreview" alt="Captured"
+                                    style="display: none;">
+                            </div>
+                            <div class="camera-controls">
+                                <button type="button" class="camera-btn switch-btn" id="switchCamera"
+                                    title="Switch Camera">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                                <button type="button" class="camera-btn capture-btn" id="captureBtn" title="Capture">
+                                    <i class="fas fa-circle"></i>
+                                </button>
+                                <button type="button" class="camera-btn retake-btn" id="retakeBtn"
+                                    style="display: none;" title="Retake">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" name="camera_image" id="cameraImageData">
+                        </div>
+                    </div>
+
+                    <div class="submit-section">
+                        <button type="submit" class="btn btn-primary submit-btn">
+                            <i class="fas fa-paper-plane"></i>
+                            Submit & Get Recommendations
+                        </button>
+
+                        <div class="note-box">
+                            <p><i class="fas fa-info-circle"></i>Your symptoms will be analyzed by our AI system. Always
+                                consult a doctor for serious conditions.</p>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .upload-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--text-tertiary);
+        }
+
+        .toggle-btn.active {
+            border-color: var(--primary);
+            background: rgba(196, 255, 13, 0.05);
+            color: var(--primary);
+        }
+
+        .camera-area {
+            margin-top: 1rem;
+        }
+
+        .camera-container {
+            position: relative;
+            background: #000;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            aspect-ratio: 4/3;
+        }
+
+        .camera-container video,
+        .camera-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-preview-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .camera-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .camera-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+
+        .switch-btn {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .capture-btn {
+            background: var(--primary);
+            color: var(--bg-primary);
+            font-size: 1.5rem;
+            width: 60px;
+            height: 60px;
+        }
+
+        .retake-btn {
+            background: var(--warning);
+            color: var(--bg-primary);
+            font-size: 1rem;
+        }
+    </style>
+
+    <script>
+        // Element references
+        const imageInput = document.getElementById('imageInput');
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        const cameraArea = document.getElementById('cameraArea');
+        const uploadToggle = document.getElementById('uploadToggle');
+        const cameraToggle = document.getElementById('cameraToggle');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraCanvas = document.getElementById('cameraCanvas');
+        const cameraPreview = document.getElementById('cameraPreview');
+        const captureBtn = document.getElementById('captureBtn');
+        const retakeBtn = document.getElementById('retakeBtn');
+        const switchCamera = document.getElementById('switchCamera');
+        const cameraImageData = document.getElementById('cameraImageData');
+
+        let currentStream = null;
+        let facingMode = 'environment';
+
+        // Image upload preview
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                    imageUpload.classList.add('has-file');
+                    cameraImageData.value = '';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Toggle between upload and camera
+        uploadToggle.addEventListener('click', () => {
+            uploadToggle.classList.add('active');
+            cameraToggle.classList.remove('active');
+            imageUpload.style.display = 'flex';
+            cameraArea.style.display = 'none';
+            stopCamera();
+        });
+
+        cameraToggle.addEventListener('click', async () => {
+            cameraToggle.classList.add('active');
+            uploadToggle.classList.remove('active');
+            imageUpload.style.display = 'none';
+            cameraArea.style.display = 'block';
+            await startCamera();
+        });
+
+        async function startCamera() {
+            try {
+                if (currentStream) stopCamera();
+
+                const constraints = {
+                    video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 960 } }
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                cameraVideo.srcObject = currentStream;
+                cameraVideo.style.display = 'block';
+                cameraPreview.style.display = 'none';
+                captureBtn.style.display = 'flex';
+                retakeBtn.style.display = 'none';
+            } catch (err) {
+                console.error('Camera error:', err);
+                alert('Could not access camera. Please use file upload.');
+                uploadToggle.click();
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        switchCamera.addEventListener('click', async () => {
+            facingMode = facingMode === 'environment' ? 'user' : 'environment';
+            await startCamera();
+        });
+
+        captureBtn.addEventListener('click', () => {
+            const context = cameraCanvas.getContext('2d');
+            cameraCanvas.width = cameraVideo.videoWidth;
+            cameraCanvas.height = cameraVideo.videoHeight;
+            context.drawImage(cameraVideo, 0, 0);
+
+            const imageData = cameraCanvas.toDataURL('image/jpeg', 0.85);
+            cameraPreview.src = imageData;
+            cameraImageData.value = imageData;
+
+            cameraVideo.style.display = 'none';
+            cameraPreview.style.display = 'block';
+            captureBtn.style.display = 'none';
+            retakeBtn.style.display = 'flex';
+
+            imageInput.value = '';
+            imagePreview.style.display = 'none';
+            imageUpload.classList.remove('has-file');
+        });
+
+        retakeBtn.addEventListener('click', async () => {
+            cameraImageData.value = '';
+            await startCamera();
+        });
+
+        window.addEventListener('beforeunload', () => stopCamera());
+    </script>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Eye Scan</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #f4f4f4;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        input[type="file"] {
+            margin: 10px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+        .result {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Upload Eye Image for AI Analysis</h2>
+
+        <form action="/eye_scan" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" accept="image/*" required>
+            <br>
+            <button type="submit">Upload & Analyze</button>
+        </form>
+
+        {% if image_url %}
+            <h3>Uploaded Image:</h3>
+            <img src="{{ image_url }}" alt="Uploaded Image">
+        {% endif %}
+
+        {% if result %}
+            <div class="result">
+                <p>Analysis Result: {{ result }}</p>
+            </div>
+        {% endif %}
+    </div>
+
+</body>
+</html>

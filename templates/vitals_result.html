@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitals Analysis - Pristin Healthcare</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="{{ url_for('dashboard') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back</span>
+                </a>
+                <span class="page-title">Vitals Analysis</span>
+                <div style="width: 48px;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <!-- Vitals Summary -->
+            <div class="result-card">
+                <div class="card-header">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Your Recorded Vitals</span>
+                </div>
+                <div class="vitals-grid">
+                    {% if vitals.blood_pressure_systolic and vitals.blood_pressure_diastolic %}
+                    <div class="vital-item">
+                        <div class="vital-icon"><i class="fas fa-tint"></i></div>
+                        <div class="vital-label">Blood Pressure</div>
+                        <div class="vital-value">{{ vitals.blood_pressure_systolic }}/{{ vitals.blood_pressure_diastolic
+                            }} mmHg</div>
+                    </div>
+                    {% endif %}
+
+                    {% if vitals.heart_rate %}
+                    <div class="vital-item">
+                        <div class="vital-icon"><i class="fas fa-heart"></i></div>
+                        <div class="vital-label">Heart Rate</div>
+                        <div class="vital-value">{{ vitals.heart_rate }} bpm</div>
+                    </div>
+                    {% endif %}
+
+                    {% if vitals.blood_glucose %}
+                    <div class="vital-item">
+                        <div class="vital-icon"><i class="fas fa-candy-cane"></i></div>
+                        <div class="vital-label">Blood Glucose</div>
+                        <div class="vital-value">{{ vitals.blood_glucose }} mg/dL</div>
+                    </div>
+                    {% endif %}
+
+                    {% if vitals.temperature %}
+                    <div class="vital-item">
+                        <div class="vital-icon"><i class="fas fa-thermometer-half"></i></div>
+                        <div class="vital-label">Temperature</div>
+                        <div class="vital-value">{{ vitals.temperature }}°F</div>
+                    </div>
+                    {% endif %}
+
+                    {% if vitals.oxygen_saturation %}
+                    <div class="vital-item">
+                        <div class="vital-icon"><i class="fas fa-lungs"></i></div>
+                        <div class="vital-label">Oxygen Saturation</div>
+                        <div class="vital-value">{{ vitals.oxygen_saturation }}%</div>
+                    </div>
+                    {% endif %}
+
+                    {% if vitals.weight %}
+                    <div class="vital-item">
+                        <div class="vital-icon"><i class="fas fa-weight"></i></div>
+                        <div class="vital-label">Weight</div>
+                        <div class="vital-value">{{ vitals.weight }} kg</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Analysis Results -->
+            {% if analysis %}
+            <div class="result-card analysis-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Health Analysis</span>
+                </div>
+
+                <!-- Overall Status -->
+                <div class="status-banner status-{{ analysis.overall_status|default('normal') }}">
+                    {% if analysis.overall_status == 'warning' %}
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Some values need attention</span>
+                    {% elif analysis.overall_status == 'critical' %}
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>Please consult a doctor soon</span>
+                    {% else %}
+                    <i class="fas fa-check-circle"></i>
+                    <span>Your vitals look healthy!</span>
+                    {% endif %}
+                </div>
+
+                <!-- Findings -->
+                {% if analysis.findings %}
+                <div class="findings-list">
+                    {% for finding in analysis.findings %}
+                    <div class="finding-item finding-{{ finding.status|default('info') }}">
+                        <div class="finding-icon">
+                            {% if finding.status == 'warning' %}
+                            <i class="fas fa-exclamation-triangle"></i>
+                            {% elif finding.status == 'critical' %}
+                            <i class="fas fa-exclamation-circle"></i>
+                            {% else %}
+                            <i class="fas fa-info-circle"></i>
+                            {% endif %}
+                        </div>
+                        <div class="finding-content">
+                            <div class="finding-title">{{ finding.vital }}</div>
+                            <div class="finding-message">{{ finding.message }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Recommendations -->
+                {% if analysis.recommendations %}
+                <div class="recommendations">
+                    <div class="rec-title"><i class="fas fa-lightbulb"></i> Recommendations</div>
+                    <ul>
+                        {% for rec in analysis.recommendations %}
+                        <li>{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Notes -->
+            {% if vitals.notes %}
+            <div class="result-card">
+                <div class="card-header">
+                    <i class="fas fa-sticky-note"></i>
+                    <span>Your Notes</span>
+                </div>
+                <p class="notes-text">{{ vitals.notes }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{{ url_for('vitals_input') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Log More Vitals
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-home"></i>
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .result-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .card-header i {
+            color: var(--primary);
+        }
+
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .vital-item {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .vital-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .vital-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+        }
+
+        .vital-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .analysis-card {
+            border-color: rgba(196, 255, 13, 0.3);
+        }
+
+        .status-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .status-normal {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+
+        .status-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+        }
+
+        .status-critical {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+
+        .findings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .finding-item {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            background: var(--bg-secondary);
+        }
+
+        .finding-warning {
+            border-left: 3px solid #f59e0b;
+        }
+
+        .finding-critical {
+            border-left: 3px solid #ef4444;
+        }
+
+        .finding-info {
+            border-left: 3px solid var(--primary);
+        }
+
+        .finding-icon {
+            flex-shrink: 0;
+        }
+
+        .finding-warning .finding-icon {
+            color: #f59e0b;
+        }
+
+        .finding-critical .finding-icon {
+            color: #ef4444;
+        }
+
+        .finding-info .finding-icon {
+            color: var(--primary);
+        }
+
+        .finding-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .finding-message {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .recommendations {
+            background: rgba(196, 255, 13, 0.05);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--primary);
+        }
+
+        .rec-title {
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendations ul {
+            margin: 0;
+            padding-left: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .recommendations li {
+            margin-bottom: 0.25rem;
+        }
+
+        .notes-text {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #10b981;
+        }
+    </style>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>
