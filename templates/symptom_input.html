@@ -5,7 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0A0A0A">
+    <meta name="description" content="Report your symptoms and get AI-assisted health guidance on Pristin Healthcare.">
     <title>Report Symptoms - Pristin Healthcare</title>
+    <script>
+        // Apply theme early to prevent flash
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 
     <link rel="manifest" href="/static/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -253,15 +259,19 @@
 </head>
 
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
+        style="position: fixed; top: 1rem; right: 1rem; z-index: 2000;">
+        <i class="fas fa-moon"></i>
+    </button>
     <!-- Header -->
     <header class="page-header">
         <div class="container">
             <div class="header-content">
                 <a href="{{ url_for('dashboard') }}" class="back-btn">
                     <i class="fas fa-arrow-left"></i>
-                    <span>Back</span>
+                    <span>{{ 'Back' | translate }}</span>
                 </a>
-                <span class="page-title">Report Symptoms</span>
+                <span class="page-title">{{ 'Report Symptoms' | translate }}</span>
                 <div style="width: 60px;"></div>
             </div>
         </div>
@@ -275,35 +285,46 @@
                     <div class="form-icon">
                         <i class="fas fa-notes-medical"></i>
                     </div>
-                    <h1 class="form-title">Describe Your Symptoms</h1>
-                    <p class="form-subtitle">Provide details for accurate AI recommendations</p>
+                    <h1 class="form-title">{{ 'Describe Your Symptoms' | translate }}</h1>
+                    <p class="form-subtitle">{{ 'Provide details for accurate AI recommendations' | translate }}</p>
                 </div>
 
                 <form action="{{ url_for('new_symptom_report') }}" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label class="form-label">What symptoms are you experiencing?</label>
-                        <textarea name="symptom_description" class="form-control" rows="4"
-                            placeholder="Describe your symptoms in detail. For example: 'I have had a headache and fever for the past 2 days. The headache is on the right side and gets worse at night.'"
-                            required></textarea>
+                        <label class="form-label"
+                            style="display: flex; justify-content: space-between; align-items: center;">
+                            {{ 'What symptoms are you experiencing?' | translate }}
+                            <button type="button" class="btn btn-sm btn-ghost" id="micBtn"
+                                style="padding: 0.25rem 0.5rem; color: var(--primary);"
+                                title="{{ 'Speak in your language' | translate }}">
+                                <i class="fas fa-microphone"></i> {{ 'Voice' | translate }}
+                            </button>
+                        </label>
+                        <textarea name="symptom_description" id="symptomDescription" class="form-control" rows="4"
+                            placeholder="{{ 'Describe your symptoms in detail...' | translate }}" required></textarea>
+                        <div id="micStatus"
+                            style="font-size: 0.75rem; color: var(--primary); margin-top: 0.25rem; display: none;">
+                            <i class="fas fa-circle-notch fa-spin"></i> <span id="micStatusText">Listening...</span>
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Affected Body Area</label>
+                        <label class="form-label">{{ 'Affected Body Area' | translate }}</label>
                         <select name="affected_area" class="form-control">
-                            <option value="">Select affected area</option>
-                            <option value="head">Head / Face</option>
-                            <option value="chest">Chest</option>
-                            <option value="abdomen">Abdomen / Stomach</option>
-                            <option value="back">Back</option>
-                            <option value="arms">Arms / Hands</option>
-                            <option value="legs">Legs / Feet</option>
-                            <option value="skin">Skin</option>
-                            <option value="general">General / Whole Body</option>
+                            <option value="">{{ 'Select affected area' | translate }}</option>
+                            <option value="head">{{ 'Head / Face' | translate }}</option>
+                            <option value="chest">{{ 'Chest' | translate }}</option>
+                            <option value="abdomen">{{ 'Abdomen / Stomach' | translate }}</option>
+                            <option value="back">{{ 'Back' | translate }}</option>
+                            <option value="arms">{{ 'Arms / Hands' | translate }}</option>
+                            <option value="legs">{{ 'Legs / Feet' | translate }}</option>
+                            <option value="skin">{{ 'Skin' | translate }}</option>
+                            <option value="general">{{ 'General / Whole Body' | translate }}</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Severity</label>
+                        <label class="form-label">{{ 'Severity' | translate }}</label>
                         <div class="severity-options">
                             <label class="severity-option severity-mild">
                                 <input type="radio" name="severity" value="mild">
@@ -311,7 +332,7 @@
                                     <div class="severity-icon">
                                         <i class="fas fa-smile"></i>
                                     </div>
-                                    <div class="severity-label">Mild</div>
+                                    <div class="severity-label">{{ 'Mild' | translate }}</div>
                                 </div>
                             </label>
                             <label class="severity-option severity-moderate">
@@ -320,7 +341,7 @@
                                     <div class="severity-icon">
                                         <i class="fas fa-meh"></i>
                                     </div>
-                                    <div class="severity-label">Moderate</div>
+                                    <div class="severity-label">{{ 'Moderate' | translate }}</div>
                                 </div>
                             </label>
                             <label class="severity-option severity-severe">
@@ -329,28 +350,28 @@
                                     <div class="severity-icon">
                                         <i class="fas fa-frown"></i>
                                     </div>
-                                    <div class="severity-label">Severe</div>
+                                    <div class="severity-label">{{ 'Severe' | translate }}</div>
                                 </div>
                             </label>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">How long have you had these symptoms?</label>
+                        <label class="form-label">{{ 'How long have you had these symptoms?' | translate }}</label>
                         <input type="text" name="duration" class="form-control"
-                            placeholder="e.g., 2 days, 1 week, a few hours">
+                            placeholder="{{ 'e.g., 2 days, 1 week' | translate }}">
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Upload Photo (Optional)</label>
+                        <label class="form-label">{{ 'Upload Photo (Optional)' | translate }}</label>
 
                         <!-- Upload/Camera Toggle -->
                         <div class="upload-toggle">
                             <button type="button" class="toggle-btn active" id="uploadToggle">
-                                <i class="fas fa-upload"></i> Upload
+                                <i class="fas fa-upload"></i> {{ 'Upload' | translate }}
                             </button>
                             <button type="button" class="toggle-btn" id="cameraToggle">
-                                <i class="fas fa-camera"></i> Camera
+                                <i class="fas fa-camera"></i> {{ 'Camera' | translate }}
                             </button>
                         </div>
 
@@ -360,8 +381,8 @@
                             <div class="upload-icon">
                                 <i class="fas fa-cloud-upload-alt"></i>
                             </div>
-                            <div class="upload-text">Tap to upload a photo</div>
-                            <div class="upload-hint">Supports JPG, PNG (max 5MB)</div>
+                            <div class="upload-text">{{ 'Tap to upload a photo' | translate }}</div>
+                            <div class="upload-hint">{{ 'Supports JPG, PNG (max 5MB)' | translate }}</div>
                             <img class="image-preview" id="imagePreview" alt="Preview">
                         </label>
 
@@ -393,12 +414,12 @@
                     <div class="submit-section">
                         <button type="submit" class="btn btn-primary submit-btn">
                             <i class="fas fa-paper-plane"></i>
-                            Submit & Get Recommendations
+                            {{ 'Submit & Get Recommendations' | translate }}
                         </button>
 
                         <div class="note-box">
-                            <p><i class="fas fa-info-circle"></i>Your symptoms will be analyzed by our AI system. Always
-                                consult a doctor for serious conditions.</p>
+                            <p><i class="fas fa-info-circle"></i>{{ 'Your symptoms will be analyzed by our AI system.
+                                Always consult a doctor for serious conditions.' | translate }}</p>
                         </div>
                     </div>
                 </form>
@@ -613,6 +634,83 @@
             cameraImageData.value = '';
             await startCamera();
         });
+
+        // Speech to Text Logic
+        const micBtn = document.getElementById('micBtn');
+        const micStatus = document.getElementById('micStatus');
+        const micStatusText = document.getElementById('micStatusText');
+        const symptomDescription = document.getElementById('symptomDescription');
+        const userPreferredLang = "{{ current_user.preferred_language }}".toLowerCase();
+
+        const langMap = {
+            'english': 'en-US',
+            'hindi': 'hi-IN',
+            'telugu': 'te-IN',
+            'tamil': 'ta-IN',
+            'bengali': 'bn-IN',
+            'marathi': 'mr-IN'
+        };
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = langMap[userPreferredLang] || 'en-US';
+
+            micBtn.addEventListener('click', () => {
+                try {
+                    recognition.start();
+                    micBtn.style.color = '#ff4d4d'; // Red while listening
+                    micStatus.style.display = 'block';
+                    micStatusText.innerText = 'Listening (speak in ' + userPreferredLang + ')...';
+                } catch (e) {
+                    console.error('Speech recognition error:', e);
+                }
+            });
+
+            recognition.onresult = async (event) => {
+                const transcript = event.results[0][0].transcript;
+                micBtn.style.color = '';
+                micStatusText.innerText = 'Translating...';
+
+                // If not English, translate to English
+                if (userPreferredLang !== 'english') {
+                    try {
+                        const response = await fetch('/api/translate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: transcript, target_lang: 'en' })
+                        });
+                        const data = await response.json();
+                        symptomDescription.value += (symptomDescription.value ? '\n' : '') + data.translated_text;
+                    } catch (err) {
+                        console.error('Translation error:', err);
+                        symptomDescription.value += (symptomDescription.value ? '\n' : '') + transcript;
+                    }
+                } else {
+                    symptomDescription.value += (symptomDescription.value ? '\n' : '') + transcript;
+                }
+
+                micStatus.style.display = 'none';
+            };
+
+            recognition.onerror = (event) => {
+                micBtn.style.color = '';
+                micStatus.style.display = 'none';
+                console.error('Recognition error:', event.error);
+            };
+
+            recognition.onend = () => {
+                micBtn.style.color = '';
+                if (micStatusText.innerText === 'Listening...') {
+                    micStatus.style.display = 'none';
+                }
+            };
+        } else {
+            micBtn.style.display = 'none';
+        }
 
         window.addEventListener('beforeunload', () => stopCamera());
     </script>

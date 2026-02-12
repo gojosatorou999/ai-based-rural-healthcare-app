@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nearby Pharmacies - Pristin Healthcare</title>
+    <title>{{ 'Nearby Pharmacies' | translate }} - Pristin Healthcare</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -137,10 +137,11 @@
         <div class="container">
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    <i class="fas fa-arrow-left"></i> {{ 'Back to Dashboard' | translate }}
                 </a>
                 <h1 style="font-size: 1.125rem; font-weight: 700;">
-                    <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i> Nearby Pharmacies
+                    <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i> {{ 'Nearby Pharmacies' |
+                    translate }}
                 </h1>
                 <div style="width: 100px;"></div>
             </div>
@@ -149,7 +150,17 @@
 
     <div id="map"></div>
 
-    <button class="locate-btn" onclick="locateUser()" title="My Location">
+    <!-- Search Controls -->
+    <div
+        style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; z-index: 1000; display: flex; gap: 0.5rem; background: var(--bg-card); padding: 0.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <input type="text" id="locationSearch" placeholder="{{ 'Search for a location' | translate }}"
+            style="flex: 1; background: transparent; border: none; color: var(--text-primary); outline: none; padding: 0.5rem;">
+        <button onclick="searchLocation()" class="btn btn-primary" style="padding: 0.5rem 1rem;">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+
+    <button class="locate-btn" onclick="locateUser()" title="{{ 'My Location' | translate }}">
         <i class="fas fa-crosshairs"></i>
     </button>
 
@@ -163,11 +174,17 @@
             </div>
             <div class="pharmacy-stock">
                 {% for item in pharmacy.stock %}
-                <span class="stock-badge">{{ item }}</span>
+                <span class="stock-badge">{{ item | translate }}</span>
                 {% endfor %}
             </div>
         </div>
         {% endfor %}
+        {% if not pharmacies %}
+        <div class="pharmacy-card" style="pointer-events: none;">
+            <div class="pharmacy-name">{{ 'No Pharmacies Found' | translate }}</div>
+            <div class="pharmacy-info">{{ 'No pharmacies are mapped to this area yet.' | translate }}</div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Leaflet JS -->
@@ -176,7 +193,8 @@
 
     <script>
         // Initialize map
-        const map = L.map('map').setView([28.6139, 77.2090], 13); // Default to New Delhi
+        // Default to a central point in India if nothing else works
+        const map = L.map('map').setView([20.5937, 78.9629], 5);
 
         // Dark Mode Map Tiles (CartoDB Dark Matter)
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -185,7 +203,7 @@
             maxZoom: 20
         }).addTo(map);
 
-        // Custom Icon
+        // Custom Icons
         const pharmacyIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
@@ -205,19 +223,28 @@
         });
 
         // Store markers
-        const markers = {};
+        let markers = {};
         let userMarker = null;
 
         // Pharmacy Data
         const pharmacies = {{ pharmacies| tojson }};
 
-        function initMap(lat, lng) {
-            map.setView([lat, lng], 14);
+        // Translated messages
+        const MSG_YOU_ARE_HERE = "<b>{{ 'You are here' | translate }}</b>";
+        const MSG_LOC_ERROR = "{{ 'Could not pull location. Using default.' | translate }}";
+        const MSG_NO_GEO = "{{ 'Geolocation is not supported by this browser.' | translate }}";
+
+        function initMap(lat, lng, zoom = 14) {
+            map.flyTo([lat, lng], zoom);
 
             // Add User Marker
             if (userMarker) map.removeLayer(userMarker);
             userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map)
-                .bindPopup("<b>You are here</b>").openPopup();
+                .bindPopup(MSG_YOU_ARE_HERE).openPopup();
+
+            // Clear old pharmacy markers
+            Object.values(markers).forEach(m => map.removeLayer(m.marker));
+            markers = {};
 
             // Add Pharmacy Markers based on offsets
             pharmacies.forEach(p => {
@@ -229,6 +256,25 @@
             });
         }
 
+        async function searchLocation() {
+            const query = document.getElementById('locationSearch').value;
+            if (!query) return;
+
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    const { lat, lon } = data[0];
+                    initMap(parseFloat(lat), parseFloat(lon));
+                } else {
+                    alert("Location not found.");
+                }
+            } catch (error) {
+                console.error("Search error:", error);
+                alert("Error searching for location.");
+            }
+        }
+
         function locateUser() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
@@ -238,14 +284,16 @@
                     },
                     (error) => {
                         console.error("Geolocation error:", error);
-                        alert("Could not pull location. Using default.");
-                        // Fallback to default
-                        initMap(28.6139, 77.2090);
-                    }
+                        // If user is in India, default to a better fallback if geolocation fails
+                        // New Delhi: 28.6139, 77.2090
+                        initMap(28.6139, 77.2090, 12);
+                        alert(MSG_LOC_ERROR);
+                    },
+                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
                 );
             } else {
-                alert("Geolocation is not supported by this browser.");
-                initMap(28.6139, 77.2090);
+                alert(MSG_NO_GEO);
+                initMap(28.6139, 77.2090, 12);
             }
         }
 
@@ -256,6 +304,11 @@
                 data.marker.openPopup();
             }
         }
+
+        // Handle Enter key for search
+        document.getElementById('locationSearch').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchLocation();
+        });
 
         // Start by locating user
         locateUser();

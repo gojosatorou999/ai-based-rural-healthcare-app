@@ -9,9 +9,10 @@ import cv2
 import base64
 import io
 from PIL import Image
+import logging
+import re
 import random
 import numpy as np
-import logging
 try:
     from tensorflow.keras.models import load_model
     from tensorflow.keras.preprocessing import image
@@ -28,8 +29,13 @@ from pyngrok import ngrok
 #---------------------------------------
 
 #-------------load_model()---------------------
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 app = Flask(__name__)
-app.secret_key = "ab5ea52cfbef6fcf789ce562369e183338e01c138e1b0cb3c1d63d7dc112f073"
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "default-secret-key-for-dev-only")
 
 
 # Allowed image extensions
@@ -73,6 +79,90 @@ try:
 except Exception as e:
     logging.error(f"⚠️ Error loading AI model: {e}")
 
+# ========== MULTILINGUAL SUPPORT (PHASE 4) ==========
+try:
+    from translation_service import get_ui_translation, translate_text, LANGUAGES
+    TRANSLATION_ENABLED = True
+except ImportError:
+    logging.warning("Translation service not found. Multilingual features disabled.")
+    TRANSLATION_ENABLED = False
+    LANGUAGES = {'en': 'English'}
+    def get_ui_translation(text, lang): return text
+    def translate_text(text, lang): return text
+
+# ========== WHATSAPP INTEGRATION (PHASE 3) ==========
+try:
+    from whatsapp_service import (
+        send_whatsapp_message, 
+        send_health_alert, 
+        send_doctor_notification, 
+        send_patient_report
+    )
+    WHATSAPP_ENABLED = True
+except ImportError:
+    logging.warning("WhatsApp service not found. Messaging features disabled.")
+    WHATSAPP_ENABLED = False
+    
+try:
+    from chatbot_service import get_ai_response, get_medical_analysis
+    HAS_CHATBOT = True
+except ImportError:
+    HAS_CHATBOT = False
+    def get_ai_response(msg, lang='english'): return "AI Chat offline."
+    def get_medical_analysis(symptom, age=None, gender=None, cond=None, severity=5, affected_area=None): return None
+
+@app.context_processor
+def inject_languages():
+    """Inject available languages into all templates"""
+    return dict(LANGUAGES=LANGUAGES)
+
+@app.template_filter('translate')
+def translate_filter(text):
+    """Template filter for translating UI text"""
+    if not text:
+        return ""
+    if not current_user.is_authenticated:
+        return text
+    
+    # Map 'english' (from DB default) to 'en' code
+    lang_map = {
+        'english': 'en', 'hindi': 'hi', 'telugu': 'te', 
+        'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr'
+    }
+    user_lang = lang_map.get(current_user.preferred_language.lower(), 'en')
+    
+    return get_ui_translation(text, user_lang)
+
+@app.template_filter('translate_content')
+def translate_content_filter(text):
+    """Template filter for dynamic content like symptoms"""
+    if not text:
+        return ""
+    if not current_user.is_authenticated:
+        return text
+        
+    lang_map = {
+        'english': 'en', 'hindi': 'hi', 'telugu': 'te', 
+        'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr'
+    }
+    user_lang = lang_map.get(current_user.preferred_language.lower(), 'en')
+    
+    if user_lang == 'en':
+        return text
+        
+    return translate_text(text, user_lang)
+
+def doctor_required(f):
+    """Decorator for routes that require doctor or CHW role"""
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role not in ['doctor', 'chw']:
+            flash('Access denied. Doctor or CHW role required.', 'error')
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # User model
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -83,6 +173,13 @@ class User(db.Model, UserMixin):
     gender = db.Column(db.String(20), nullable=True)
     existing_conditions = db.Column(db.Text, nullable=True)  # Comma-separated conditions
     role = db.Column(db.String(20), default='patient')  # patient, doctor, chw (community health worker)
+    
+    # WhatsApp Integration (Phase 3)
+    whatsapp_number = db.Column(db.String(20), nullable=True)  # Format: +91XXXXXXXXXX
+    family_whatsapp = db.Column(db.String(20), nullable=True)  # Emergency contact WhatsApp
+    
+    # Multilingual Support (Phase 4)
+    preferred_language = db.Column(db.String(10), default='english')  # english, hindi, telugu, tamil, bengali, marathi
     
     # Relationships
     symptom_reports = db.relationship('SymptomReport', backref='user', lazy=True, foreign_keys='SymptomReport.user_id')
@@ -158,6 +255,18 @@ class VitalRecord(db.Model):
     alert_level = db.Column(db.String(20), default='normal')  # normal, warning, critical
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# Video Consultation Records
+class VideoConsultation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    room_id = db.Column(db.String(50), unique=True, nullable=False)
+    initiator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    participant_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # The other person who joins
+    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ended_at = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.String(20), default='initiated') # initiated, ongoing, completed
+    notes = db.Column(db.Text, nullable=True)
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -224,6 +333,14 @@ def login():
                 
         flash('Invalid email or password.', 'danger')
     return render_template('login.html')
+    
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('home'))
+
 
 @app.route('/dashboard')
 @login_required
@@ -233,15 +350,48 @@ def dashboard():
         return redirect(url_for('doctor_dashboard'))
     elif current_user.role == 'chw':
         return redirect(url_for('chw_dashboard'))
+    
+    # Get counts for dashboard stats
+    symptom_count = SymptomReport.query.filter_by(user_id=current_user.id).count()
+    vital_count = VitalRecord.query.filter_by(user_id=current_user.id).count()
+    prescription_count = Prescription.query.filter_by(user_id=current_user.id).count()
+    recommendation_count = SymptomReport.query.filter_by(user_id=current_user.id, doctor_approved=True).count()
+    
+    # Get recent activity
+    recent_symptoms = SymptomReport.query.filter_by(user_id=current_user.id).order_by(SymptomReport.created_at.desc()).limit(3).all()
+    recent_vitals = VitalRecord.query.filter_by(user_id=current_user.id).order_by(VitalRecord.created_at.desc()).limit(2).all()
+    
+    recent_activity = []
+    for symptom in recent_symptoms:
+        recent_activity.append({
+            'type': 'symptom',
+            'icon': 'notes-medical',
+            'label': 'Reported',
+            'value': f': {symptom.symptoms_text[:50]}...' if len(symptom.symptoms_text) > 50 else f': {symptom.symptoms_text}',
+            'time': symptom.created_at.strftime('%b %d, %Y')
+        })
+    
+    for vital in recent_vitals:
+        val = f' - BP: {vital.bp_systolic}/{vital.bp_diastolic}' if vital.bp_systolic else ''
+        recent_activity.append({
+            'type': 'vital',
+            'icon': 'heartbeat',
+            'label': 'Vitals Recorded',
+            'value': val,
+            'time': vital.created_at.strftime('%b %d, %Y')
+        })
+    
+    # Sort by time (most recent first)
+    recent_activity.sort(key=lambda x: x['time'], reverse=True)
         
-    return render_template('dashboard.html', user=current_user)
+    return render_template('dashboard.html', 
+                         user=current_user,
+                         symptom_count=symptom_count,
+                         vital_count=vital_count,
+                         prescription_count=prescription_count,
+                         recommendation_count=recommendation_count,
+                         recent_activity=recent_activity[:5])
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('home'))
 
 
 
@@ -260,8 +410,16 @@ def check_symptoms():
         if not symptoms:
             return jsonify({"error": "No symptoms provided. Please enter your symptoms."}), 400
 
-        # AI model prediction (Replace with actual AI function)
-        ai_response = predict_disease(symptoms)
+        # AI model prediction with context if authenticated
+        age = current_user.age if current_user.is_authenticated else None
+        gender = current_user.gender if current_user.is_authenticated else None
+        conditions = current_user.existing_conditions if current_user.is_authenticated else None
+        
+        # New context fields
+        severity = data.get("severity", 5)
+        affected_area = data.get("affected_area", None)
+        
+        ai_response = predict_disease(symptoms, age=age, gender=gender, conditions=conditions, severity=severity, affected_area=affected_area)
 
         # Check if the model returned valid data
         if not ai_response or "error" in ai_response:
@@ -288,9 +446,17 @@ def symptom_checker():
 
 
 
-def predict_disease(symptoms):
+def predict_disease(symptoms, age=None, gender=None, conditions=None, severity=5, affected_area=None):
+    """
+    Predict disease using Gemini AI if available, else use keyword matching.
+    """
+    if HAS_CHATBOT:
+        analysis = get_medical_analysis(symptoms, age, gender, conditions, severity, affected_area)
+        if analysis and isinstance(analysis, dict) and 'disease' in analysis:
+            return analysis
+
+    # Fallback to keyword matching (original logic)
     symptoms = symptoms.lower()
-    # Mock AI prediction logic (replace with real AI model)
     if "fever" in symptoms:
         return {
             "disease": "Flu",
@@ -1074,8 +1240,15 @@ def predict_disease_with_context(symptoms, age=None, gender=None, existing_condi
     Enhanced disease prediction that considers patient context.
     Returns prediction with reasoning and rural medicine suggestions.
     """
-    # Get base prediction
-    base_prediction = predict_disease(symptoms)
+    # Get base prediction with context
+    base_prediction = predict_disease(
+        symptoms, 
+        age=age, 
+        gender=gender, 
+        conditions=existing_conditions,
+        severity=severity,
+        affected_area=affected_area
+    )
     
     # Add context-based adjustments and reasoning
     reasoning = []
@@ -1185,7 +1358,178 @@ def image_diagnosis():
         return jsonify({"error": "Failed to process the image. Please try again later."}), 500
 
 
-@app.route('/upload_eye_image', methods=['POST'])
+@app.route('/facial_scan')
+@login_required
+def facial_scan():
+    """Diagnostic facial scanning interface"""
+    return render_template('facial_scan.html')
+
+@app.route('/api/facial_scan', methods=['POST'])
+@login_required
+def api_facial_scan():
+    """Analyze facial image for health indicators (Anemia, Jaundice)"""
+    data = request.get_json()
+    image_data = data.get('image')
+    
+    if not image_data:
+        return jsonify({'error': 'No image data provided'}), 400
+        
+    try:
+        # Decode base64 image
+        if ',' in image_data:
+            image_data = image_data.split(',')[1]
+        
+        nparr = np.frombuffer(base64.b64decode(image_data), np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        # Analyze image
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        
+        # 1. Improved Jaundice Detection (Yellowish tint)
+        # Broader range for yellow in HSV
+        lower_yellow = np.array([15, 60, 80])
+        upper_yellow = np.array([35, 255, 255])
+        mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
+        yellow_ratio = np.sum(mask_yellow > 0) / (img.shape[0] * img.shape[1])
+        
+        # 2. Improved Anemia Detection (Paleness)
+        # Check specific skin-tone regions (ignoring very bright/dark)
+        lower_skin = np.array([0, 0, 100])
+        upper_skin = np.array([50, 60, 255])
+        mask_pale = cv2.inRange(hsv, lower_skin, upper_skin)
+        pale_ratio = np.sum(mask_pale > 0) / (img.shape[0] * img.shape[1])
+        
+        # 3. Check for Cyanosis (Bluish tint - rare but useful index)
+        lower_blue = np.array([90, 50, 50])
+        upper_blue = np.array([130, 255, 255])
+        mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
+        blue_ratio = np.sum(mask_blue > 0) / (img.shape[0] * img.shape[1])
+        
+        # 4. Redness/Flush Detection (Fever/Inflammation indicators)
+        # Red is at both ends of HSV: 0-10 and 170-180
+        lower_red1 = np.array([0, 70, 50])
+        upper_red1 = np.array([10, 255, 255])
+        mask_red1 = cv2.inRange(hsv, lower_red1, upper_red1)
+        
+        lower_red2 = np.array([170, 70, 50])
+        upper_red2 = np.array([180, 255, 255])
+        mask_red2 = cv2.inRange(hsv, lower_red2, upper_red2)
+        
+        mask_red = mask_red1 + mask_red2
+        red_ratio = np.sum(mask_red > 0) / (img.shape[0] * img.shape[1])
+
+        results = {
+            'conditions': [],
+            'analysis': 'Detailed facial index analysis completed.',
+            'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+        # Jaundice Logic
+        if yellow_ratio > 0.08:
+            results['conditions'].append({
+                'name': 'Significant Jaundice Indicators',
+                'confidence': round(min(yellow_ratio * 12, 0.98) * 100, 1),
+                'indicator': f'High yellow-spectrum density ({round(yellow_ratio*100, 1)}%) detected in facial regions.',
+                'action': 'Urgent: Liver Function Test (LFT) and Bilirubin assessment recommended.'
+            })
+        elif yellow_ratio > 0.03:
+            results['conditions'].append({
+                'name': 'Mild Jaundice Indicators',
+                'confidence': 65.0,
+                'indicator': 'Slight yellowish tint detected in skin/sclera areas.',
+                'action': 'Monitor for deepening yellow color in eyes and skin.'
+            })
+            
+        # Anemia Logic
+        if pale_ratio > 0.20: # Increased threshold slightly to avoid false positives
+            results['conditions'].append({
+                'name': 'Strong Anemia Indicators',
+                'confidence': round(min(pale_ratio * 4, 0.95) * 100, 1),
+                'indicator': 'High percentage of pale skin-tone indices detected.',
+                'action': 'CBC (Complete Blood Count) and Iron profile test suggested.'
+            })
+        elif pale_ratio > 0.08:
+            # Check saturation contrast
+            avg_sat = np.mean(hsv[:,:,1])
+            if avg_sat < 45:
+                results['conditions'].append({
+                    'name': 'Possible Mild Anemia',
+                    'confidence': 72.4,
+                    'indicator': 'Low saturation and high brightness indices detected.',
+                    'action': 'Improve iron-rich diet and consult for a blood test.'
+                })
+        
+        # Cyanosis Logic
+        if blue_ratio > 0.02:
+            results['conditions'].append({
+                'name': 'Cyanosis Indicators',
+                'confidence': 60.0,
+                'indicator': 'Bluish tint detected (potential low oxygen saturation).',
+                'action': 'Check pulse oximetry and monitor breathing.'
+            })
+
+        # Fever/Flush Logic
+        if red_ratio > 0.15:
+             results['conditions'].append({
+                'name': 'Facial Flushing / Potential Fever',
+                'confidence': round(min(red_ratio * 3, 0.90) * 100, 1),
+                'indicator': 'Significant redness detected across facial regions.',
+                'action': 'Check body temperature with a thermometer.'
+            })
+            
+        if not results['conditions']:
+            results['analysis'] = 'Facial analysis allows for a visual health check. Your scan indicators are within normal ranges.'
+            results['status'] = 'Normal'
+            # Add explicit Healthy condition for UI
+            results['conditions'].append({
+                'name': 'Healthy Appearance',
+                'confidence': 98.5,
+                'indicator': 'Skin tone analysis shows normal color distribution. No signs of Jaundice, Anemia, or Cyanosis.',
+                'action': 'Maintain a healthy diet and stay hydrated.'
+            })
+        else:
+            results['analysis'] = f"Detected {len(results['conditions'])} potential health indicators for clinical verification."
+            results['status'] = 'Alert'
+            
+        return jsonify(results)
+        
+    except Exception as e:
+        logging.error(f"Facial scan error: {e}")
+        return jsonify({'error': 'Failed to process facial image'}), 500
+
+@app.route('/api/whatsapp/send', methods=['POST'])
+@login_required
+@doctor_required
+def api_send_whatsapp():
+    """Send a direct WhatsApp message from the doctor to a patient"""
+    if not WHATSAPP_ENABLED:
+        return jsonify({'error': 'WhatsApp service is not available.'}), 503
+        
+    data = request.get_json()
+    recipient_id = data.get('patient_id')
+    message_text = data.get('message')
+    
+    if not recipient_id or not message_text:
+        return jsonify({'error': 'Recipient and message text are required.'}), 400
+        
+    patient = User.query.get(recipient_id)
+    if not patient or not patient.whatsapp_number:
+        return jsonify({'error': 'Patient not found or has no registered WhatsApp number.'}), 404
+        
+    try:
+        # Prepend doctor's name to message
+        full_message = f"👨‍⚕️ *Message from Dr. {current_user.username}:*\n\n{message_text}"
+        
+        result = send_whatsapp_message(patient.whatsapp_number, full_message)
+        
+        if result.get('success'):
+            return jsonify({'success': True, 'sid': result.get('message_sid'), 'mode': result.get('mode')})
+        else:
+            return jsonify({'error': result.get('error', 'Failed to send message.')}), 500
+            
+    except Exception as e:
+        logging.error(f"Error sending direct WhatsApp: {e}")
+        return jsonify({'error': 'Internal server error while sending message.'}), 500
 def upload_eye_image():
     if 'image' not in request.files:
         return jsonify({'error': 'No image file found'}), 400
@@ -1204,9 +1548,6 @@ def predict_eye_disease(image_path):
     diseases = ["Normal"]
     return random.choice(diseases)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
@@ -1254,6 +1595,7 @@ def save_camera_image(base64_data, prefix='camera'):
 # Prescription Upload and OCR
 #--------------------------------------------
 @app.route('/prescription_upload')
+@app.route('/prescription') # Legacy alias for backwards compatibility
 @login_required
 def prescription_upload():
     return render_template('prescription_upload.html')
@@ -1358,8 +1700,18 @@ def new_symptom_report():
     """Process symptom report with optional image and save to database"""
     symptoms = request.form.get('symptoms', '')
     affected_area = request.form.get('affected_area', '')
-    severity = request.form.get('severity', '5')
+    severity_raw = request.form.get('severity', '5')
     duration = request.form.get('duration', '')
+    
+    # Convert text severity to integer (form sends 'mild', 'moderate', 'severe')
+    severity_map = {'mild': 3, 'moderate': 5, 'severe': 8}
+    if severity_raw in severity_map:
+        severity = severity_map[severity_raw]
+    else:
+        try:
+            severity = int(severity_raw)
+        except (ValueError, TypeError):
+            severity = 5
     
     # Handle camera image
     image_path = None
@@ -1387,7 +1739,7 @@ def new_symptom_report():
         gender=current_user.gender,
         existing_conditions=current_user.existing_conditions,
         affected_area=affected_area,
-        severity=int(severity) if severity else 5
+        severity=severity
     )
     
     # Calculate confidence score (0.6-0.95 range based on symptom specificity)
@@ -1398,7 +1750,7 @@ def new_symptom_report():
         user_id=current_user.id,
         symptoms_text=symptoms,
         affected_area=affected_area,
-        severity=int(severity) if severity else 5,
+        severity=severity,
         duration=duration,
         image_path=image_path,
         ai_prediction=json.dumps(prediction),
@@ -1410,11 +1762,36 @@ def new_symptom_report():
     
     # Flash success and redirect
     flash('Symptom report submitted successfully!', 'success')
+
+    # Send WhatsApp Notifications (Phase 3)
+    if WHATSAPP_ENABLED:
+        try:
+            # 1. Notify family if severity is high
+            if severity >= 7 and current_user.family_whatsapp:
+                send_health_alert(
+                    patient_name=current_user.username,
+                    family_number=current_user.family_whatsapp,
+                    alert_type='symptom_report',
+                    details=f"Severity: {severity}/10. {symptoms[:100]}..."
+                )
+            
+            # 2. Notify all doctors about the new report
+            doctors = User.query.filter_by(role='doctor').all()
+            for doctor in doctors:
+                if doctor.whatsapp_number:
+                    send_doctor_notification(
+                        doctor_number=doctor.whatsapp_number,
+                        patient_name=current_user.username,
+                        notification_type='new_symptom',
+                        details=f"Severity: {severity}/10. Symptoms: {symptoms[:50]}..."
+                    )
+        except Exception as e:
+            logging.error(f"WhatsApp notification failed in symptom report: {e}")
     
     return render_template('symptom_result.html', 
                          symptoms=symptoms,
                          affected_area=affected_area,
-                         severity=severity,
+                         severity=severity_raw,
                          duration=duration,
                          image_path=url_for('static', filename=image_path) if image_path else None,
                          prediction=prediction,
@@ -1506,6 +1883,13 @@ def new_vital_record():
     )
     db.session.add(vital_record)
     db.session.commit()
+    
+    # Send automatic WhatsApp alert for critical vitals
+    if alert_level == 'critical':
+        try:
+            check_and_send_vital_alerts(vital_record, current_user)
+        except Exception as e:
+            print(f"WhatsApp alert failed: {e}")
     
     # Prepare analysis for template
     vitals = {
@@ -1686,18 +2070,6 @@ def analyze_meal_mock(image_path, age=None, weight=None, height=None):
         'advice': ' '.join(advices)
     }
 
-# ========== DOCTOR VERIFICATION WORKFLOW ==========
-
-def doctor_required(f):
-    """Decorator for routes that require doctor or CHW role"""
-    from functools import wraps
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role not in ['doctor', 'chw']:
-            flash('Access denied. Doctor or CHW role required.', 'error')
-            return redirect(url_for('dashboard'))
-        return f(*args, **kwargs)
-    return decorated_function
 
 @app.route('/doctor/dashboard')
 @login_required
@@ -1771,11 +2143,13 @@ def doctor_approve(report_id):
         modified_diagnosis = request.form.get('modified_diagnosis', '')
         if modified_diagnosis:
             try:
-                current_prediction = json.loads(report.ai_prediction) if report.ai_prediction else {}
-                current_prediction['doctor_diagnosis'] = modified_diagnosis
-                current_prediction['original_ai_disease'] = current_prediction.get('disease', '')
-                current_prediction['disease'] = modified_diagnosis
-                report.ai_prediction = json.dumps(current_prediction)
+                raw_prediction = json.loads(report.ai_prediction) if report.ai_prediction else {}
+                if isinstance(raw_prediction, dict):
+                    current_prediction = dict(raw_prediction)
+                    current_prediction['doctor_diagnosis'] = modified_diagnosis
+                    current_prediction['original_ai_disease'] = current_prediction.get('disease', '')
+                    current_prediction['disease'] = modified_diagnosis
+                    report.ai_prediction = json.dumps(current_prediction)
             except:
                 pass
         report.doctor_approved = True
@@ -1785,7 +2159,72 @@ def doctor_approve(report_id):
         db.session.commit()
         flash('Report approved with modifications.', 'success')
     
+    # Send WhatsApp Notification to Patient (Phase 3)
+    if WHATSAPP_ENABLED and report.user.whatsapp_number:
+        try:
+            prediction_data = json.loads(report.ai_prediction) if report.ai_prediction else {}
+            diagnosis = prediction_data.get('disease', 'Condition under review')
+            
+            report_info = {
+                'date': report.created_at.strftime('%Y-%m-%d'),
+                'symptoms': report.symptoms_text[:50] + "...",
+                'diagnosis': diagnosis,
+                'recommendations': doctor_notes or "Review complete. Please check the app for full details."
+            }
+            
+            send_patient_report(report.user.whatsapp_number, report_info)
+        except Exception as e:
+            logging.error(f"WhatsApp notification failed in doctor_approve: {e}")
+    
+    
     return redirect(url_for('doctor_dashboard'))
+
+# ========== ADMIN PATIENT MANAGEMENT ==========
+
+@app.route('/admin/patients')
+@login_required
+@doctor_required
+def admin_all_patients():
+    """Admin view of all patients with their stats"""
+    all_users = User.query.all()
+    
+    # Enrich each user with their stats
+    patients_data = []
+    for user in all_users:
+        user_data = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'role': user.role,
+            'age': user.age,
+            'gender': user.gender,
+            'whatsapp_number': user.whatsapp_number,  # Added for admin messaging
+            'symptom_count': SymptomReport.query.filter_by(user_id=user.id).count(),
+            'vital_count': VitalRecord.query.filter_by(user_id=user.id).count(),
+            'prescription_count': Prescription.query.filter_by(user_id=user.id).count()
+        }
+        patients_data.append(user_data)
+    
+    return render_template('admin_patients.html', all_patients=patients_data)
+
+@app.route('/admin/patient/<int:patient_id>')
+@login_required
+@doctor_required
+def admin_patient_detail(patient_id):
+    """Detailed view of a single patient's health records"""
+    patient = User.query.get_or_404(patient_id)
+    
+    # Get all health data for this patient
+    symptoms = SymptomReport.query.filter_by(user_id=patient_id).order_by(SymptomReport.created_at.desc()).all()
+    vitals = VitalRecord.query.filter_by(user_id=patient_id).order_by(VitalRecord.created_at.desc()).all()
+    prescriptions = Prescription.query.filter_by(user_id=patient_id).order_by(Prescription.created_at.desc()).all()
+    
+    return render_template('admin_patient_detail.html',
+                         patient=patient,
+                         symptoms=symptoms,
+                         vitals=vitals,
+                         prescriptions=prescriptions)
+
 
 # ========== CHW (Community Health Worker) INTERFACE ==========
 
@@ -1793,23 +2232,57 @@ def doctor_approve(report_id):
 @login_required
 @doctor_required
 def chw_dashboard():
-    """Simplified dashboard for Community Health Workers"""
-    # Quick screening tools
+    """Enhanced dashboard for Community Health Workers with outreach tools"""
+    # Dynamic outreach tools
     screening_tools = [
-        {'name': 'Symptom Check', 'icon': 'stethoscope', 'url': 'symptom_input'},
-        {'name': 'Record Vitals', 'icon': 'heartbeat', 'url': 'vitals_input'},
-        {'name': 'Scan Prescription', 'icon': 'file-medical', 'url': 'prescription'},
-        {'name': 'View Pending', 'icon': 'clipboard-list', 'url': 'doctor_dashboard'}
+        {'name': 'Facial Scan', 'icon': 'face-viewfinder', 'url': 'facial_scan'},
+        {'name': 'Mobile Screening', 'icon': 'stethoscope', 'url': 'symptom_input'},
+        {'name': 'Vitals Check', 'icon': 'heart-pulse', 'url': 'vitals_input'},
+        {'name': 'Register Patient', 'icon': 'user-plus', 'url': 'chw_register_patient'}
     ]
     
-    # Recent patient entries by this CHW
-    recent_reports = SymptomReport.query.join(User).filter(
-        User.role == 'patient'
-    ).order_by(SymptomReport.created_at.desc()).limit(10).all()
+    # Community health statistics
+    stats = {
+        'total_screenings': SymptomReport.query.count(),
+        'pending_reviews': SymptomReport.query.filter_by(doctor_approved=False).count(),
+        'high_severity': SymptomReport.query.filter(SymptomReport.severity >= 7).count()
+    }
+    
+    # Recent local entries
+    recent_reports = SymptomReport.query.order_by(SymptomReport.created_at.desc()).limit(8).all()
     
     return render_template('chw_dashboard.html', 
                          tools=screening_tools,
-                         recent_reports=recent_reports)
+                         recent_reports=recent_reports,
+                         stats=stats)
+
+@app.route('/chw/register-patient', methods=['GET', 'POST'])
+@login_required
+@doctor_required
+def chw_register_patient():
+    """Simplified registration for workers to onboard new rural patients"""
+    if request.method == 'POST':
+        username = request.form.get('username')
+        whatsapp = request.form.get('whatsapp')
+        email = f"{re.sub(r'[^a-zA-Z0-9]', '', username).lower()}{random.randint(100, 999)}@rural.pristin.com"
+        password = bcrypt.generate_password_hash('password123').decode('utf-8')
+        
+        # Create minimal patient profile
+        new_patient = User(
+            username=username,
+            email=email,
+            password=password,
+            whatsapp_number=whatsapp,
+            role='patient',
+            age=request.form.get('age'),
+            gender=request.form.get('gender')
+        )
+        db.session.add(new_patient)
+        db.session.commit()
+        flash(f'Patient {username} onboarded successfully! Temporary email: {email}', 'success')
+        return redirect(url_for('chw_dashboard'))
+        
+    return render_template('chw_register_patient.html')
 
 @app.route('/chw/screening-checklist')
 @login_required
@@ -1984,30 +2457,372 @@ def pharmacy_map():
 @app.route('/video/start')
 @login_required
 def video_start():
-    """Start a new video consultation (generates room ID)"""
     import uuid
     room_id = str(uuid.uuid4())[:8]
+    
+    # create database record
+    consult = VideoConsultation(
+        room_id=room_id,
+        initiator_id=current_user.id,
+        status='initiated'
+    )
+    db.session.add(consult)
+    db.session.commit()
+    
     return redirect(url_for('video_room', room_id=room_id))
 
 @app.route('/video/room/<room_id>')
 @login_required
 def video_room(room_id):
     """Video consultation room"""
+    consult = VideoConsultation.query.filter_by(room_id=room_id).first()
+    if consult:
+        # If I am not the initiator, and no participant is set, I am the participant
+        if consult.initiator_id != current_user.id and not consult.participant_id:
+            consult.participant_id = current_user.id
+            consult.status = 'ongoing'
+            db.session.commit()
+            
     return render_template('video_consult.html', room_id=room_id)
+
+@app.route('/video/end/<room_id>', methods=['POST'])
+@login_required
+def video_end(room_id):
+    """End a consultation"""
+    consult = VideoConsultation.query.filter_by(room_id=room_id).first()
+    if consult:
+        consult.ended_at = datetime.utcnow()
+        consult.status = 'completed'
+        
+        # Save notes if provided
+        notes = request.form.get('notes')
+        if notes:
+            consult.notes = notes
+            
+        db.session.commit()
+        return jsonify({'success': True})
+    return jsonify({'error': 'Room not found'}), 404
+
+# ========== WHATSAPP INTEGRATION ==========
+
+@app.route('/whatsapp/send_alert', methods=['POST'])
+@login_required
+@doctor_required
+def whatsapp_send_alert():
+    """Send WhatsApp alert to patient or family member"""
+    from whatsapp_service import send_whatsapp_message
+    
+    patient_id = request.form.get('patient_id')
+    alert_type = request.form.get('alert_type', 'general')
+    message = request.form.get('message', '')
+    recipient_type = request.form.get('recipient_type', 'patient')  # patient or family
+    
+    patient = User.query.get_or_404(patient_id)
+    
+    # Determine recipient number
+    if recipient_type == 'family' and patient.family_whatsapp:
+        to_number = patient.family_whatsapp
+        recipient_name = f"{patient.username}'s family"
+    elif patient.whatsapp_number:
+        to_number = patient.whatsapp_number
+        recipient_name = patient.username
+    else:
+        flash('No WhatsApp number configured for this patient.', 'error')
+        return redirect(request.referrer or url_for('admin_all_patients'))
+    
+    # Send REAL WhatsApp message via Twilio
+    result = send_whatsapp_message(to_number, message)
+    
+    if result.get('success'):
+        flash(f'✅ WhatsApp message sent to {recipient_name}!', 'success')
+    else:
+        flash(f'❌ Failed to send WhatsApp: {result.get("error")}', 'error')
+    
+    return redirect(request.referrer or url_for('admin_all_patients'))
+
+@app.route('/profile/update_whatsapp', methods=['POST'])
+@login_required
+def update_whatsapp():
+    """Update user's WhatsApp contact information"""
+    whatsapp_number = request.form.get('whatsapp_number', '').strip()
+    family_whatsapp = request.form.get('family_whatsapp', '').strip()
+    
+    # Basic validation
+    if whatsapp_number and not whatsapp_number.startswith('+'):
+        flash('WhatsApp number must start with country code (e.g., +91)', 'warning')
+        return redirect(request.referrer or url_for('dashboard'))
+    
+    current_user.whatsapp_number = whatsapp_number if whatsapp_number else None
+    current_user.family_whatsapp = family_whatsapp if family_whatsapp else None
+    
+    db.session.commit()
+    flash('WhatsApp contact information updated!', 'success')
+    return redirect(request.referrer or url_for('dashboard'))
+
+@app.route('/whatsapp/test', methods=['POST'])
+@login_required
+def test_whatsapp():
+    """Test WhatsApp integration"""
+    from whatsapp_service import send_whatsapp_message
+    
+    # Check if request is AJAX (from fetch/XHR)
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or \
+              request.headers.get('Accept') == 'application/json' or \
+              request.is_json
+    
+    if not current_user.whatsapp_number:
+        msg = 'Please add your WhatsApp number first.'
+        if is_ajax:
+            return jsonify({'success': False, 'error': msg}), 400
+        flash(msg, 'warning')
+        return redirect(request.referrer or url_for('dashboard'))
+    
+    message = f"Hello {current_user.username}! Your WhatsApp is successfully connected to Pristin Healthcare for health alerts and reports."
+    
+    try:
+        result = send_whatsapp_message(current_user.whatsapp_number, message)
+        
+        if result.get('success'):
+            msg = 'Test message sent successfully!'
+            if result.get('mode') == 'mock':
+                msg += ' (Notice: App is in DIAGNOSTIC MOCK mode)'
+            
+            if is_ajax:
+                return jsonify({'success': True, 'message': msg, 'mode': result.get('mode')}), 200
+            flash(msg, 'success')
+        else:
+            raw_error = str(result.get('error', 'Unknown Error'))
+            error_msg = f"Delivery failed: {raw_error}"
+            if is_ajax:
+                return jsonify({'success': False, 'error': error_msg}), 500
+            flash(error_msg, 'error')
+    except Exception as e:
+        if is_ajax:
+            return jsonify({'success': False, 'error': f"Server error: {str(e)}"}), 500
+        flash(f"Error: {str(e)}", 'error')
+    
+    return redirect(request.referrer or url_for('dashboard'))
+
+@app.route('/whatsapp/webhook', methods=['POST'])
+def whatsapp_webhook():
+    """Incoming WhatsApp message webhook for two-way communication"""
+    # Twilio sends data as form parameters
+    incoming_msg = request.values.get('Body', '').lower().strip()
+    sender = request.values.get('From', '') # Format: whatsapp:+NUMBER
+    
+    logging.info(f"Incoming WhatsApp from {sender}: {incoming_msg}")
+    
+    # Clean number for DB lookup (extract the digits)
+    sender_digits = re.sub(r'\D', '', sender)
+    
+    # Find user by WhatsApp number (Super Flexible Match)
+    user = None
+    if len(sender_digits) >= 10:
+        search_suffix = sender_digits[-10:]
+        print(f"[DEBUG] WEBHOOK: Searching for suffix '{search_suffix}' among registered users...")
+        
+        # Get all users with a whatsapp number and check the last 10 digits in Python for accuracy
+        all_users = User.query.filter(User.whatsapp_number != None).all()
+        for u in all_users:
+            u_digits = re.sub(r'\D', '', str(u.whatsapp_number))
+            if u_digits.endswith(search_suffix):
+                user = u
+                break
+    
+    if user:
+        print(f"[DEBUG] WEBHOOK: Match found! User: {user.username}")
+    else:
+        print(f"[DEBUG] WEBHOOK: No user found for {sender} digits: {sender_digits}")
+
+    response_text = "Welcome to Pristin Healthcare! Please use our app for health analysis. Text 'status' to get your latest report."
+    
+    if user:
+        if 'status' in incoming_msg or 'report' in incoming_msg:
+            latest = SymptomReport.query.filter_by(user_id=user.id).order_by(SymptomReport.created_at.desc()).first()
+            if latest:
+                try:
+                    pred = json.loads(latest.ai_prediction) if latest.ai_prediction else {}
+                    status_msg = "Approved by Doctor" if latest.doctor_approved else "Pending Review"
+                    response_text = f"Hello {user.username}! Latest Report: {latest.created_at.strftime('%d %b %Y')}. Condition: {pred.get('disease', 'N/A')}. Status: {status_msg}"
+                except:
+                    response_text = f"Hello {user.username}! Your latest report is being processed."
+            else:
+                response_text = f"Hello {user.username}! You haven't submitted any reports yet. Use the Pristin app to get started."
+        elif 'hi' in incoming_msg or 'hello' in incoming_msg:
+            response_text = f"Hello {user.username}! How can Pristin Healthcare help you today? Commands: 'status' (your latest report), 'reminders' (medication schedule)."
+
+    # Return TwiML response
+    from flask import Response
+    try:
+        from twilio.twiml.messaging_response import MessagingResponse
+        resp = MessagingResponse()
+        resp.message(response_text)
+        return Response(str(resp), mimetype='text/xml')
+    except Exception as e:
+        print(f"[ERROR] TwiML generation failed: {e}")
+        xml_fallback = f'<Response><Message>{response_text}</Message></Response>'
+        return Response(xml_fallback, mimetype='text/xml')
+
+@app.route('/api/translate', methods=['POST'])
+@login_required
+def api_translate():
+    """Translate text via Gemini for STT vernacular support"""
+    data = request.json
+    text = data.get('text')
+    target_lang = data.get('target_lang', 'en')
+    
+    if not text:
+        return jsonify({'error': 'No text provided'}), 400
+        
+    from translation_service import translate_text
+    translated = translate_text(text, target_lang)
+    return jsonify({'translated_text': translated})
+
+@app.route('/settings/whatsapp')
+@login_required
+def whatsapp_settings():
+    """WhatsApp settings page"""
+    return render_template('whatsapp_settings.html')
+
+@app.route('/settings/language/<lang_code>')
+@login_required
+def set_language(lang_code):
+    """Update user's preferred language"""
+    # Map codes back to DB values
+    code_map = {
+        'en': 'english', 'hi': 'hindi', 'te': 'telugu',
+        'ta': 'tamil', 'bn': 'bengali', 'mr': 'marathi'
+    }
+    
+    
+    if lang_code in code_map:
+        new_lang = code_map[lang_code]
+        try:
+            # Explicitly fetch and update to ensure persistence
+            user_id = current_user.id
+            user = User.query.get(user_id)
+            if user:
+                user.preferred_language = new_lang
+                db.session.commit()
+                logging.info(f"Language updated for user {user.id} to {new_lang}")
+                flash(f'Language changed to {new_lang.capitalize()}', 'success')
+            else:
+                 logging.error(f"User {user_id} not found during language update")
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Error updating language: {e}")
+            flash('Failed to update language', 'error')
+    else:
+        logging.warning(f"Invalid language code attempted: {lang_code}")
+    
+    # Force redirect to dashboard to prevent loop/referer issues
+    return redirect(url_for('dashboard'))
+
+# Automatic WhatsApp alerts for critical vitals
+def check_and_send_vital_alerts(vital_record, user):
+    """Automatically send WhatsApp alerts for critical vital signs"""
+    from whatsapp_service import send_whatsapp_message
+    
+    if vital_record.alert_level == 'critical' and user.family_whatsapp:
+        details = f"Blood Pressure: {vital_record.bp_systolic}/{vital_record.bp_diastolic}\n"
+        if vital_record.blood_glucose:
+            details += f"Blood Glucose: {vital_record.blood_glucose} mg/dL\n"
+        if vital_record.temperature:
+            details += f"Temperature: {vital_record.temperature}°F\n"
+        
+        # Send REAL alert to family via WhatsApp
+        send_whatsapp_message(
+            user.family_whatsapp,
+            f"🚨 CRITICAL HEALTH ALERT\n\n{user.username} has critical vital signs:\n\n{details}\nPlease contact them immediately or consult a doctor."
+        )
+
+
+
+
+
+
+#--------------------------------------------
+# In-App Chatbot (Phase 5)
+#--------------------------------------------
+@app.route('/chat', methods=['POST'])
+@login_required 
+def chat():
+    from chatbot_service import get_ai_response
+    
+    data = request.get_json()
+    message = data.get('message')
+    language = data.get('language') or (current_user.preferred_language if current_user.is_authenticated else 'english')
+    
+    if not message:
+        return jsonify({'error': 'No message provided'}), 400
+        
+    response = get_ai_response(message, language=language)
+    return jsonify({'response': response})
+
+#--------------------------------------------
+# Offline Page for PWA
+#--------------------------------------------
+@app.route('/offline')
+def offline():
+    """Fallback page when user is offline"""
+    return render_template('offline.html')
+
+#--------------------------------------------
+# Phase 7: SEO & Security
+#--------------------------------------------
+@app.route('/robots.txt')
+def robots():
+    return "User-agent: *\nDisallow: /admin/\nDisallow: /dashboard/", 200, {'Content-Type': 'text/plain'}
+
+@app.route('/sitemap.xml')
+def sitemap():
+    base_url = request.host_url.rstrip('/')
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>{base_url}/</loc><changefreq>daily</changefreq></url>
+  <url><loc>{base_url}/login</loc><changefreq>monthly</changefreq></url>
+  <url><loc>{base_url}/register</loc><changefreq>monthly</changefreq></url>
+</urlset>"""
+    return xml, 200, {'Content-Type': 'application/xml'}
+
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    return response
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     
-    # --- Ngrok Setup ---
-    from pyngrok import conf
-    import os
-    conf.get_default().ngrok_path = os.path.join(os.getcwd(), "ngrok.exe")
-    
-    NGROK_AUTH_TOKEN = "39MB34qkF3Vi1K64AHaXDYv6UkZ_41XgZDGYF5wJbTYVy7y2t"
-    ngrok.set_auth_token(NGROK_AUTH_TOKEN)
-    public_url = ngrok.connect(5000).public_url
-    print(f" * Public URL: {public_url}")
+    # --- Ngrok Setup (optional) ---
+    # Only start ngrok in the main process to avoid duplicate calls during reload
+    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        try:
+            from pyngrok import conf, ngrok
+            
+            # Ensure any existing ngrok process is closed
+            ngrok.kill()
+            
+            # Set region to 'in' (India) for better stability
+            conf.get_default().region = "in"
+            
+            conf.get_default().ngrok_path = os.path.join(os.getcwd(), "ngrok.exe")
+            NGROK_AUTH_TOKEN = "39MB34qkF3Vi1K64AHaXDYv6UkZ_41XgZDGYF5wJbTYVy7y2t"
+            ngrok.set_auth_token(NGROK_AUTH_TOKEN)
+            
+            # Connect to ngrok
+            public_url = ngrok.connect(5000).public_url
+            print(f"\n{'='*70}")
+            print(f" * Public URL: {public_url}")
+            print(f" * Local URL: http://localhost:5000")
+            print(f"{'='*70}\n")
+        except Exception as e:
+            print(f"\nNgrok failed to start: {e}")
+            print(f"HINT: This is usually a network timeout. Check your internet or firewall.")
+            print(f"Running locally at: http://localhost:5000\n")
     # -------------------
 
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True, use_reloader=True, host='0.0.0.0', port=5000)
+

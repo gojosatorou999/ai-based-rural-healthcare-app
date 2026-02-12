@@ -4,7 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Management - Pristin Healthcare</title>
+    <meta name="description" content="Manage your family health records under one account on Pristin Healthcare.">
+    <title>Manage Family - Pristin Healthcare</title>
+    <script>
+        // Apply theme early to prevent flash
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
@@ -102,13 +108,17 @@
 </head>
 
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
+        style="position: fixed; top: 1rem; right: 1rem; z-index: 2000;">
+        <i class="fas fa-moon"></i>
+    </button>
     <header class="page-header">
         <div class="container">
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    <i class="fas fa-arrow-left"></i> {{ 'Back to Dashboard' | translate }}
                 </a>
-                <h1 style="font-size: 1.25rem; font-weight: 700;">Family Access</h1>
+                <h1 style="font-size: 1.25rem; font-weight: 700;">{{ 'Family Access' | translate }}</h1>
                 <div style="width: 100px;"></div>
             </div>
         </div>
@@ -128,10 +138,10 @@
         <!-- My Family (I manage them) -->
         <div class="section-card">
             <div class="card-title">
-                <i class="fas fa-users"></i> Family Members I Manage
+                <i class="fas fa-users"></i> {{ 'Family Members I Manage' | translate }}
             </div>
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-                You can view health records and reports for these family members.
+                {{ 'You can view health records and reports for these family members.' | translate }}
             </p>
 
             <div class="member-list">
@@ -147,41 +157,42 @@
                         </div>
                     </div>
                     <a href="{{ url_for('family_view', user_id=item.user.id) }}" class="btn btn-primary btn-sm">
-                        View Dashboard
+                        {{ 'View Dashboard' | translate }}
                     </a>
                 </div>
                 {% else %}
                 <div style="text-align: center; color: var(--text-tertiary); padding: 1rem;">
-                    No family members added yet.
+                    {{ 'No family members added yet.' | translate }}
                 </div>
                 {% endfor %}
             </div>
 
             <!-- Add Family Form -->
             <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 1rem;">Add Family Member</h4>
+                <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 1rem;">{{ 'Add Family Member' |
+                    translate }}</h4>
                 <form action="{{ url_for('family_add') }}" method="POST" class="add-form">
                     <input type="hidden" name="action" value="add_member">
                     <div class="form-group">
-                        <label class="form-label">Their Email Address</label>
+                        <label class="form-label">{{ 'Their Email Address' | translate }}</label>
                         <input type="email" name="email" class="form-control" placeholder="relative@example.com"
                             required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Relationship to You</label>
+                        <label class="form-label">{{ 'Relationship to You' | translate }}</label>
                         <select name="relationship" class="form-control" required>
-                            <option value="Child">Child</option>
-                            <option value="Parent">Parent</option>
-                            <option value="Spouse">Spouse</option>
-                            <option value="Sibling">Sibling</option>
-                            <option value="Other">Other</option>
+                            <option value="Child">{{ 'Child' | translate }}</option>
+                            <option value="Parent">{{ 'Parent' | translate }}</option>
+                            <option value="Spouse">{{ 'Spouse' | translate }}</option>
+                            <option value="Sibling">{{ 'Sibling' | translate }}</option>
+                            <option value="Other">{{ 'Other' | translate }}</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-secondary">
-                        <i class="fas fa-plus"></i> Add Member
+                        <i class="fas fa-plus"></i> {{ 'Add Member' | translate }}
                     </button>
                     <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.5rem;">
-                        Note: They must already have a Pristin account.
+                        {{ 'Note: They must already have a Pristin account.' | translate }}
                     </p>
                 </form>
             </div>
@@ -190,10 +201,10 @@
         <!-- Who Manages Me -->
         <div class="section-card">
             <div class="card-title">
-                <i class="fas fa-shield-alt"></i> Who Can View My Data
+                <i class="fas fa-shield-alt"></i> {{ 'Who Can View My Data' | translate }}
             </div>
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-                These people have permission to view your health dashboard.
+                {{ 'These people have permission to view your health dashboard.' | translate }}
             </p>
 
             <div class="member-list">
@@ -208,37 +219,38 @@
                             <p>{{ item.relationship }}</p>
                         </div>
                     </div>
-                    <span class="badge-proxy">Has Access</span>
+                    <span class="badge-proxy">{{ 'Has Access' | translate }}</span>
                 </div>
                 {% else %}
                 <div style="text-align: center; color: var(--text-tertiary); padding: 1rem;">
-                    You haven't granted access to anyone.
+                    {{ 'You haven\'t granted access to anyone.' | translate }}
                 </div>
                 {% endfor %}
             </div>
 
             <!-- Grant Access Form -->
             <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 1rem;">Grant Access to Someone
+                <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 1rem;">{{ 'Grant Access to
+                    Someone' | translate }}
                 </h4>
                 <form action="{{ url_for('family_add') }}" method="POST" class="add-form">
                     <input type="hidden" name="action" value="add_proxy">
                     <div class="form-group">
-                        <label class="form-label">Their Email Address</label>
+                        <label class="form-label">{{ 'Their Email Address' | translate }}</label>
                         <input type="email" name="email" class="form-control" placeholder="parent@example.com" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Relationship</label>
+                        <label class="form-label">{{ 'Relationship' | translate }}</label>
                         <select name="relationship" class="form-control" required>
-                            <option value="Parent">Parent</option>
-                            <option value="Spouse">Spouse</option>
-                            <option value="Child">Child</option>
-                            <option value="Caregiver">Caregiver</option>
-                            <option value="Doctor">Doctor</option>
+                            <option value="Parent">{{ 'Parent' | translate }}</option>
+                            <option value="Spouse">{{ 'Spouse' | translate }}</option>
+                            <option value="Child">{{ 'Child' | translate }}</option>
+                            <option value="Caregiver">{{ 'Caregiver' | translate }}</option>
+                            <option value="Doctor">{{ 'Doctor' | translate }}</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-secondary">
-                        <i class="fas fa-key"></i> Grant Access
+                        <i class="fas fa-key"></i> {{ 'Grant Access' | translate }}
                     </button>
                 </form>
             </div>

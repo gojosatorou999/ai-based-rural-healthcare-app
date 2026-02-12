@@ -4,7 +4,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A0A0A">
+    <meta name="description"
+        content="CHW Dashboard - Community Health Worker portal for Pristin Healthcare. Manage local patient entries and screening tools.">
+
+    <!-- PWA / iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pristin">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+
     <title>CHW Dashboard - Pristin Healthcare</title>
+    <script>
+        // Apply theme early to prevent flash
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
@@ -60,7 +75,6 @@
             width: 56px;
             height: 56px;
             border-radius: var(--radius-md);
-            background: rgba(196, 255, 13, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -102,7 +116,7 @@
             border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
         }
 
         .recent-item:last-child {
@@ -158,11 +172,6 @@
             transition: all 0.2s ease;
         }
 
-        .quick-action-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
         .empty-state {
             text-align: center;
             padding: 2rem;
@@ -176,53 +185,111 @@
         <div class="container">
             <div style="display: flex; align-items: center; justify-content: space-between;">
                 <div>
-                    <h1 style="font-size: 1.5rem; margin-bottom: 0.25rem;">CHW Dashboard</h1>
+                    <h1 style="font-size: 1.5rem; margin-bottom: 0.25rem;">{{ 'CHW Dashboard' | translate }}</h1>
                     <span class="chw-badge">
                         <i class="fas fa-hands-helping"></i>
-                        Community Health Worker
+                        {{ 'Community Outreach Worker' | translate }}
+                    </span>
+                    <span class="chw-badge"
+                        style="background: rgba(0, 255, 136, 0.1); color: var(--success); border: 1px solid rgba(0, 255, 136, 0.2);">
+                        <i class="fas fa-cloud-check"></i>
+                        {{ 'Cloud Sync Active' | translate }}
                     </span>
                 </div>
-                <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">
-                    <i class="fas fa-home"></i>
-                </a>
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-ghost" title="Home">
+                        <i class="fas fa-home"></i>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn"
+                        style="background: rgba(255, 77, 77, 0.2); color: var(--error); border: 1px solid rgba(255, 77, 77, 0.3); border-radius: var(--radius-md); padding: 0.5rem 0.75rem; font-weight: 600; text-decoration: none; font-size: 0.8125rem;">
+                        <i class="fas fa-sign-out-alt"></i> {{ 'Logout' | translate }}
+                    </a>
+                </div>
             </div>
         </div>
     </header>
 
     <main style="padding: 2rem 0;">
         <div class="container">
-            <!-- Quick Tools -->
+            <!-- CHW Statistics -->
+            <div class="stats-overview"
+                style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+                <div class="stat-card"
+                    style="background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center; border-top: 3px solid var(--primary);">
+                    <div
+                        style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">
+                        {{ 'Screenings' | translate }}</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">{{
+                        stats.total_screenings }}</div>
+                </div>
+                <div class="stat-card"
+                    style="background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center; border-top: 3px solid var(--warning);">
+                    <div
+                        style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">
+                        {{ 'Pending' | translate }}</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--warning);">{{ stats.pending_reviews }}
+                    </div>
+                </div>
+                <div class="stat-card"
+                    style="background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center; border-top: 3px solid var(--error);">
+                    <div
+                        style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">
+                        {{ 'Critical' | translate }}</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--error);">{{ stats.high_severity }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outreach Tools -->
             <div class="section-title">
-                <i class="fas fa-tools"></i> Quick Screening Tools
+                <i class="fas fa-rocket"></i> {{ 'Community Outreach Tools' | translate }}
             </div>
 
             <div class="tools-grid">
                 {% for tool in tools %}
                 <a href="{{ url_for(tool.url) }}" class="tool-card">
-                    <div class="tool-icon">
+                    <div class="tool-icon"
+                        style="background: linear-gradient(135deg, rgba(196, 255, 13, 0.1), rgba(0, 217, 255, 0.1));">
                         <i class="fas fa-{{ tool.icon }}"></i>
                     </div>
-                    <div class="tool-name">{{ tool.name }}</div>
+                    <div class="tool-name">{{ tool.name | translate }}</div>
                 </a>
                 {% endfor %}
             </div>
 
-            <!-- Screening Checklists -->
-            <div class="quick-actions">
-                <a href="{{ url_for('screening_checklist') }}" class="quick-action-btn">
-                    <i class="fas fa-list-check"></i> Maternal Checklist
-                </a>
-                <a href="{{ url_for('screening_checklist') }}" class="quick-action-btn">
-                    <i class="fas fa-baby"></i> Child Health
-                </a>
-                <a href="{{ url_for('screening_checklist') }}" class="quick-action-btn">
-                    <i class="fas fa-notes-medical"></i> General
-                </a>
+            <!-- Outreach Tasks -->
+            <div class="section-title">
+                <i class="fas fa-tasks"></i> {{ 'Local Outreach Tasks' | translate }}
+            </div>
+            <div class="recent-list" style="margin-bottom: 2rem;">
+                <div class="recent-item">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 50%; background: rgba(0,217,255,0.1); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-house-user" style="color: var(--info);"></i>
+                    </div>
+                    <div class="recent-info">
+                        <div class="recent-symptoms">Home Visit: Shanti Devi</div>
+                        <div class="recent-meta">Post-screening follow up - Location: North Block</div>
+                    </div>
+                    <span class="chw-badge"
+                        style="background: rgba(255, 193, 7, 0.1); color: var(--warning); font-size: 0.6rem;">{{ 'High
+                        Priority' | translate }}</span>
+                </div>
+                <div class="recent-item">
+                    <div
+                        style="width: 40px; height: 40px; border-radius: 50%; background: rgba(196, 255, 13, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-syringe" style="color: var(--primary);"></i>
+                    </div>
+                    <div class="recent-info">
+                        <div class="recent-symptoms">Polio Vaccination Drive</div>
+                        <div class="recent-meta">Sector 4 Community Center - Starts 10 AM</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Recent Entries -->
-            <div class="section-title" style="margin-top: 2rem;">
-                <i class="fas fa-history"></i> Recent Patient Entries
+            <div class="section-title">
+                <i class="fas fa-history"></i> {{ 'Recent Patient Entries' | translate }}
             </div>
 
             {% if recent_reports %}
@@ -232,23 +299,29 @@
                     <span
                         class="status-dot {% if report.doctor_approved %}status-approved{% else %}status-pending{% endif %}"></span>
                     <div class="recent-info">
-                        <div class="recent-symptoms">{{ report.symptoms_text[:40] }}{% if report.symptoms_text|length >
-                            40 %}...{% endif %}</div>
+                        <div class="recent-symptoms">{{ report.symptoms_text[:50] }}...</div>
                         <div class="recent-meta">{{ report.created_at.strftime('%b %d, %H:%M') }} - {% if
-                            report.doctor_approved %}Verified{% else %}Pending{% endif %}</div>
+                            report.doctor_approved %}{{ 'Doctor Verified' | translate }}{% else %}{{ 'Awaiting Review' |
+                            translate }}{% endif %}</div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% else %}
             <div class="empty-state">
-                <i class="fas fa-clipboard-list"
-                    style="font-size: 2rem; color: var(--text-muted); margin-bottom: 0.5rem;"></i>
-                <p>No recent entries</p>
+                <p>No recent screenings found.</p>
             </div>
             {% endif %}
         </div>
     </main>
+
+    <!-- AI Call Bot -->
+    <a href="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev" class="call-bot-toggle"
+        target="_blank" title="AI Call Bot" style="bottom: 2rem;">
+        <i class="fas fa-phone"></i>
+    </a>
+
+    <script src="/static/js/app.js"></script>
 </body>
 
 </html>

@@ -5,7 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0A0A0A">
-    <title>Pristin Healthcare - Login</title>
+    <meta name="description"
+        content="Pristin Healthcare - AI-powered rural telemedicine platform connecting patients, CHWs, and doctors.">
+    <meta name="keywords" content="telemedicine, AI diagnosis, rural health, symptom checker, online doctor">
+
+    <!-- PWA / iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pristin">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+
+    <title>Pristin Healthcare - AI Rural Telemedicine</title>
+    <script>
+        // Apply theme early to prevent flash
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 
     <link rel="manifest" href="/static/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -316,6 +331,10 @@
 </head>
 
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
+        style="position: absolute; top: 1rem; right: 1rem; z-index: 2000;">
+        <i class="fas fa-moon"></i>
+    </button>
     <div class="auth-container">
         <!-- App Logo -->
         <div class="app-logo">

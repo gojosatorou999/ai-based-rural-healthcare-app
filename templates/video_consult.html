@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Consultation - Pristin Healthcare</title>
+    <title>{{ 'Video Consultation' | translate }} - Pristin Healthcare</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
@@ -151,7 +151,7 @@
         <!-- Call Info -->
         <div class="call-info">
             <span class="status-dot"></span>
-            <span>Room: {{ room_id }}</span>
+            <span>{{ 'Room:' | translate }} {{ room_id }}</span>
             <span style="opacity: 0.5;">•</span>
             <span id="timer">00:00</span>
         </div>
@@ -159,8 +159,8 @@
         <!-- Remote Video (Placeholder) -->
         <div class="remote-placeholder">
             <i class="fas fa-user-md" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-            <h3>Waiting for doctor...</h3>
-            <p>Your unique room ID is {{ room_id }}</p>
+            <h3>{{ 'Waiting for doctor...' | translate }}</h3>
+            <p>{{ 'Your unique room ID is' | translate }} {{ room_id }}</p>
         </div>
         <!-- Remote Video -->
         <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
@@ -203,6 +203,15 @@
         const myPeerID = `pristin-${roomID}-${isDoctor ? 'doc' : 'pat'}`;
         const targetPeerID = `pristin-${roomID}-${isDoctor ? 'pat' : 'doc'}`;
 
+        // Translated alerts
+        const MSG_INIT = "{{ 'Initializing connection...' | translate }}";
+        const MSG_WAITING_PATIENT = "{{ 'Waiting for patient...' | translate }}";
+        const MSG_WAITING_DOCTOR = "{{ 'Waiting for doctor...' | translate }}";
+        const MSG_CONNECTED = "{{ 'Connected' | translate }}";
+        const MSG_CALL_ENDED = "{{ 'Call Ended' | translate }}";
+        const MSG_ROOM_FULL = "{{ 'Room already active! Only one doctor and one patient allowed.' | translate }}";
+        const MSG_PERMISSION_DENIED = "{{ 'Camera/Microphone access denied. Please allow permissions.' | translate }}";
+
         let peer;
         let conn;
         let localStream;
@@ -221,7 +230,7 @@
                     audio: true
                 });
                 document.getElementById('localVideo').srcObject = localStream;
-                updateStatus("Initializing connection...", "warning");
+                updateStatus(MSG_INIT, "warning");
 
                 // 2. Initialize Peer
                 peer = new Peer(myPeerID, {
@@ -230,7 +239,7 @@
 
                 peer.on('open', (id) => {
                     console.log('My peer ID is: ' + id);
-                    updateStatus(`Waiting for ${isDoctor ? 'patient' : 'doctor'}...`, "info");
+                    updateStatus(isDoctor ? MSG_WAITING_PATIENT : MSG_WAITING_DOCTOR, "info");
 
                     // Attempt to call the other side continuously until connected
                     connectToPeer();
@@ -249,13 +258,13 @@
                         // Peer not found, just keep waiting/retrying
                         console.log("Peer not found yet.");
                     } else if (err.type === 'unavailable-id') {
-                        alert("Room already active! Only one doctor and one patient allowed.");
+                        alert(MSG_ROOM_FULL);
                     }
                 });
 
             } catch (err) {
                 console.error("Failed to get local stream", err);
-                alert("Camera/Microphone access denied. Please allow permissions.");
+                alert(MSG_PERMISSION_DENIED);
             }
         }
 
@@ -286,7 +295,9 @@
                 if (remoteVideo.srcObject !== remoteStream) {
                     remoteVideo.srcObject = remoteStream;
                     document.querySelector('.remote-placeholder').style.display = 'none';
-                    updateStatus("Connected", "success");
+                    remoteVideo.srcObject = remoteStream;
+                    document.querySelector('.remote-placeholder').style.display = 'none';
+                    updateStatus(MSG_CONNECTED, "success");
                     startTimer();
                 }
             });
@@ -304,7 +315,7 @@
         function endCallUI() {
             document.getElementById('remoteVideo').srcObject = null;
             document.querySelector('.remote-placeholder').style.display = 'block';
-            updateStatus("Call Ended", "danger");
+            updateStatus(MSG_CALL_ENDED, "danger");
             stopTimer();
             currentCall = null;
             // Try to reconnect?
@@ -360,7 +371,11 @@
             if (currentCall) currentCall.close();
             if (peer) peer.destroy();
             if (localStream) localStream.getTracks().forEach(track => track.stop());
-            window.location.href = "{{ url_for('dashboard') }}";
+
+            // Notify backend
+            fetch(`/video/end/${roomID}`, { method: 'POST' })
+                .then(() => window.location.href = "{{ url_for('dashboard') }}")
+                .catch(() => window.location.href = "{{ url_for('dashboard') }}");
         }
 
         function shareScreen() {

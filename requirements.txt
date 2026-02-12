@@ -18,10 +18,12 @@ easyocr
 plotly
 python-dateutil
 
-# Optional: AI/ML
+# AI/ML & NLP
 tensorflow
 transformers
+google-generativeai
+requests
+python-dotenv
 
 # Remote access
 pyngrok
-

@@ -16,9 +16,9 @@
             <div class="header-content">
                 <a href="{{ url_for('dashboard') }}" class="back-btn">
                     <i class="fas fa-arrow-left"></i>
-                    <span>Back</span>
+                    <span>{{ 'Back' | translate }}</span>
                 </a>
-                <span class="page-title">Health Analysis</span>
+                <span class="page-title">{{ 'Health Analysis' | translate }}</span>
                 <div style="width: 48px;"></div>
             </div>
         </div>
@@ -39,18 +39,18 @@
             <div class="result-card">
                 <div class="card-header">
                     <i class="fas fa-stethoscope"></i>
-                    <span>Your Symptoms</span>
+                    <span>{{ 'Your Symptoms' | translate }}</span>
                 </div>
                 <div class="symptom-summary">
-                    <p><strong>Description:</strong> {{ symptoms }}</p>
+                    <p><strong>{{ 'Description:' | translate }}</strong> {{ symptoms | translate_content }}</p>
                     {% if affected_area %}
-                    <p><strong>Affected Area:</strong> {{ affected_area }}</p>
+                    <p><strong>{{ 'Affected Area:' | translate }}</strong> {{ affected_area | translate }}</p>
                     {% endif %}
-                    <p><strong>Severity:</strong>
-                        <span class="severity-tag severity-{{ severity }}">{{ severity|title }}</span>
+                    <p><strong>{{ 'Severity:' | translate }}</strong>
+                        <span class="severity-tag severity-{{ severity }}">{{ severity|title | translate }}</span>
                     </p>
                     {% if duration %}
-                    <p><strong>Duration:</strong> {{ duration }}</p>
+                    <p><strong>{{ 'Duration:' | translate }}</strong> {{ duration | translate_content }}</p>
                     {% endif %}
                 </div>
                 {% if image_path %}
@@ -65,9 +65,9 @@
             <div class="result-card analysis-card">
                 <div class="card-header">
                     <i class="fas fa-brain"></i>
-                    <span>AI Health Analysis</span>
+                    <span>{{ 'AI Health Analysis' | translate }}</span>
                     {% if confidence_score %}
-                    <span class="confidence-badge">{{ confidence_score }}% Confidence</span>
+                    <span class="confidence-badge">{{ confidence_score }}% {{ 'Confidence' | translate }}</span>
                     {% endif %}
                 </div>
 
@@ -76,22 +76,23 @@
                 <div class="urgency-indicator urgency-{{ prediction.urgency|lower }}">
                     <i
                         class="fas fa-{% if prediction.urgency == 'High' %}exclamation-triangle{% elif prediction.urgency == 'Medium' %}info-circle{% else %}check-circle{% endif %}"></i>
-                    <span>{{ prediction.urgency }} Priority</span>
+                    <span>{{ prediction.urgency | translate }} {{ 'Priority' | translate }}</span>
                 </div>
                 {% endif %}
 
                 <div class="disease-prediction">
-                    <div class="disease-name">{{ prediction.disease }}</div>
-                    <p class="disease-description">{{ prediction.description }}</p>
+                    <div class="disease-name">{{ prediction.disease | translate_content }}</div>
+                    <p class="disease-description">{{ prediction.description | translate_content }}</p>
                 </div>
 
                 <!-- Warnings -->
                 {% if prediction.warnings %}
                 <div class="warnings-section">
-                    <div class="info-title"><i class="fas fa-exclamation-circle"></i> Important Warnings</div>
+                    <div class="info-title"><i class="fas fa-exclamation-circle"></i> {{ 'Important Warnings' |
+                        translate }}</div>
                     <ul class="warning-list">
                         {% for warning in prediction.warnings %}
-                        <li><i class="fas fa-exclamation"></i> {{ warning }}</li>
+                        <li><i class="fas fa-exclamation"></i> {{ warning | translate_content }}</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -100,39 +101,41 @@
                 <!-- AI Reasoning -->
                 {% if prediction.reasoning %}
                 <div class="info-section reasoning-section">
-                    <div class="info-title"><i class="fas fa-lightbulb"></i> AI Reasoning</div>
+                    <div class="info-title"><i class="fas fa-lightbulb"></i> {{ 'AI Reasoning' | translate }}</div>
                     <ul class="reasoning-list">
                         {% for reason in prediction.reasoning %}
-                        <li>{{ reason }}</li>
+                        <li>{{ reason | translate_content }}</li>
                         {% endfor %}
                     </ul>
                 </div>
                 {% endif %}
 
                 <div class="info-section">
-                    <div class="info-title"><i class="fas fa-question-circle"></i> Possible Causes</div>
-                    <p>{{ prediction.causes }}</p>
+                    <div class="info-title"><i class="fas fa-question-circle"></i> {{ 'Possible Causes' | translate }}
+                    </div>
+                    <p>{{ prediction.causes | translate_content }}</p>
                 </div>
 
                 <div class="info-section">
-                    <div class="info-title"><i class="fas fa-list"></i> Common Symptoms</div>
-                    <p>{{ prediction.symptoms }}</p>
+                    <div class="info-title"><i class="fas fa-list"></i> {{ 'Common Symptoms' | translate }}</div>
+                    <p>{{ prediction.symptoms | translate_content }}</p>
                 </div>
 
                 <div class="info-section">
-                    <div class="info-title"><i class="fas fa-medkit"></i> Suggested Treatment</div>
-                    <p>{{ prediction.treatment }}</p>
+                    <div class="info-title"><i class="fas fa-medkit"></i> {{ 'Suggested Treatment' | translate }}</div>
+                    <p>{{ prediction.treatment | translate_content }}</p>
                 </div>
 
                 <!-- Rural Pharmacy Medicines -->
                 {% if prediction.rural_medicines %}
                 <div class="info-section medicines-section">
-                    <div class="info-title"><i class="fas fa-pills"></i> Available at Rural Pharmacy</div>
+                    <div class="info-title"><i class="fas fa-pills"></i> {{ 'Available at Rural Pharmacy' | translate }}
+                    </div>
                     <div class="medicine-cards">
                         {% for med in prediction.rural_medicines %}
                         <div class="medicine-card">
-                            <div class="medicine-name">{{ med.name }}</div>
-                            <div class="medicine-usage">{{ med.usage }}</div>
+                            <div class="medicine-name">{{ med.name | translate_content }}</div>
+                            <div class="medicine-usage">{{ med.usage | translate_content }}</div>
                             <div class="medicine-price">{{ med.price }}</div>
                         </div>
                         {% endfor %}
@@ -143,8 +146,8 @@
                 <div class="doctor-recommendation">
                     <i class="fas fa-user-md"></i>
                     <div>
-                        <strong>Recommended Specialist</strong>
-                        <p>{{ prediction.doctor }}</p>
+                        <strong>{{ 'Recommended Specialist' | translate }}</strong>
+                        <p>{{ prediction.doctor | translate_content }}</p>
                     </div>
                 </div>
 
@@ -152,12 +155,12 @@
                 {% if not prediction.doctor_approved %}
                 <div class="verification-status pending">
                     <i class="fas fa-clock"></i>
-                    <span>Pending Doctor Verification</span>
+                    <span>{{ 'Pending Doctor Verification' | translate }}</span>
                 </div>
                 {% else %}
                 <div class="verification-status verified">
                     <i class="fas fa-check-circle"></i>
-                    <span>Verified by Doctor</span>
+                    <span>{{ 'Verified by Doctor' | translate }}</span>
                 </div>
                 {% endif %}
             </div>
@@ -166,23 +169,45 @@
             <!-- Disclaimer -->
             <div class="disclaimer">
                 <i class="fas fa-exclamation-triangle"></i>
-                <p>This AI analysis is for informational purposes only and should not replace professional medical
-                    advice. Please consult a qualified healthcare provider for proper diagnosis and treatment.</p>
+                <p>{{ 'This AI analysis is for informational purposes only and should not replace professional medical
+                    advice. Please consult a qualified healthcare provider for proper diagnosis and treatment.' |
+                    translate }}</p>
             </div>
 
             <!-- Action Buttons -->
             <div class="action-buttons">
                 <a href="{{ url_for('symptom_input') }}" class="btn btn-primary">
                     <i class="fas fa-plus"></i>
-                    Report New Symptom
+                    {{ 'Report New Symptom' | translate }}
                 </a>
                 <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
                     <i class="fas fa-home"></i>
-                    Dashboard
+                    {{ 'Dashboard' | translate }}
                 </a>
+                <button type="button" class="btn btn-ghost" style="color: #25D366; border: 1px solid #25D366; flex: 1;"
+                    onclick="shareToWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> {{ 'Share' | translate }}
+                </button>
             </div>
         </div>
     </main>
+
+    <script>
+        function shareToWhatsApp() {
+            const diseaseEl = document.querySelector('.disease-name');
+            const descEl = document.querySelector('.disease-description');
+
+            if (!diseaseEl) {
+                alert('Analysis data not found to share.');
+                return;
+            }
+
+            const disease = diseaseEl.innerText;
+            const description = descEl ? descEl.innerText : '';
+            const text = encodeURIComponent(`📊 *Health Analysis Summary* from Pristin Healthcare\n\n*Condition:* ${disease}\n*Description:* ${description}\n\nCheck full report in the app.`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+    </script>
 
     <style>
         .result-card {

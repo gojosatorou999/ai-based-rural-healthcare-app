@@ -5,7 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0A0A0A">
+    <meta name="description" content="Login to Pristin Healthcare - AI-powered rural telemedicine platform.">
     <title>Login - Pristin Healthcare</title>
+    <script>
+        // Apply theme early to prevent flash
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 
     <link rel="manifest" href="/static/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -205,6 +211,10 @@
 </head>
 
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
+        style="position: absolute; top: 1rem; right: 1rem; z-index: 1000;">
+        <i class="fas fa-moon"></i>
+    </button>
     <div class="auth-container">
         <!-- App Logo -->
         <div class="app-logo">

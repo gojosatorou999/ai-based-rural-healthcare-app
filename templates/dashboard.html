@@ -5,7 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0A0A0A">
-    <title>Dashboard - Pristin Healthcare</title>
+    <meta name="description"
+        content="Manage your health, track vitals, and consult doctors on Pristin Healthcare Dashboard.">
+
+    <!-- PWA / iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pristin">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+
+    <title>Pristin - Patient Dashboard</title>
 
     <link rel="manifest" href="/static/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -131,6 +140,28 @@
             color: var(--text-tertiary);
         }
 
+        .lang-btn {
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: #000;
+            font-weight: 700;
+        }
+
         /* Main Content Styles */
         .main-content {
             flex: 1;
@@ -143,7 +174,217 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 1rem 2rem;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
             margin-bottom: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .header-search {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-search i {
+            position: absolute;
+            left: 1rem;
+            color: var(--text-tertiary);
+        }
+
+        .header-search input {
+            padding: 0.6rem 1rem 0.6rem 2.8rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            width: 300px;
+            transition: all 0.2s ease;
+        }
+
+        .header-search input:focus {
+            width: 350px;
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .install-btn-header {
+            display: none;
+            padding: 0.5rem 0.75rem;
+            gap: 0.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+        }
+
+        .logout-btn-header {
+            color: var(--error);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+            transition: background 0.2s;
+        }
+
+        .logout-btn-header:hover {
+            background: rgba(255, 77, 77, 0.1);
+        }
+
+        .notifications {
+            position: relative;
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .notifications:hover {
+            background: var(--bg-secondary);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--error);
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 5px;
+            border-radius: 50%;
+            font-weight: 700;
+        }
+
+        .notifications-wrapper {
+            position: relative;
+        }
+
+        .notifications-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 320px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            margin-top: 0.5rem;
+            display: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .notifications-dropdown.active {
+            display: block;
+            animation: slide-in-top 0.2s ease-out;
+        }
+
+        .notif-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notif-header h4 {
+            margin: 0;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+        }
+
+        .mark-read {
+            font-size: 0.75rem;
+            color: var(--primary);
+            cursor: pointer;
+        }
+
+        .notif-list {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .notif-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 1rem;
+            transition: background 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .notif-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .notif-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(196, 255, 13, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .notif-content {
+            flex: 1;
+        }
+
+        .notif-title {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            margin-bottom: 0.125rem;
+            color: var(--text-primary);
+        }
+
+        .notif-text {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+            line-height: 1.4;
+        }
+
+        .notif-time {
+            font-size: 0.6875rem;
+            color: var(--text-tertiary);
+        }
+
+        @keyframes slide-in-top {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .welcome-text h1 {
@@ -195,8 +436,10 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-5px) scale(1.02);
             border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            text-decoration: none;
         }
 
         .stat-icon {
@@ -222,6 +465,13 @@
         .stat-label {
             color: var(--text-tertiary);
             font-size: 0.9rem;
+        }
+
+        /* Interactive Link styling */
+        a.stat-card {
+            text-decoration: none;
+            display: block;
+            color: inherit;
         }
 
         /* Action Grid */
@@ -408,205 +658,84 @@
             }
 
             .dashboard-header {
-                gap: 1rem;
+                padding: 1rem;
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .header-search input {
+                width: 150px;
+            }
+
+            .header-search input:focus {
+                width: 180px;
+            }
+
+            .header-actions {
+                gap: 0.75rem;
             }
         }
-    </style>
-</head>
 
-<body>
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo-icon">
-                <i class="fas fa-heartbeat"></i>
-            </div>
-            <span class="logo-text">Pristin</span>
-        </div>
+        /* Animations */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
 
-        <nav class="nav-links">
-            <a href="{{ url_for('dashboard') }}" class="nav-link active">
-                <i class="fas fa-home"></i>
-                <span>Overview</span>
-            </a>
-            <a href="{{ url_for('symptom_input') }}" class="nav-link">
-                <i class="fas fa-notes-medical"></i>
-                <span>Symptoms</span>
-            </a>
-            <a href="{{ url_for('vitals_timeline') }}" class="nav-link">
-                <i class="fas fa-heartbeat"></i>
-                <span>Vitals</span>
-            </a>
-            <a href="{{ url_for('prescription_history') }}" class="nav-link">
-                <i class="fas fa-file-prescription"></i>
-                <span>Prescriptions</span>
-            </a>
-            <a href="{{ url_for('family_manage') }}" class="nav-link">
-                <i class="fas fa-users"></i>
-                <span>Family</span>
-            </a>
-            <a href="{{ url_for('pharmacy_map') }}" class="nav-link">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>Pharmacy</span>
-            </a>
-            <!-- Video Consult Link -->
-            <a href="{{ url_for('video_start') }}" class="nav-link">
-                <i class="fas fa-video"></i>
-                <span>Consultation</span>
-            </a>
-        </nav>
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-        <div class="sidebar-footer">
-            <div class="user-profile">
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="user-info">
-                    <h4>{{ current_user.username }}</h4>
-                    <p>{{ current_user.role|capitalize }}</p>
-                </div>
-                <a href="{{ url_for('logout') }}" style="margin-left: auto; color: var(--error);">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
-            </div>
-        </div>
-    </aside>
+        .main-content>* {
+            animation: fadeUp 0.6s ease-out forwards;
+        }
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Header -->
-        <header class="dashboard-header">
-            <button class="mobile-nav-toggle" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="welcome-text">
-                <h1>Dashboard</h1>
-                <p>Overview of your health metrics</p>
-            </div>
-            <div class="status-badge status-online" id="connectionStatus">
-                <i class="fas fa-wifi"></i>
-                <span>Online</span>
-            </div>
-        </header>
+        .stats-grid .stat-card {
+            animation: fadeUp 0.5s ease-out backwards;
+        }
 
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-notes-medical"></i>
-                </div>
-                <div class="stat-value">{{ symptom_count|default(0) }}</div>
-                <div class="stat-label">Symptoms Reports</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-heartbeat"></i>
-                </div>
-                <div class="stat-value">{{ vital_count|default(0) }}</div>
-                <div class="stat-label">Vitals Recorded</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-file-medical"></i>
-                </div>
-                <div class="stat-value">{{ prescription_count|default(0) }}</div>
-                <div class="stat-label">Prescriptions</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-brain"></i>
-                </div>
-                <div class="stat-value">{{ recommendation_count|default(0) }}</div>
-                <div class="stat-label">AI Insights</div>
-            </div>
-        </div>
+        .stats-grid .stat-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
 
-        <!-- Quick Actions -->
-        <div class="section-header">
-            <h3>Quick Actions</h3>
-        </div>
-        <div class="actions-grid">
-            <a href="{{ url_for('symptom_input') }}" class="action-card">
-                <div class="action-icon">
-                    <i class="fas fa-plus-circle"></i>
-                </div>
-                <div class="action-title">Report New Symptom</div>
-                <div class="action-desc">Describe how you feel and get instant AI analysis.</div>
-            </a>
+        .stats-grid .stat-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
 
-            <a href="{{ url_for('vitals_input') }}" class="action-card">
-                <div class="action-icon">
-                    <i class="fas fa-heart-pulse"></i>
-                </div>
-                <div class="action-title">Log Vital Signs</div>
-                <div class="action-desc">Record BP, Glucose, Temp, etc.</div>
-            </a>
+        .stats-grid .stat-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
 
-            <a href="{{ url_for('prescription_upload') }}" class="action-card">
-                <div class="action-icon">
-                    <i class="fas fa-file-upload"></i>
-                </div>
-                <div class="action-title">Upload Prescription</div>
-                <div class="action-desc">Digitize your paper prescriptions with OCR.</div>
-            </a>
+        .stats-grid .stat-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
 
-            <a href="{{ url_for('video_start') }}" class="action-card">
-                <div class="action-icon">
-                    <i class="fas fa-video"></i>
-                </div>
-                <div class="action-title">Start Video Call</div>
-                <div class="action-desc">Connect with a doctor instantly.</div>
-            </a>
+        .theme-toggle {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            margin-left: 1rem;
+        }
 
-            <a href="{{ url_for('pharmacy_map') }}" class="action-card">
-                <div class="action-icon">
-                    <i class="fas fa-map"></i>
-                </div>
-                <div class="action-title">Find Pharmacy</div>
-                <div class="action-desc">Locate nearby medicine stores.</div>
-            </a>
-        </div>
+        .theme-toggle:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: var(--bg-hover);
+            transform: rotate(15deg);
+        }
 
-        <!-- Recent Activity -->
-        <div class="section-header">
-            <h3>Recent Activity</h3>
-        </div>
-        <div class="activity-section">
-            {% if recent_activity %}
-            {% for item in recent_activity[:5] %}
-            <div class="activity-item">
-                <div class="activity-icon-box {{ item.type }}">
-                    <i class="fas fa-{{ item.icon }}"></i>
-                </div>
-                <div class="activity-details">
-                    <div class="activity-text">{{ item.text }}</div>
-                    <div class="activity-meta">{{ item.time }}</div>
-                </div>
-                <div style="color: var(--text-tertiary);">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
-            </div>
-            {% endfor %}
-            {% else %}
-            <div style="padding: 3rem; text-align: center; color: var(--text-tertiary);">
-                <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                <p>No activity yet. Start by using the Quick Actions above!</p>
-            </div>
-            {% endif %}
-        </div>
-    </main>
-
-    <!-- Overlay for mobile sidebar -->
-    <div id="sidebarOverlay"
-        style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none;"
-        onclick="toggleSidebar()"></div>
-
-    <!-- AI Assistant Floating Button -->
-    <a href="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev/" target="_blank"
-        class="floating-ai-btn" title="AI Health Assistant">
-        <i class="fas fa-robot"></i>
-    </a>
-    <style>
+        /* Floating AI Button */
         .floating-ai-btn {
             position: fixed;
             bottom: 30px;
@@ -642,13 +771,304 @@
             }
         }
     </style>
+    <script>
+        // Pre-load theme preference
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <span class="logo-text">Pristin</span>
+        </div>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="nav-link active">
+                <i class="fas fa-home"></i>
+                <span>{{ 'Overview' | translate }}</span>
+            </a>
+            <a href="{{ url_for('symptom_input') }}" class="nav-link">
+                <i class="fas fa-notes-medical"></i>
+                <span>{{ 'Symptoms' | translate }}</span>
+            </a>
+            <a href="{{ url_for('vitals_timeline') }}" class="nav-link">
+                <i class="fas fa-heartbeat"></i>
+                <span>{{ 'Vitals' | translate }}</span>
+            </a>
+            <a href="{{ url_for('prescription_history') }}" class="nav-link">
+                <i class="fas fa-file-prescription"></i>
+                <span>{{ 'Prescriptions' | translate }}</span>
+            </a>
+            <a href="{{ url_for('family_manage') }}" class="nav-link">
+                <i class="fas fa-users"></i>
+                <span>{{ 'Family' | translate }}</span>
+            </a>
+            <a href="{{ url_for('pharmacy_map') }}" class="nav-link">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ 'Pharmacy' | translate }}</span>
+            </a>
+            <a href="{{ url_for('whatsapp_settings') }}" class="nav-link">
+                <i class="fab fa-whatsapp"></i>
+                <span>{{ 'WhatsApp Settings' | translate }}</span>
+            </a>
+            <a href="{{ url_for('video_start') }}" class="nav-link">
+                <i class="fas fa-video"></i>
+                <span>{{ 'Consultation' | translate }}</span>
+            </a>
+            <a href="{{ url_for('facial_scan') }}" class="nav-link">
+                <i class="fas fa-face-viewfinder"></i>
+                <span>{{ 'Facial Scan' | translate }}</span>
+            </a>
+        </nav>
+
+        <!-- Language Selector -->
+        <div style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+            <div
+                style="font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                {{ 'Language' | translate }}
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {% for code, name in LANGUAGES.items() %}
+                <a href="{{ url_for('set_language', lang_code=code) }}"
+                    class="lang-btn {% if (current_user.preferred_language == 'english' and code == 'en') or 
+                                       (current_user.preferred_language == 'hindi' and code == 'hi') or 
+                                       (current_user.preferred_language == 'telugu' and code == 'te') or 
+                                       (current_user.preferred_language == 'tamil' and code == 'ta') or 
+                                       (current_user.preferred_language == 'bengali' and code == 'bn') or 
+                                       (current_user.preferred_language == 'marathi' and code == 'mr') %}active{% endif %}">
+                    {{ name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-info">
+                    <h4>{{ current_user.username }}</h4>
+                    <p>{{ current_user.role|capitalize }}</p>
+                </div>
+                <a href="{{ url_for('logout') }}" style="margin-left: auto; color: var(--error);">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="dashboard-header">
+            <div class="header-left">
+                <button class="mobile-nav-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="header-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="{{ 'Search health records...' | translate }}">
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <!-- PWA Install Button -->
+                <button id="installApp" class="btn btn-sm btn-primary install-btn-header">
+                    <i class="fas fa-download"></i>
+                    <span class="d-none d-md-inline">{{ 'Install App' | translate }}</span>
+                </button>
+
+                <button class="theme-toggle" onclick="toggleTheme()" title="{{ 'Toggle Theme' | translate }}">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+                <!-- Notifications with Dropdown -->
+                <div class="notifications-wrapper">
+                    <div class="notifications" id="notifToggle">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notifBadge">2</span>
+                    </div>
+                    <div class="notifications-dropdown" id="notifDropdown">
+                        <div class="notif-header">
+                            <h4>{{ 'Notifications' | translate }}</h4>
+                            <span class="mark-read">{{ 'Mark all as read' | translate }}</span>
+                        </div>
+                        <div class="notif-list">
+                            <a href="#" class="notif-item">
+                                <div class="notif-icon"
+                                    style="background: rgba(196, 255, 13, 0.1); color: var(--primary);">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="notif-content">
+                                    <div class="notif-title">{{ 'Report Approved' | translate }}</div>
+                                    <div class="notif-text">{{ 'Your last symptom report has been reviewed by Dr.
+                                        Sharma.' | translate }}</div>
+                                    <div class="notif-time">{{ '2 hours ago' | translate }}</div>
+                                </div>
+                            </a>
+                            <a href="#" class="notif-item">
+                                <div class="notif-icon" style="background: rgba(255, 193, 7, 0.1); color: #ffc107;">
+                                    <i class="fas fa-pills"></i>
+                                </div>
+                                <div class="notif-content">
+                                    <div class="notif-title">{{ 'Medication Reminder' | translate }}</div>
+                                    <div class="notif-text">{{ 'Time to take your Paracetamol (500mg).' | translate }}
+                                    </div>
+                                    <div class="notif-time">{{ '4 hours ago' | translate }}</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('logout') }}" class="logout-btn-header" title="{{ 'Logout' | translate }}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="d-none d-md-inline">{{ 'Logout' | translate }}</span>
+                </a>
+            </div>
+        </header>
+
+
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <a href="{{ url_for('symptom_input') }}" class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-notes-medical"></i>
+                </div>
+                <div class="stat-value">{{ symptom_count|default(0) }}</div>
+                <div class="stat-label">{{ 'Symptoms Reports' | translate }}</div>
+            </a>
+            <a href="{{ url_for('vitals_timeline') }}" class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div class="stat-value">{{ vital_count|default(0) }}</div>
+                <div class="stat-label">{{ 'Vitals Recorded' | translate }}</div>
+            </a>
+            <a href="{{ url_for('prescription_history') }}" class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-file-medical"></i>
+                </div>
+                <div class="stat-value">{{ prescription_count|default(0) }}</div>
+                <div class="stat-label">{{ 'Prescriptions' | translate }}</div>
+            </a>
+            <a href="{{ url_for('symptom_input') }}" class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <div class="stat-value">{{ recommendation_count|default(0) }}</div>
+                <div class="stat-label">{{ 'AI Insights' | translate }}</div>
+            </a>
+        </div>
+
+        <div class="section-header">
+            <h3>{{ 'Quick Actions' | translate }}</h3>
+        </div>
+        <div class="actions-grid">
+            <a href="{{ url_for('symptom_input') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="action-title">{{ 'Report New Symptom' | translate }}</div>
+                <div class="action-desc">{{ 'Describe how you feel and get instant AI analysis.' | translate }}</div>
+            </a>
+
+            <a href="{{ url_for('vitals_input') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-heart-pulse"></i>
+                </div>
+                <div class="action-title">{{ 'Log Vital Signs' | translate }}</div>
+                <div class="action-desc">{{ 'Record BP, Glucose, Temp, etc.' | translate }}</div>
+            </a>
+
+            <a href="{{ url_for('prescription_upload') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-file-upload"></i>
+                </div>
+                <div class="action-title">{{ 'Upload Prescription' | translate }}</div>
+                <div class="action-desc">{{ 'Digitize your paper prescriptions with OCR.' | translate }}</div>
+            </a>
+
+            <a href="{{ url_for('video_start') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-video"></i>
+                </div>
+                <div class="action-title">{{ 'Start Video Call' | translate }}</div>
+                <div class="action-desc">{{ 'Connect with a doctor instantly.' | translate }}</div>
+            </a>
+
+            <a href="{{ url_for('pharmacy_map') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-map"></i>
+                </div>
+                <div class="action-title">{{ 'Find Pharmacy' | translate }}</div>
+                <div class="action-desc">{{ 'Locate nearby medicine stores.' | translate }}</div>
+            </a>
+
+            <a href="{{ url_for('facial_scan') }}" class="action-card" style="border-color: var(--info);">
+                <div class="action-icon" style="color: var(--info);">
+                    <i class="fas fa-camera-retro"></i>
+                </div>
+                <div class="action-title">{{ 'AI Facial Scan' | translate }}</div>
+                <div class="action-desc">{{ 'Non-invasive scan for Anemia and Jaundice indications.' | translate }}
+                </div>
+            </a>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section-header">
+            <h3>{{ 'Recent Activity' | translate }}</h3>
+        </div>
+        <div class="activity-section">
+            {% if recent_activity %}
+            {% for item in recent_activity[:5] %}
+            <div class="activity-item">
+                <div class="activity-icon-box {{ item.type }}">
+                    <i class="fas fa-{{ item.icon }}"></i>
+                </div>
+                <div class="activity-details">
+                    <div class="activity-text">
+                        <strong>{{ item.label | translate }}</strong>{{ item.value }}
+                    </div>
+                    <div class="activity-meta">{{ item.time }}</div>
+                </div>
+                <div style="color: var(--text-tertiary);">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div style="padding: 3rem; text-align: center; color: var(--text-tertiary);">
+                <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                <p>{{ 'No activity yet. Start by using the Quick Actions above!' | translate }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebarOverlay"
+        style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none;"
+        onclick="toggleSidebar()"></div>
+
+
+
 
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div id="notification-container" style="position: fixed; top: 2rem; right: 2rem; z-index: 2000; max-width: 400px;">
+    <div id="notification-container"
+        style="position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 2000; width: 100%; max-width: 500px; pointer-events: none;">
         {% for category, message in messages %}
-        <div class="alert alert-{{ category }} slide-down" style="box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <div class="alert alert-{{ category }} slide-down"
+            style="box-shadow: 0 10px 30px rgba(0,0,0,0.5); pointer-events: auto; margin: 0 auto 10px;">
             <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
             <div>{{ message }}</div>
         </div>
@@ -658,6 +1078,33 @@
     {% endwith %}
 
     <script>
+        // Theme Toggle Logic
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            updateThemeIcon(newTheme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.querySelector('.theme-toggle i');
+            if (theme === 'light') {
+                icon.className = 'fas fa-sun';
+            } else {
+                icon.className = 'fas fa-moon';
+            }
+        }
+
+        // Initialize Icon on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            updateThemeIcon(currentTheme);
+        });
+
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
@@ -699,6 +1146,71 @@
     </script>
     <script src="/static/js/offline-db.js"></script>
     <script src="/static/js/app.js"></script>
+    <!-- AI Call Bot -->
+    <a href="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev" class="call-bot-toggle"
+        target="_blank" title="AI Call Bot">
+        <i class="fas fa-phone"></i>
+    </a>
+
+    <!-- Chatbot Floating Button -->
+    <button class="chatbot-toggle" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+    </button>
+
+    <!-- Chat Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div class="chat-title">
+                <i class="fas fa-robot"></i>
+                <span>Pristin Assistant</span>
+            </div>
+            <button class="chat-close" onclick="toggleChat()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                {{ 'Hello! I am your virtual health assistant. How can I help you today?' | translate }}
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="{{ 'Type your question...' | translate }}"
+                onkeypress="handleChatEnter(event)">
+            <button onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Chat Scripts -->
+    <script>
+
+        // Notification Toggle
+        const notifToggle = document.getElementById('notifToggle');
+        const notifDropdown = document.getElementById('notifDropdown');
+        const notifBadge = document.getElementById('notifBadge');
+
+        if (notifToggle) {
+            notifToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notifDropdown.classList.toggle('active');
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (notifDropdown && !notifDropdown.contains(e.target) && !notifToggle.contains(e.target)) {
+                notifDropdown.classList.remove('active');
+            }
+        });
+
+        const markRead = document.querySelector('.mark-read');
+        if (markRead) {
+            markRead.addEventListener('click', () => {
+                if (notifBadge) notifBadge.style.display = 'none';
+                notifDropdown.classList.remove('active');
+            });
+        }
+    </script>
 </body>
 
 </html>

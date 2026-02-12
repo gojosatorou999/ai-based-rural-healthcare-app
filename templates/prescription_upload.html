@@ -5,7 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0A0A0A">
-    <title>Scan Prescription - Pristin Healthcare</title>
+    <meta name="description" content="Digitize your prescriptions with AI-powered OCR on Pristin Healthcare.">
+    <title>Upload Prescription - Pristin Healthcare</title>
+    <script>
+        // Apply theme early to prevent flash
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
 
     <link rel="manifest" href="/static/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -272,15 +278,19 @@
 </head>
 
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
+        style="position: fixed; top: 1rem; right: 1rem; z-index: 2000;">
+        <i class="fas fa-moon"></i>
+    </button>
     <!-- Header -->
     <header class="page-header">
         <div class="container">
             <div class="header-content">
                 <a href="{{ url_for('dashboard') }}" class="back-btn">
                     <i class="fas fa-arrow-left"></i>
-                    <span>Back</span>
+                    <span>{{ 'Back' | translate }}</span>
                 </a>
-                <span class="page-title">Scan Prescription</span>
+                <span class="page-title">{{ 'Scan Prescription' | translate }}</span>
                 <a href="{{ url_for('prescription_history') }}" class="btn btn-sm btn-ghost">
                     <i class="fas fa-history"></i>
                 </a>
@@ -296,8 +306,9 @@
                     <div class="form-icon">
                         <i class="fas fa-prescription"></i>
                     </div>
-                    <h1 class="form-title">Scan Your Prescription</h1>
-                    <p class="form-subtitle">Upload a photo or take a picture to extract medicine details</p>
+                    <h1 class="form-title">{{ 'Scan Your Prescription' | translate }}</h1>
+                    <p class="form-subtitle">{{ 'Upload a photo or take a picture to extract medicine details' |
+                        translate }}</p>
                 </div>
 
                 <form action="{{ url_for('new_prescription') }}" method="POST" enctype="multipart/form-data"
@@ -305,10 +316,10 @@
                     <!-- Upload/Camera Toggle -->
                     <div class="upload-toggle">
                         <button type="button" class="toggle-btn active" id="uploadToggle">
-                            <i class="fas fa-upload"></i> Upload File
+                            <i class="fas fa-upload"></i> {{ 'Upload File' | translate }}
                         </button>
                         <button type="button" class="toggle-btn" id="cameraToggle">
-                            <i class="fas fa-camera"></i> Use Camera
+                            <i class="fas fa-camera"></i> {{ 'Use Camera' | translate }}
                         </button>
                     </div>
 
@@ -318,9 +329,9 @@
                         <div class="upload-icon">
                             <i class="fas fa-cloud-upload-alt"></i>
                         </div>
-                        <div class="upload-title">Tap to Upload</div>
-                        <div class="upload-text">Select from gallery</div>
-                        <div class="upload-hint">Supports JPG, PNG (max 5MB)</div>
+                        <div class="upload-title">{{ 'Tap to Upload' | translate }}</div>
+                        <div class="upload-text">{{ 'Select from gallery' | translate }}</div>
+                        <div class="upload-hint">{{ 'Supports JPG, PNG (max 5MB)' | translate }}</div>
                         <img class="image-preview" id="imagePreview" alt="Preview">
                     </label>
 
@@ -347,7 +358,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Select Prescription Language</label>
+                        <label class="form-label">{{ 'Select Prescription Language' | translate }}</label>
                         <div class="language-selector">
                             <label class="language-option">
                                 <input type="radio" name="language" value="english" checked>
@@ -408,33 +419,33 @@
 
                     <button type="submit" class="btn btn-primary submit-btn" id="submitBtn">
                         <i class="fas fa-magic"></i>
-                        Extract Medicine Details
+                        {{ 'Extract Medicine Details' | translate }}
                     </button>
 
                     <div class="features-list">
                         <div class="features-title">
                             <i class="fas fa-check-circle"></i>
-                            What we can extract
+                            {{ 'What we can extract' | translate }}
                         </div>
                         <div class="feature-item">
                             <i class="fas fa-check"></i>
-                            Medicine names and brands
+                            {{ 'Medicine names and brands' | translate }}
                         </div>
                         <div class="feature-item">
                             <i class="fas fa-check"></i>
-                            Dosage information
+                            {{ 'Dosage information' | translate }}
                         </div>
                         <div class="feature-item">
                             <i class="fas fa-check"></i>
-                            Frequency (how often to take)
+                            {{ 'Frequency (how often to take)' | translate }}
                         </div>
                         <div class="feature-item">
                             <i class="fas fa-check"></i>
-                            Duration of treatment
+                            {{ 'Duration of treatment' | translate }}
                         </div>
                         <div class="feature-item">
                             <i class="fas fa-check"></i>
-                            Doctor's name
+                            {{ 'Doctor\'s name' | translate }}
                         </div>
                     </div>
                 </form>
@@ -582,6 +593,10 @@
         let facingMode = 'environment'; // 'environment' = back, 'user' = front
         let capturedImage = false;
 
+        // Translated alerts
+        const MSG_CAM_ERROR = "{{ 'Could not access camera. Please check permissions or use file upload.' | translate }}";
+        const MSG_UPLOAD_ERROR = "{{ 'Please upload an image or capture a photo of your prescription.' | translate }}";
+
         // Image file upload preview
         imageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -639,7 +654,7 @@
 
             } catch (err) {
                 console.error('Camera error:', err);
-                alert('Could not access camera. Please check permissions or use file upload.');
+                alert(MSG_CAM_ERROR);
                 uploadToggle.click();
             }
         }
@@ -694,7 +709,7 @@
 
             if (!hasFile && !hasCamera) {
                 e.preventDefault();
-                alert('Please upload an image or capture a photo of your prescription.');
+                alert(MSG_UPLOAD_ERROR);
                 return false;
             }
         });

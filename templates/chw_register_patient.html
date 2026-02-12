@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onboard New Patient - Pristin Healthcare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .onboard-container {
+            max-width: 500px;
+            margin: 2rem auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="onboard-container">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+                <a href="{{ url_for('chw_dashboard') }}" class="btn-icon">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 style="font-size: 1.5rem;">Onboard New Patient</h1>
+            </div>
+
+            <form method="POST">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" name="username" required placeholder="e.g. Ramesh Kumar">
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp Number</label>
+                    <input type="text" name="whatsapp" required placeholder="+91 00000 00000">
+                </div>
+                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label>Age</label>
+                        <input type="number" name="age" required>
+                    </div>
+                    <div>
+                        <label>Gender</label>
+                        <select name="gender">
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100" style="margin-top: 1rem;">
+                    Create Patient Account
+                </button>
+                <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 1rem; text-align: center;">
+                    * A temporary secure email will be generated automatically. Default password is: password123
+                </p>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

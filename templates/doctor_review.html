@@ -207,7 +207,7 @@
         <div class="container">
             <div class="header-content">
                 <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-ghost">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    <i class="fas fa-arrow-left"></i> {{ 'Back to Dashboard' | translate }}
                 </a>
                 <span style="font-weight: 600;">Report #{{ report.id }}</span>
                 <div style="width: 100px;"></div>
@@ -220,24 +220,24 @@
             <!-- Patient Info -->
             <div class="review-card">
                 <div class="card-title">
-                    <i class="fas fa-user"></i> Patient Information
+                    <i class="fas fa-user"></i> {{ 'Patient Information' | translate }}
                 </div>
                 <div class="patient-info">
                     <div class="info-item">
-                        <div class="info-label">Name</div>
+                        <div class="info-label">{{ 'Name' | translate }}</div>
                         <div class="info-value">{{ patient.username }}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Age</div>
-                        <div class="info-value">{{ patient.age or 'Not specified' }}</div>
+                        <div class="info-label">{{ 'Age' | translate }}</div>
+                        <div class="info-value">{{ patient.age or 'Not specified' | translate }}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Gender</div>
-                        <div class="info-value">{{ patient.gender or 'Not specified' }}</div>
+                        <div class="info-label">{{ 'Gender' | translate }}</div>
+                        <div class="info-value">{{ patient.gender or 'Not specified' | translate }}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Conditions</div>
-                        <div class="info-value">{{ patient.existing_conditions or 'None' }}</div>
+                        <div class="info-label">{{ 'Conditions' | translate }}</div>
+                        <div class="info-value">{{ patient.existing_conditions or 'None' | translate }}</div>
                     </div>
                 </div>
             </div>
@@ -245,23 +245,23 @@
             <!-- Symptom Details -->
             <div class="review-card">
                 <div class="card-title">
-                    <i class="fas fa-stethoscope"></i> Symptom Report
+                    <i class="fas fa-stethoscope"></i> {{ 'Symptom Report' | translate }}
                 </div>
                 <div class="patient-info" style="margin-bottom: 1rem;">
                     <div class="info-item">
-                        <div class="info-label">Affected Area</div>
-                        <div class="info-value">{{ report.affected_area or 'Not specified' }}</div>
+                        <div class="info-label">{{ 'Affected Area' | translate }}</div>
+                        <div class="info-value">{{ report.affected_area or 'Not specified' | translate }}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Severity</div>
+                        <div class="info-label">{{ 'Severity' | translate }}</div>
                         <div class="info-value">{{ report.severity }}/10</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Duration</div>
-                        <div class="info-value">{{ report.duration or 'Not specified' }}</div>
+                        <div class="info-label">{{ 'Duration' | translate }}</div>
+                        <div class="info-value">{{ report.duration or 'Not specified' | translate }}</div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Reported</div>
+                        <div class="info-label">{{ 'Reported' | translate }}</div>
                         <div class="info-value">{{ report.created_at.strftime('%b %d, %Y %H:%M') }}</div>
                     </div>
                 </div>
@@ -278,14 +278,15 @@
             {% if ai_analysis %}
             <div class="review-card">
                 <div class="card-title">
-                    <i class="fas fa-brain"></i> AI Analysis
+                    <i class="fas fa-brain"></i> {{ 'AI Analysis' | translate }}
                 </div>
                 <div class="ai-prediction">
                     <div class="ai-disease">{{ ai_analysis.disease }}</div>
                     <span class="ai-confidence">{{ (report.confidence_score * 100)|round|int if report.confidence_score
-                        else 70 }}% Confidence</span>
+                        else 70 }}% {{ 'Confidence' | translate }}</span>
                     <p style="margin-top: 0.75rem; color: var(--text-secondary);">
-                        {{ ai_analysis.description or 'AI-generated preliminary diagnosis based on reported symptoms.'
+                        {{ ai_analysis.description or 'AI-generated preliminary diagnosis based on reported symptoms.' |
+                        translate
                         }}
                     </p>
                 </div>
@@ -300,7 +301,7 @@
 
                 {% if ai_analysis.rural_medicines %}
                 <div style="margin-top: 1rem;">
-                    <div class="info-label">Suggested Rural Medicines</div>
+                    <div class="info-label">{{ 'Suggested Rural Medicines' | translate }}</div>
                     {% for med in ai_analysis.rural_medicines %}
                     <span class="badge badge-primary" style="margin: 0.25rem;">{{ med.name }}</span>
                     {% endfor %}
@@ -311,27 +312,27 @@
 
             <!-- Approval Form -->
             <form action="{{ url_for('doctor_approve', report_id=report.id) }}" method="POST" class="approval-form">
-                <div class="form-title">Doctor Verification</div>
+                <div class="form-title">{{ 'Doctor Verification' | translate }}</div>
 
                 <div class="modify-section" id="modifySection">
-                    <label class="form-label">Modified Diagnosis</label>
+                    <label class="form-label">{{ 'Modified Diagnosis' | translate }}</label>
                     <input type="text" name="modified_diagnosis" class="form-control"
-                        placeholder="Enter your diagnosis if different from AI">
+                        placeholder="{{ 'Enter your diagnosis if different from AI' | translate }}">
                 </div>
 
-                <label class="form-label">Doctor Notes (optional)</label>
+                <label class="form-label">{{ 'Doctor Notes (optional)' | translate }}</label>
                 <textarea name="doctor_notes"
-                    placeholder="Add any notes, observations, or recommendations..."></textarea>
+                    placeholder="{{ 'Add any notes, observations, or recommendations...' | translate }}"></textarea>
 
                 <div class="action-buttons">
                     <button type="submit" name="action" value="approve" class="btn btn-approve">
-                        <i class="fas fa-check"></i> Approve AI Diagnosis
+                        <i class="fas fa-check"></i> {{ 'Approve AI Diagnosis' | translate }}
                     </button>
                     <button type="button" onclick="toggleModify()" class="btn btn-modify">
-                        <i class="fas fa-edit"></i> Modify Diagnosis
+                        <i class="fas fa-edit"></i> {{ 'Modify Diagnosis' | translate }}
                     </button>
                     <button type="submit" name="action" value="reject" class="btn btn-reject">
-                        <i class="fas fa-times"></i> Reject
+                        <i class="fas fa-times"></i> {{ 'Reject' | translate }}
                     </button>
                 </div>
             </form>

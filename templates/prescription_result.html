@@ -116,9 +116,28 @@
                     <i class="fas fa-home"></i>
                     Dashboard
                 </a>
+                <button type="button" class="btn btn-ghost" style="color: #25D366; border: 1px solid #25D366; flex: 1;"
+                    onclick="shareScheduleToWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> Share
+                </button>
             </div>
         </div>
     </main>
+
+    <script>
+        function shareScheduleToWhatsApp() {
+            let meds = [];
+            const items = document.querySelectorAll('.medicine-item');
+            items.forEach(item => {
+                const name = item.querySelector('.medicine-name').innerText;
+                const tags = Array.from(item.querySelectorAll('.tag')).map(t => t.innerText).join(' - ');
+                meds.push(`• ${name} (${tags})`);
+            });
+
+            const text = encodeURIComponent(`💊 *Medication Schedule* from Pristin Healthcare\n\n${meds.join('\n')}\n\nSet your reminders accordingly!`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+    </script>
 
     <style>
         .success-banner {

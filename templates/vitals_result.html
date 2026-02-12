@@ -173,9 +173,28 @@
                     <i class="fas fa-home"></i>
                     Dashboard
                 </a>
+                <button type="button" class="btn btn-ghost" style="color: #25D366; border: 1px solid #25D366; flex: 1;"
+                    onclick="shareVitalsToWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> Share
+                </button>
             </div>
         </div>
     </main>
+
+    <script>
+        function shareVitalsToWhatsApp() {
+            let vitals = [];
+            const items = document.querySelectorAll('.vital-item');
+            items.forEach(item => {
+                const label = item.querySelector('.vital-label').innerText;
+                const value = item.querySelector('.vital-value').innerText;
+                vitals.push(`• ${label}: ${value}`);
+            });
+
+            const text = encodeURIComponent(`📊 *Vitals Summary* from Pristin Healthcare\n\n${vitals.join('\n')}\n\nCheck full details in the app.`);
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+    </script>
 
     <style>
         .result-card {

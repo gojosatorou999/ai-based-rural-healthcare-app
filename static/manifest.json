@@ -1,11 +1,11 @@
 {
-  "name": "Rural Telemedicine Platform",
-  "short_name": "Telemedicine",
-  "description": "AI-Assisted Rural Healthcare Platform with offline support",
+  "name": "Pristin Healthcare",
+  "short_name": "Pristin",
+  "description": "AI-Powered Rural Telemedicine Platform",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0A0A0A",
-  "theme_color": "#C4FF0D",
+  "theme_color": "#0A0A0A",
   "orientation": "portrait-primary",
   "icons": [
     {

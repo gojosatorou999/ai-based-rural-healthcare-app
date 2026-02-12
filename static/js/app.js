@@ -43,6 +43,9 @@ class TelemedicineApp {
 
         // Setup install prompt
         this.setupInstallPrompt();
+
+        // iOS Specific setup
+        this.setupIOSPrompt();
     }
 
     async initDB() {
@@ -226,11 +229,17 @@ class TelemedicineApp {
     }
 
     async saveSymptomOffline(formData) {
+        // Read file if present
+        let symptomImage = formData.get('symptom_image');
+        // If it's a file, we can store it directly in IDB (Blob/File support)
+
         const data = {
-            symptom_description: formData.get('symptom_description'),
+            symptom_description: formData.get('symptom_description') || formData.get('symptoms'), // handle field name variation
             affected_area: formData.get('affected_area'),
             severity: formData.get('severity'),
             duration: formData.get('duration'),
+            camera_image: formData.get('camera_image'),
+            symptom_image: symptomImage instanceof File && symptomImage.size > 0 ? symptomImage : null,
             timestamp: new Date().toISOString()
         };
 
@@ -267,8 +276,11 @@ class TelemedicineApp {
     }
 
     async savePrescriptionOffline(formData) {
+        let prescriptionImage = formData.get('prescription_image');
+
         const data = {
-            image: formData.get('prescription_image'),
+            prescription_image: prescriptionImage instanceof File && prescriptionImage.size > 0 ? prescriptionImage : null,
+            camera_image: formData.get('camera_image'),
             language: formData.get('language'),
             timestamp: new Date().toISOString()
         };
@@ -299,6 +311,48 @@ class TelemedicineApp {
         }
     }
 
+    setupIOSPrompt() {
+        // Detect if device is iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+        if (isIOS && !isStandalone) {
+            this.injectIOSPrompt();
+        }
+    }
+
+    injectIOSPrompt() {
+        if (document.querySelector('.ios-install-prompt')) return;
+
+        const prompt = document.createElement('div');
+        prompt.className = 'ios-install-prompt';
+        prompt.innerHTML = `
+            <div class="ios-install-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <div class="ios-install-title">Install Pristin Healthcare</div>
+            <div class="ios-install-text">Install this app on your iPhone for the best experience and offline access.</div>
+            <div class="ios-install-steps">
+                <div class="ios-install-step">
+                    <div class="ios-step-icon"><i class="fas fa-share-square"></i></div>
+                    <span>Tap the <strong>Share</strong> button in the bottom bar.</span>
+                </div>
+                <div class="ios-install-step">
+                    <div class="ios-step-icon"><i class="fas fa-plus-square"></i></div>
+                    <span>Scroll down and tap <strong>Add to Home Screen</strong>.</span>
+                </div>
+            </div>
+            <div class="ios-install-close" onclick="this.parentElement.classList.remove('active')">Not now</div>
+        `;
+
+        document.body.appendChild(prompt);
+
+        // Show after 3 seconds
+        setTimeout(() => {
+            prompt.classList.add('active');
+        }, 3000);
+    }
+
     setupInstallPrompt() {
         let deferredPrompt;
 
@@ -306,15 +360,20 @@ class TelemedicineApp {
             e.preventDefault();
             deferredPrompt = e;
 
-            // Show install button
-            const installBtn = document.getElementById('install-btn');
+            // Show install button (Header ID updated)
+            const installBtn = document.getElementById('installApp') || document.getElementById('installBtn');
+            const installPrompt = document.getElementById('installPrompt');
+
+            if (installPrompt) installPrompt.style.display = 'block';
+
             if (installBtn) {
-                installBtn.style.display = 'block';
+                installBtn.style.display = 'flex'; // Use flex for icon alignment
                 installBtn.addEventListener('click', async () => {
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
                     console.log('Install prompt outcome:', outcome);
                     deferredPrompt = null;
+                    if (installPrompt) installPrompt.style.display = 'none';
                     installBtn.style.display = 'none';
                 });
             }
@@ -325,6 +384,7 @@ class TelemedicineApp {
             this.showNotification('App Installed', 'Telemedicine app is now installed!', 'success');
         });
     }
+
 
     showNotification(title, message, type = 'info') {
         // Create notification element
@@ -440,3 +500,188 @@ window.telemedicineUtils = {
     hideLoading,
     compressImage
 };
+
+// --- Theme Management ---
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+    const icon = document.querySelector('.theme-toggle i');
+    if (icon) {
+        if (theme === 'light') {
+            icon.className = 'fas fa-sun';
+        } else {
+            icon.className = 'fas fa-moon';
+        }
+    }
+}
+
+// Initialize Theme
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+});
+
+// --- Chatbot Functionality ---
+function toggleChat() {
+    const chatWindow = document.getElementById('chatWindow');
+    if (chatWindow) {
+        chatWindow.classList.toggle('active');
+        if (chatWindow.classList.contains('active')) {
+            const input = document.getElementById('chatInput');
+            if (input) input.focus();
+        }
+    }
+}
+
+function handleChatEnter(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    if (!input) return;
+
+    const message = input.value.trim();
+    const messagesContainer = document.getElementById('chatMessages');
+
+    if (!message) return;
+
+    // Add user message
+    appendMessage(message, 'user');
+    input.value = '';
+
+    // Show typing indicator
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'typing-indicator';
+    typingDiv.innerText = 'Pristin AI is typing...';
+    typingDiv.style.display = 'block';
+    messagesContainer.appendChild(typingDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+    try {
+        const response = await fetch('/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        });
+
+        const data = await response.json();
+
+        // Remove typing indicator
+        typingDiv.remove();
+
+        if (data.response) {
+            appendMessage(data.response, 'bot');
+        } else if (data.error) {
+            appendMessage("Error: " + data.error, 'bot');
+        }
+    } catch (error) {
+        if (typingDiv) typingDiv.remove();
+        appendMessage("Sorry, I couldn't reach the server.", 'bot');
+    }
+}
+
+function appendMessage(text, sender) {
+    const container = document.getElementById('chatMessages');
+    if (!container) return;
+
+    const div = document.createElement('div');
+    div.className = `message ${sender}-message`;
+    div.innerText = text; // Prevent XSS
+    container.appendChild(div);
+
+    // Scroll to bottom
+    requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+    });
+}
+
+// --- IoT Device Simulation (Phase 4 / Domain: IoT) ---
+function connectIoTDevice() {
+    const statusText = document.getElementById('iotStatusText');
+    const statusPulse = document.getElementById('iotStatusPulse');
+    const connectBtn = document.getElementById('iotConnectBtn');
+
+    if (!statusText) return;
+
+    statusText.innerText = "Scanning for medical devices...";
+    statusPulse.style.background = "var(--warning)";
+    connectBtn.disabled = true;
+
+    // Simulate Bluetooth/IoT connection delay
+    setTimeout(() => {
+        statusText.innerText = "Connected: MedSensor X-100 (Bluetooth)";
+        statusPulse.style.background = "var(--success)";
+        statusPulse.style.boxShadow = "0 0 10px var(--success)";
+        statusPulse.style.animation = "pulse 1.5s infinite";
+
+        // Show success notification
+        if (window.telemedicineApp) {
+            window.telemedicineApp.showNotification('IoT Sync Active', 'Receiving real-time data from MedSensor', 'success');
+        }
+
+        // Start fetching mock data
+        mockIoTDataFetch();
+    }, 2000);
+}
+
+function mockIoTDataFetch() {
+    // Simulate real-time data population from sensor
+    const inputs = {
+        'bp_systolic': 110 + Math.floor(Math.random() * 20),
+        'bp_diastolic': 70 + Math.floor(Math.random() * 15),
+        'glucose': 90 + Math.floor(Math.random() * 20),
+        'temperature': (36.5 + (Math.random() * 0.8)).toFixed(1),
+        'heart_rate': 65 + Math.floor(Math.random() * 15),
+        'oxygen_saturation': 97 + Math.floor(Math.random() * 3),
+        'weight': 70.2
+    };
+
+    // Apply values to form fields with a slight delay to simulate "reading"
+    Object.keys(inputs).forEach((key, index) => {
+        setTimeout(() => {
+            const input = document.querySelector(`input[name="${key}"]`);
+            if (input) {
+                input.value = inputs[key];
+                input.style.borderColor = "var(--primary)";
+                input.style.backgroundColor = "rgba(196, 255, 13, 0.05)";
+
+                // Add highlight effect
+                input.animate([
+                    { boxShadow: '0 0 0px var(--primary)' },
+                    { boxShadow: '0 0 10px var(--primary)' },
+                    { boxShadow: '0 0 0px var(--primary)' }
+                ], { duration: 500 });
+            }
+        }, index * 300);
+    });
+}
+
+// Add CSS for pulse animation if not exists
+if (!document.getElementById('iotPulseStyles')) {
+    const style = document.createElement('style');
+    style.id = 'iotPulseStyles';
+    style.innerHTML = `
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+
+
