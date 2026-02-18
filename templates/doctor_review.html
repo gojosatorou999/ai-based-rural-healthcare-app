@@ -267,6 +267,20 @@
                 </div>
                 <div class="symptoms-text">{{ report.symptoms_text }}</div>
 
+                {% set ai_data = report.ai_prediction|from_json if report.ai_prediction else {} %}
+                {% if ai_data.ai_summary %}
+                <div class="ai-summary-box"
+                    style="margin-top: 1rem; padding: 0.75rem; background: rgba(196, 255, 13, 0.05); border-left: 3px solid var(--primary); border-radius: 0 var(--radius-md) var(--radius-md) 0;">
+                    <div
+                        style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); font-weight: 700; margin-bottom: 0.25rem;">
+                        <i class="fas fa-robot"></i> {{ 'Smart Summary' | translate }}
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.5;">
+                        {{ ai_data.ai_summary }}
+                    </div>
+                </div>
+                {% endif %}
+
                 {% if report.image_path %}
                 <div class="symptom-image">
                     <img src="{{ url_for('static', filename=report.image_path) }}" alt="Symptom image">

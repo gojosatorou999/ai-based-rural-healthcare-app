@@ -31,26 +31,32 @@ def send_whatsapp_message(to_number, message_body):
     """
     Send a WhatsApp message to a phone number
     """
-    # Format number for WhatsApp
-    if to_number and not to_number.startswith('whatsapp:'):
-        to_number_formatted = f'whatsapp:{to_number}'
+    # Robust formatting for Indian numbers as requested
+    import re
+    digits = re.sub(r'\D', '', str(to_number)) # Remove non-digits
+    if len(digits) >= 10:
+        clean_number = digits[-10:] # Take last 10
+        to_number_formatted = f'whatsapp:+91{clean_number}'
     else:
-        to_number_formatted = to_number
+        # Fallback for short numbers or weird input
+        to_number_formatted = f'whatsapp:{to_number}'
 
     if not TWILIO_ENABLED or not client:
         print(f"[WARNING] Twilio not initialized. Using DIAGNOSTIC MOCK for {to_number_formatted}...")
         return mock_send_whatsapp(to_number_formatted, message_body)
     
-    if client is None:
-        raise ValueError("Twilio client is not initialized")
-        
     try:
         # Log attempting real send
         print(f"[INFO] Attempting REAL WhatsApp to: {to_number_formatted}")
-        print(f"[DEBUG] Using From: {TWILIO_WHATSAPP_NUMBER}")
+        # Ensure 'from_' number has whatsapp: prefix
+        from_number = TWILIO_WHATSAPP_NUMBER
+        if not from_number.startswith('whatsapp:'):
+            from_number = f'whatsapp:{from_number}'
+
+        print(f"[DEBUG] Using From: {from_number}")
         
         message = client.messages.create(
-            from_=TWILIO_WHATSAPP_NUMBER,
+            from_=from_number,
             body=message_body,
             to=to_number_formatted
         )
@@ -63,16 +69,14 @@ def send_whatsapp_message(to_number, message_body):
             'mode': 'real'
         }
     except Exception as e:
-        # FALLBACK TO MOCK FOR TESTING
+        # Return ACTUAL error to user so they know it failed
         error_msg = str(e)
         print(f"[ERROR] Twilio REAL send failed to {to_number_formatted}: {error_msg}")
-        print(f"[INFO] Falling back to DIAGNOSTIC MOCK for testing...")
-        
-        mock_result = mock_send_whatsapp(to_number_formatted, message_body)
-        mock_result['error'] = error_msg
-        mock_result['success'] = False 
-        mock_result['mode'] = 'mock'
-        return mock_result
+        return {
+            'success': False,
+            'error': error_msg,
+            'mode': 'real_failed'
+        }
 
 
 
@@ -156,6 +160,28 @@ def send_medication_schedule(patient_number, medications):
 {med_list}
 
 ⏰ Set reminders to take your medicines on time!
+"""
+    return send_whatsapp_message(patient_number, message)
+
+
+def send_video_call_link(patient_number, patient_name, doctor_name, call_link):
+    """
+    Send a video call link to a patient
+    
+    Args:
+        patient_number (str): Patient's WhatsApp number
+        patient_name (str): Patient's name
+        doctor_name (str): Doctor's name
+        call_link (str): The video call URL
+    """
+    message = f"""📹 *Video Consultation Request*
+    
+Hello {patient_name}, Dr. {doctor_name} would like to start a video consultation with you.
+
+Click the link below to join the call:
+{call_link}
+
+Please ensure you have a stable internet connection and are in a quiet place.
 """
     return send_whatsapp_message(patient_number, message)
 

@@ -1,1214 +1,322 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_user.preferred_language if current_user.is_authenticated else 'en' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0A0A0A">
-    <meta name="description"
-        content="Manage your health, track vitals, and consult doctors on Pristin Healthcare Dashboard.">
-
-    <!-- PWA / iOS Support -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Pristin">
-    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
-
-    <title>Pristin - Patient Dashboard</title>
-
-    <link rel="manifest" href="/static/manifest.json">
+    <title>{{ 'Dashboard' | translate }} | Pristin Healthcare</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
-
-    <style>
-        body {
-            background: var(--bg-primary);
-            overflow-x: hidden;
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            width: 280px;
-            background: var(--bg-card);
-            border-right: 1px solid var(--border-color);
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
-            transition: transform 0.3s ease;
-        }
-
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 3rem;
-        }
-
-        .logo-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--primary);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--bg-primary);
-            font-size: 1.5rem;
-        }
-
-        .logo-text {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            letter-spacing: -0.5px;
-        }
-
-        .nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            flex: 1;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.25rem;
-            color: var(--text-secondary);
-            border-radius: var(--radius-md);
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            background: var(--bg-secondary);
-            color: var(--primary);
-        }
-
-        .nav-link i {
-            width: 24px;
-            text-align: center;
-            font-size: 1.25rem;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            border-top: 1px solid var(--border-color);
-            padding-top: 1.5rem;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-lg);
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            background: rgba(196, 255, 13, 0.1);
-            color: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        .user-info h4 {
-            font-size: 0.9rem;
-            margin: 0;
-            color: var(--text-primary);
-        }
-
-        .user-info p {
-            font-size: 0.75rem;
-            margin: 0;
-            color: var(--text-tertiary);
-        }
-
-        .lang-btn {
-            padding: 0.25rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            text-decoration: none;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-secondary);
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-
-        .lang-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-        }
-
-        .lang-btn.active {
-            background: var(--primary);
-            color: #000;
-            font-weight: 700;
-        }
-
-        /* Main Content Styles */
-        .main-content {
-            flex: 1;
-            margin-left: 280px;
-            padding: 2rem;
-            max-width: calc(100vw - 280px);
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            margin-bottom: 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 900;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .header-search {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .header-search i {
-            position: absolute;
-            left: 1rem;
-            color: var(--text-tertiary);
-        }
-
-        .header-search input {
-            padding: 0.6rem 1rem 0.6rem 2.8rem;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-color);
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            width: 300px;
-            transition: all 0.2s ease;
-        }
-
-        .header-search input:focus {
-            width: 350px;
-            border-color: var(--primary);
-            outline: none;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-        }
-
-        .install-btn-header {
-            display: none;
-            padding: 0.5rem 0.75rem;
-            gap: 0.5rem;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-        }
-
-        .logout-btn-header {
-            color: var(--error);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            text-decoration: none;
-            padding: 0.5rem;
-            border-radius: var(--radius-md);
-            transition: background 0.2s;
-        }
-
-        .logout-btn-header:hover {
-            background: rgba(255, 77, 77, 0.1);
-        }
-
-        .notifications {
-            position: relative;
-            font-size: 1.25rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: background 0.2s;
-        }
-
-        .notifications:hover {
-            background: var(--bg-secondary);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: var(--error);
-            color: white;
-            font-size: 0.65rem;
-            padding: 2px 5px;
-            border-radius: 50%;
-            font-weight: 700;
-        }
-
-        .notifications-wrapper {
-            position: relative;
-        }
-
-        .notifications-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            width: 320px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-            margin-top: 0.5rem;
-            display: none;
-            overflow: hidden;
-            z-index: 1000;
-        }
-
-        .notifications-dropdown.active {
-            display: block;
-            animation: slide-in-top 0.2s ease-out;
-        }
-
-        .notif-header {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .notif-header h4 {
-            margin: 0;
-            font-size: 0.9375rem;
-            color: var(--text-primary);
-        }
-
-        .mark-read {
-            font-size: 0.75rem;
-            color: var(--primary);
-            cursor: pointer;
-        }
-
-        .notif-list {
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        .notif-item {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            gap: 1rem;
-            transition: background 0.2s;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .notif-item:hover {
-            background: var(--bg-secondary);
-        }
-
-        .notif-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(196, 255, 13, 0.1);
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .notif-content {
-            flex: 1;
-        }
-
-        .notif-title {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            margin-bottom: 0.125rem;
-            color: var(--text-primary);
-        }
-
-        .notif-text {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
-            line-height: 1.4;
-        }
-
-        .notif-time {
-            font-size: 0.6875rem;
-            color: var(--text-tertiary);
-        }
-
-        @keyframes slide-in-top {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .welcome-text h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .welcome-text p {
-            font-size: 1rem;
-            color: var(--text-secondary);
-        }
-
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-full);
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .status-online {
-            background: rgba(0, 255, 136, 0.1);
-            color: var(--success);
-            border: 1px solid rgba(0, 255, 136, 0.2);
-        }
-
-        .status-offline {
-            background: rgba(255, 77, 77, 0.1);
-            color: var(--error);
-            border: 1px solid rgba(255, 77, 77, 0.2);
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            border-color: var(--primary);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            text-decoration: none;
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(196, 255, 13, 0.1);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 0.25rem;
-            color: var(--text-primary);
-        }
-
-        .stat-label {
-            color: var(--text-tertiary);
-            font-size: 0.9rem;
-        }
-
-        /* Interactive Link styling */
-        a.stat-card {
-            text-decoration: none;
-            display: block;
-            color: inherit;
-        }
-
-        /* Action Grid */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
-
-        .action-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .action-card:hover {
-            border-color: var(--primary);
-            background: var(--bg-secondary);
-        }
-
-        .action-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--primary);
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .action-card:hover::before {
-            opacity: 1;
-        }
-
-        .action-icon {
-            width: 56px;
-            height: 56px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .action-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .action-desc {
-            font-size: 0.85rem;
-            color: var(--text-tertiary);
-            line-height: 1.4;
-        }
-
-        /* Recent Activity */
-        .activity-section {
-            background: var(--bg-card);
-            border-radius: var(--radius-xl);
-            border: 1px solid var(--border-color);
-            padding: 0;
-            overflow: hidden;
-        }
-
-        .activity-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s ease;
-        }
-
-        .activity-item:hover {
-            background: var(--bg-secondary);
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon-box {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-        }
-
-        .activity-icon-box.symptom {
-            background: rgba(255, 184, 0, 0.15);
-            color: var(--warning);
-        }
-
-        .activity-icon-box.vital {
-            background: rgba(0, 217, 255, 0.15);
-            color: var(--info);
-        }
-
-        .activity-icon-box.prescription {
-            background: rgba(196, 255, 13, 0.15);
-            color: var(--primary);
-        }
-
-        .activity-icon-box.recommendation {
-            background: rgba(0, 255, 136, 0.15);
-            color: var(--success);
-        }
-
-        .activity-details {
-            flex: 1;
-        }
-
-        .activity-text {
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.25rem;
-        }
-
-        .activity-meta {
-            font-size: 0.85rem;
-            color: var(--text-tertiary);
-        }
-
-        /* Mobile Styles */
-        .mobile-nav-toggle {
-            display: none;
-        }
-
-        @media (max-width: 1024px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 280px;
-                box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
-            }
-
-            .sidebar.active {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-                max-width: 100%;
-                padding: 1.5rem;
-            }
-
-            .mobile-nav-toggle {
-                display: block;
-                font-size: 1.5rem;
-                color: var(--text-primary);
-                background: none;
-                border: none;
-                cursor: pointer;
-            }
-
-            .dashboard-header {
-                padding: 1rem;
-                margin-left: 0;
-                width: 100%;
-            }
-
-            .header-search input {
-                width: 150px;
-            }
-
-            .header-search input:focus {
-                width: 180px;
-            }
-
-            .header-actions {
-                gap: 0.75rem;
-            }
-        }
-
-        /* Animations */
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .main-content>* {
-            animation: fadeUp 0.6s ease-out forwards;
-        }
-
-        .stats-grid .stat-card {
-            animation: fadeUp 0.5s ease-out backwards;
-        }
-
-        .stats-grid .stat-card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .stats-grid .stat-card:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .stats-grid .stat-card:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .stats-grid .stat-card:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        .theme-toggle {
-            background: var(--bg-secondary);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            margin-left: 1rem;
-        }
-
-        .theme-toggle:hover {
-            color: var(--primary);
-            border-color: var(--primary);
-            background: var(--bg-hover);
-            transform: rotate(15deg);
-        }
-
-        /* Floating AI Button */
-        .floating-ai-btn {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--primary), #9acd32);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #0a0a0a;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 20px rgba(196, 255, 13, 0.4);
-            z-index: 1000;
-            transition: all 0.3s ease;
-            animation: pulse-glow 2s infinite;
-        }
-
-        .floating-ai-btn:hover {
-            transform: scale(1.1);
-        }
-
-        @keyframes pulse-glow {
-
-            0%,
-            100% {
-                box-shadow: 0 4px 20px rgba(196, 255, 13, 0.4);
-            }
-
-            50% {
-                box-shadow: 0 4px 30px rgba(196, 255, 13, 0.7);
-            }
-        }
-    </style>
-    <script>
-        // Pre-load theme preference
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#0f172a">
 </head>
 
-<body>
+<body data-theme="dark">
+
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="logo-icon">
-                <i class="fas fa-heartbeat"></i>
+            <div class="logo-text">
+                <i class="fas fa-shield-virus text-primary"></i> Pristin AI
             </div>
-            <span class="logo-text">Pristin</span>
+            <button class="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Close Menu">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
 
-        <nav class="nav-links">
+        <nav class="flex-col gap-2" style="flex: 1;">
             <a href="{{ url_for('dashboard') }}" class="nav-link active">
-                <i class="fas fa-home"></i>
-                <span>{{ 'Overview' | translate }}</span>
+                <i class="fas fa-home"></i> {{ 'Overview' | translate }}
             </a>
             <a href="{{ url_for('symptom_input') }}" class="nav-link">
-                <i class="fas fa-notes-medical"></i>
-                <span>{{ 'Symptoms' | translate }}</span>
+                <i class="fas fa-clipboard-check"></i> {{ 'Symptoms' | translate }}
             </a>
             <a href="{{ url_for('vitals_timeline') }}" class="nav-link">
-                <i class="fas fa-heartbeat"></i>
-                <span>{{ 'Vitals' | translate }}</span>
+                <i class="fas fa-heartbeat"></i> {{ 'Vitals' | translate }}
             </a>
             <a href="{{ url_for('prescription_history') }}" class="nav-link">
-                <i class="fas fa-file-prescription"></i>
-                <span>{{ 'Prescriptions' | translate }}</span>
-            </a>
-            <a href="{{ url_for('family_manage') }}" class="nav-link">
-                <i class="fas fa-users"></i>
-                <span>{{ 'Family' | translate }}</span>
-            </a>
-            <a href="{{ url_for('pharmacy_map') }}" class="nav-link">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>{{ 'Pharmacy' | translate }}</span>
-            </a>
-            <a href="{{ url_for('whatsapp_settings') }}" class="nav-link">
-                <i class="fab fa-whatsapp"></i>
-                <span>{{ 'WhatsApp Settings' | translate }}</span>
+                <i class="fas fa-file-prescription"></i> {{ 'Prescriptions' | translate }}
             </a>
             <a href="{{ url_for('video_start') }}" class="nav-link">
-                <i class="fas fa-video"></i>
-                <span>{{ 'Consultation' | translate }}</span>
+                <i class="fas fa-video"></i> {{ 'Consultation' | translate }}
             </a>
-            <a href="{{ url_for('facial_scan') }}" class="nav-link">
-                <i class="fas fa-face-viewfinder"></i>
-                <span>{{ 'Facial Scan' | translate }}</span>
+            <a href="{{ url_for('pharmacy_map') }}" class="nav-link">
+                <i class="fas fa-map-marked-alt"></i> {{ 'Pharmacy' | translate }}
             </a>
+            <a href="{{ url_for('family_manage') }}" class="nav-link">
+                <i class="fas fa-users"></i> {{ 'Family' | translate }}
+            </a>
+            <a href="{{ url_for('whatsapp_settings') }}" class="nav-link">
+                <i class="fab fa-whatsapp"></i> {{ 'WhatsApp Alerts' | translate }}
+            </a>
+
+            <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <!-- Language Switcher Removed -->
+                <a href="{{ url_for('logout') }}" class="nav-link mt-2" style="color: var(--error);">
+                    <i class="fas fa-sign-out-alt"></i> {{ 'Logout' | translate }}
+                </a>
+            </div>
         </nav>
-
-        <!-- Language Selector -->
-        <div style="padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
-            <div
-                style="font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">
-                {{ 'Language' | translate }}
-            </div>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                {% for code, name in LANGUAGES.items() %}
-                <a href="{{ url_for('set_language', lang_code=code) }}"
-                    class="lang-btn {% if (current_user.preferred_language == 'english' and code == 'en') or 
-                                       (current_user.preferred_language == 'hindi' and code == 'hi') or 
-                                       (current_user.preferred_language == 'telugu' and code == 'te') or 
-                                       (current_user.preferred_language == 'tamil' and code == 'ta') or 
-                                       (current_user.preferred_language == 'bengali' and code == 'bn') or 
-                                       (current_user.preferred_language == 'marathi' and code == 'mr') %}active{% endif %}">
-                    {{ name }}
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="sidebar-footer">
-            <div class="user-profile">
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="user-info">
-                    <h4>{{ current_user.username }}</h4>
-                    <p>{{ current_user.role|capitalize }}</p>
-                </div>
-                <a href="{{ url_for('logout') }}" style="margin-left: auto; color: var(--error);">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
-            </div>
-        </div>
     </aside>
 
     <!-- Main Content -->
     <main class="main-content">
+        <!-- Header -->
         <header class="dashboard-header">
-            <div class="header-left">
+            <div class="flex items-center gap-4" style="flex: 1;">
                 <button class="mobile-nav-toggle" onclick="toggleSidebar()">
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="header-search">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="{{ 'Search health records...' | translate }}">
+                    <input type="text" placeholder="{{ 'Search reports, doctors...' | translate }}">
                 </div>
             </div>
 
-            <div class="header-actions">
-                <!-- PWA Install Button -->
-                <button id="installApp" class="btn btn-sm btn-primary install-btn-header">
-                    <i class="fas fa-download"></i>
-                    <span class="d-none d-md-inline">{{ 'Install App' | translate }}</span>
-                </button>
-
-                <button class="theme-toggle" onclick="toggleTheme()" title="{{ 'Toggle Theme' | translate }}">
+            <div class="flex items-center gap-4">
+                <div class="btn-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);"
+                    title="Online">
+                    <i class="fas fa-wifi"></i>
+                </div>
+                <button onclick="toggleTheme()" class="btn btn-icon btn-sm theme-toggle"
+                    title="{{ 'Toggle Theme' | translate }}"
+                    style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color);">
                     <i class="fas fa-moon"></i>
                 </button>
-
-                <!-- Notifications with Dropdown -->
-                <div class="notifications-wrapper">
-                    <div class="notifications" id="notifToggle">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-badge" id="notifBadge">2</span>
+                <button id="installBtn" class="btn btn-primary btn-sm" style="display: none; margin-right: 1rem;">
+                    <i class="fas fa-download"></i> {{ 'Install App' | translate }}
+                </button>
+                <div class="user-profile">
+                    <div class="user-avatar text-white">
+                        {{ current_user.username[0].upper() }}
                     </div>
-                    <div class="notifications-dropdown" id="notifDropdown">
-                        <div class="notif-header">
-                            <h4>{{ 'Notifications' | translate }}</h4>
-                            <span class="mark-read">{{ 'Mark all as read' | translate }}</span>
-                        </div>
-                        <div class="notif-list">
-                            <a href="#" class="notif-item">
-                                <div class="notif-icon"
-                                    style="background: rgba(196, 255, 13, 0.1); color: var(--primary);">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="notif-content">
-                                    <div class="notif-title">{{ 'Report Approved' | translate }}</div>
-                                    <div class="notif-text">{{ 'Your last symptom report has been reviewed by Dr.
-                                        Sharma.' | translate }}</div>
-                                    <div class="notif-time">{{ '2 hours ago' | translate }}</div>
-                                </div>
-                            </a>
-                            <a href="#" class="notif-item">
-                                <div class="notif-icon" style="background: rgba(255, 193, 7, 0.1); color: #ffc107;">
-                                    <i class="fas fa-pills"></i>
-                                </div>
-                                <div class="notif-content">
-                                    <div class="notif-title">{{ 'Medication Reminder' | translate }}</div>
-                                    <div class="notif-text">{{ 'Time to take your Paracetamol (500mg).' | translate }}
-                                    </div>
-                                    <div class="notif-time">{{ '4 hours ago' | translate }}</div>
-                                </div>
-                            </a>
-                        </div>
+                    <div class="user-info">
+                        <div class="user-name">{{ current_user.username }}</div>
+                        <div class="user-role">{{ current_user.role.capitalize() }}</div>
                     </div>
                 </div>
-
-                <a href="{{ url_for('logout') }}" class="logout-btn-header" title="{{ 'Logout' | translate }}">
+                <a href="{{ url_for('logout') }}" class="btn btn-icon btn-sm" title="Logout"
+                    style="color: var(--error); background: rgba(239, 68, 68, 0.1);">
                     <i class="fas fa-sign-out-alt"></i>
-                    <span class="d-none d-md-inline">{{ 'Logout' | translate }}</span>
                 </a>
+
+                <script>
+                    // PWA Install Prompt
+                    let deferredPrompt;
+                    const installBtn = document.getElementById('pwa-install-btn');
+
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        deferredPrompt = e;
+                        installBtn.style.display = 'inline-flex';
+                    });
+
+                    installBtn.addEventListener('click', async () => {
+                        if (deferredPrompt) {
+                            deferredPrompt.prompt();
+                            const { outcome } = await deferredPrompt.userChoice;
+                            console.log(`User response to the install prompt: ${outcome}`);
+                            deferredPrompt = null;
+                            installBtn.style.display = 'none';
+                        }
+                    });
+
+                    // Auto-hide flash messages
+                    setTimeout(() => {
+                        const alerts = document.querySelectorAll('.alert');
+                        alerts.forEach(alert => {
+                            alert.style.opacity = '0';
+                            setTimeout(() => alert.remove(), 300);
+                        });
+                    }, 4000);
+                </script>
             </div>
         </header>
 
-
+        <!-- Welcome Banner -->
+        <div class="card mb-2"
+            style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(6, 182, 212, 0.2)); border-color: rgba(59, 130, 246, 0.4);">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h1>{{ 'Welcome Back' | translate }}, {{ current_user.username }}!</h1>
+                    <p class="text-secondary" style="margin-bottom: 0;">{{ 'Your health AI is active and monitoring.' |
+                        translate }}</p>
+                </div>
+                <a href="{{ url_for('facial_scan') }}" class="btn btn-primary pulse">
+                    <i class="fas fa-camera"></i> {{ 'Run Health Scan' | translate }}
+                </a>
+            </div>
+        </div>
 
         <!-- Stats Grid -->
-        <div class="stats-grid">
-            <a href="{{ url_for('symptom_input') }}" class="stat-card">
-                <div class="stat-icon">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div class="card flex flex-col justify-between hover-glow">
+                <div class="text-muted font-medium">{{ 'Heart Rate' | translate }}</div>
+                <div class="flex items-end gap-2 mt-2">
+                    <span class="text-3xl font-bold">72</span>
+                    <span class="text-sm text-success mb-1">bpm</span>
+                </div>
+                <div class="text-xs text-muted mt-2">{{ 'Last updated' | translate }}: 2h {{ 'ago' | translate }}</div>
+            </div>
+            <div class="card flex flex-col justify-between hover-glow">
+                <div class="text-muted font-medium">{{ 'Blood Pressure' | translate }}</div>
+                <div class="flex items-end gap-2 mt-2">
+                    <span class="text-3xl font-bold">120/80</span>
+                    <span class="text-sm text-success mb-1">mmHg</span>
+                </div>
+                <div class="text-xs text-muted mt-2">{{ 'Normal Range' | translate }}</div>
+            </div>
+            <div class="card flex flex-col justify-between hover-glow">
+                <div class="text-muted font-medium">{{ 'Reports' | translate }}</div>
+                <div class="flex items-end gap-2 mt-2">
+                    <span class="text-3xl font-bold">{{ symptom_count }}</span>
+                    <span class="text-sm text-primary mb-1">{{ 'Total' | translate }}</span>
+                </div>
+                <div class="text-xs text-muted mt-2">{{ 'All time' | translate }}</div>
+            </div>
+            <div class="card flex flex-col justify-between hover-glow">
+                <div class="text-muted font-medium">{{ 'Next Consult' | translate }}</div>
+                <div class="flex items-end gap-2 mt-2">
+                    <span class="text-2xl font-bold">{{ 'Tomorrow' | translate }}</span>
+                </div>
+                <div class="text-xs text-warning mt-2">10:00 AM</div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Grid -->
+        <h3 class="mb-4">{{ 'Quick Actions' | translate }}</h3>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <a href="{{ url_for('symptom_input') }}" class="quick-action-card">
+                <div class="quick-action-icon">
                     <i class="fas fa-notes-medical"></i>
                 </div>
-                <div class="stat-value">{{ symptom_count|default(0) }}</div>
-                <div class="stat-label">{{ 'Symptoms Reports' | translate }}</div>
+                <div class="font-bold mb-1">{{ 'Report Symptoms' | translate }}</div>
+                <div class="text-sm text-muted">{{ 'Get AI diagnosis' | translate }}</div>
             </a>
-            <a href="{{ url_for('vitals_timeline') }}" class="stat-card">
-                <div class="stat-icon">
+            <a href="{{ url_for('vitals_input') }}" class="quick-action-card">
+                <div class="quick-action-icon">
                     <i class="fas fa-heartbeat"></i>
                 </div>
-                <div class="stat-value">{{ vital_count|default(0) }}</div>
-                <div class="stat-label">{{ 'Vitals Recorded' | translate }}</div>
+                <div class="font-bold mb-1">{{ 'Log Vitals' | translate }}</div>
+                <div class="text-sm text-muted">{{ 'Track metrics' | translate }}</div>
             </a>
-            <a href="{{ url_for('prescription_history') }}" class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-file-medical"></i>
-                </div>
-                <div class="stat-value">{{ prescription_count|default(0) }}</div>
-                <div class="stat-label">{{ 'Prescriptions' | translate }}</div>
-            </a>
-            <a href="{{ url_for('symptom_input') }}" class="stat-card">
-                <div class="stat-icon">
-                    <i class="fas fa-brain"></i>
-                </div>
-                <div class="stat-value">{{ recommendation_count|default(0) }}</div>
-                <div class="stat-label">{{ 'AI Insights' | translate }}</div>
-            </a>
-        </div>
-
-        <div class="section-header">
-            <h3>{{ 'Quick Actions' | translate }}</h3>
-        </div>
-        <div class="actions-grid">
-            <a href="{{ url_for('symptom_input') }}" class="action-card">
-                <div class="action-icon">
-                    <i class="fas fa-plus-circle"></i>
-                </div>
-                <div class="action-title">{{ 'Report New Symptom' | translate }}</div>
-                <div class="action-desc">{{ 'Describe how you feel and get instant AI analysis.' | translate }}</div>
-            </a>
-
-            <a href="{{ url_for('vitals_input') }}" class="action-card">
-                <div class="action-icon">
-                    <i class="fas fa-heart-pulse"></i>
-                </div>
-                <div class="action-title">{{ 'Log Vital Signs' | translate }}</div>
-                <div class="action-desc">{{ 'Record BP, Glucose, Temp, etc.' | translate }}</div>
-            </a>
-
-            <a href="{{ url_for('prescription_upload') }}" class="action-card">
-                <div class="action-icon">
-                    <i class="fas fa-file-upload"></i>
-                </div>
-                <div class="action-title">{{ 'Upload Prescription' | translate }}</div>
-                <div class="action-desc">{{ 'Digitize your paper prescriptions with OCR.' | translate }}</div>
-            </a>
-
-            <a href="{{ url_for('video_start') }}" class="action-card">
-                <div class="action-icon">
+            <a href="{{ url_for('video_start') }}" class="quick-action-card">
+                <div class="quick-action-icon">
                     <i class="fas fa-video"></i>
                 </div>
-                <div class="action-title">{{ 'Start Video Call' | translate }}</div>
-                <div class="action-desc">{{ 'Connect with a doctor instantly.' | translate }}</div>
+                <div class="font-bold mb-1">{{ 'Video Consult' | translate }}</div>
+                <div class="text-sm text-muted">{{ 'Talk to a doctor' | translate }}</div>
             </a>
-
-            <a href="{{ url_for('pharmacy_map') }}" class="action-card">
-                <div class="action-icon">
-                    <i class="fas fa-map"></i>
+            <a href="{{ url_for('facial_scan') }}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-magnifying-glass-chart"></i>
                 </div>
-                <div class="action-title">{{ 'Find Pharmacy' | translate }}</div>
-                <div class="action-desc">{{ 'Locate nearby medicine stores.' | translate }}</div>
+                <div class="font-bold mb-1">{{ 'AI Face Scan' | translate }}</div>
+                <div class="text-sm text-muted">{{ 'Analyze your health' | translate }}</div>
             </a>
-
-            <a href="{{ url_for('facial_scan') }}" class="action-card" style="border-color: var(--info);">
-                <div class="action-icon" style="color: var(--info);">
-                    <i class="fas fa-camera-retro"></i>
+            <a href="{{ url_for('book_appointment') }}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-calendar-plus"></i>
                 </div>
-                <div class="action-title">{{ 'AI Facial Scan' | translate }}</div>
-                <div class="action-desc">{{ 'Non-invasive scan for Anemia and Jaundice indications.' | translate }}
+                <div class="font-bold mb-1">{{ 'Book Call' | translate }}</div>
+                <div class="text-sm text-muted">{{ 'Schedule a consultation' | translate }}</div>
+            </a>
+            <a href="{{ url_for('pharmacy_map') }}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="fas fa-pills"></i>
                 </div>
+                <div class="font-bold mb-1">{{ 'Find Medicine' | translate }}</div>
+                <div class="text-sm text-muted">{{ 'Locate pharmacies' | translate }}</div>
             </a>
         </div>
 
-        <!-- Recent Activity -->
-        <div class="section-header">
-            <h3>{{ 'Recent Activity' | translate }}</h3>
-        </div>
-        <div class="activity-section">
-            {% if recent_activity %}
-            {% for item in recent_activity[:5] %}
-            <div class="activity-item">
-                <div class="activity-icon-box {{ item.type }}">
-                    <i class="fas fa-{{ item.icon }}"></i>
+        <!-- Recent Activity Feed -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="card lg:col-span-2">
+                <div class="card-header">
+                    <div class="card-title">{{ 'Recent Activity' | translate }}</div>
+                    <a href="#" class="btn btn-sm btn-secondary">{{ 'View All' | translate }}</a>
                 </div>
-                <div class="activity-details">
-                    <div class="activity-text">
-                        <strong>{{ item.label | translate }}</strong>{{ item.value }}
+                <div class="flex flex-col gap-4 mt-2">
+                    {% for activity in recent_activity %}
+                    <div class="flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
+                        style="background: rgba(255,255,255,0.02);">
+                        <div class="btn-icon"
+                            style="background: rgba(59, 130, 246, 0.1); color: var(--primary); min-width: 48px;">
+                            <i class="fas fa-{{ activity.icon if activity.icon else 'file-medical-alt' }}"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="font-bold text-sm lg:text-base">{{ activity.value }}</div>
+                            <div class="text-xs text-muted">{{ activity.time }} • {{ activity.label }}</div>
+                        </div>
+                        <span class="badge {{ 'badge-success' if 'Approved' in activity.value else 'badge-info' }}">{{
+                            'Processed' | translate }}</span>
                     </div>
-                    <div class="activity-meta">{{ item.time }}</div>
-                </div>
-                <div style="color: var(--text-tertiary);">
-                    <i class="fas fa-chevron-right"></i>
+                    {% else %}
+                    <div class="text-center p-xl text-muted">{{ 'No recent activity' | translate }}</div>
+                    {% endfor %}
                 </div>
             </div>
-            {% endfor %}
-            {% else %}
-            <div style="padding: 3rem; text-align: center; color: var(--text-tertiary);">
-                <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                <p>{{ 'No activity yet. Start by using the Quick Actions above!' | translate }}</p>
+
+            <!-- AI Chat Teaser -->
+            <div class="card flex flex-col justify-center items-center text-center p-xl"
+                style="background: linear-gradient(180deg, var(--bg-card) 0%, rgba(6, 182, 212, 0.1) 100%);">
+                <div class="btn-icon mb-2"
+                    style="width: 80px; height: 80px; font-size: 2rem; background: var(--primary); color: white; box-shadow: var(--glow-blue);">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3>Pristin AI</h3>
+                <p class="mb-2">{{ 'Ask me anything about your health.' | translate }}</p>
+                <button onclick="toggleChat()" class="btn btn-primary w-full">{{ 'Start Chat' | translate }}</button>
             </div>
-            {% endif %}
         </div>
+
     </main>
 
-    <!-- Overlay for mobile sidebar -->
-    <div id="sidebarOverlay"
-        style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none;"
-        onclick="toggleSidebar()"></div>
-
-
-
-
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div id="notification-container"
-        style="position: fixed; top: 1rem; left: 50%; transform: translateX(-50%); z-index: 2000; width: 100%; max-width: 500px; pointer-events: none;">
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} slide-down"
-            style="box-shadow: 0 10px 30px rgba(0,0,0,0.5); pointer-events: auto; margin: 0 auto 10px;">
-            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
-            <div>{{ message }}</div>
+    <!-- Floating Chat Window -->
+    <div id="chatWindow" class="chat-window">
+        <div class="p-md border-b flex justify-between items-center"
+            style="background: var(--bg-secondary); padding: 1rem;">
+            <div class="font-bold flex items-center gap-2">
+                <i class="fas fa-robot text-primary"></i>
+                Pristin AI Assistant
+            </div>
+            <button onclick="toggleChat()" class="text-muted hover:text-primary"><i class="fas fa-times"></i></button>
         </div>
-        {% endfor %}
+        <div id="chatMessages" class="p-md flex-1 overflow-y-auto flex flex-col gap-2" style="padding: 1rem;">
+            <!-- Messages go here -->
+            <div class="bg-secondary p-3 rounded-lg self-start max-w-[80%] text-sm"
+                style="background: rgba(255,255,255,0.1);">
+                {{ 'Hello! How can I help you today?' | translate }}
+            </div>
+        </div>
+        <div class="p-md border-t flex gap-2" style="padding: 1rem; background: var(--bg-secondary);">
+            <input type="text" id="chatInput" class="form-control text-sm"
+                placeholder="{{ 'Type a message...' | translate }}" onkeypress="handleChatEnter(event)">
+            <button onclick="sendMessage()" class="btn btn-primary btn-icon"><i class="fas fa-paper-plane"></i></button>
+        </div>
     </div>
-    {% endif %}
-    {% endwith %}
 
-    <script>
-        // Theme Toggle Logic
-        function toggleTheme() {
-            const html = document.documentElement;
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    <!-- Floating Action Button -->
+    <div
+        style="position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 1rem; z-index: 1000;">
+        <a href="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev" target="_blank"
+            class="floating-ai-btn"
+            style="position: static; background: var(--success); text-decoration: none; display: flex; align-items: center; justify-content: center;"
+            title="AI Call Bot">
+            <i class="fas fa-phone"></i>
+        </a>
+        <button onclick="toggleChat()" class="floating-ai-btn" title="Chat with AI" style="position: static;">
+            <i class="fas fa-comment-medical"></i>
+        </button>
+    </div>
 
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-
-            updateThemeIcon(newTheme);
-        }
-
-        function updateThemeIcon(theme) {
-            const icon = document.querySelector('.theme-toggle i');
-            if (theme === 'light') {
-                icon.className = 'fas fa-sun';
-            } else {
-                icon.className = 'fas fa-moon';
-            }
-        }
-
-        // Initialize Icon on Load
-        document.addEventListener('DOMContentLoaded', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-            updateThemeIcon(currentTheme);
-        });
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            sidebar.classList.toggle('active');
-            overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
-        }
-
-        // Connection status
-        function updateConnectionStatus() {
-            const statusEl = document.getElementById('connectionStatus');
-            if (navigator.onLine) {
-                statusEl.className = 'status-badge status-online';
-                statusEl.innerHTML = '<i class="fas fa-wifi"></i><span>Online</span>';
-            } else {
-                statusEl.className = 'status-badge status-offline';
-                statusEl.innerHTML = '<i class="fas fa-wifi-slash"></i><span>Offline</span>';
-            }
-        }
-
-        window.addEventListener('online', updateConnectionStatus);
-        window.addEventListener('offline', updateConnectionStatus);
-        updateConnectionStatus();
-
-        // Auto-hide alerts
-        setTimeout(() => {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                alert.style.opacity = '0';
-                setTimeout(() => alert.remove(), 300);
-            });
-        }, 5000);
-
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/static/sw.js')
-                .then(r => console.log('SW Registered'))
-                .catch(e => console.log('SW Fail', e));
-        }
-    </script>
-    <script src="/static/js/offline-db.js"></script>
     <script src="/static/js/app.js"></script>
-    <!-- AI Call Bot -->
-    <a href="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev" class="call-bot-toggle"
-        target="_blank" title="AI Call Bot">
-        <i class="fas fa-phone"></i>
-    </a>
-
-    <!-- Chatbot Floating Button -->
-    <button class="chatbot-toggle" onclick="toggleChat()">
-        <i class="fas fa-robot"></i>
-    </button>
-
-    <!-- Chat Window -->
-    <div class="chat-window" id="chatWindow">
-        <div class="chat-header">
-            <div class="chat-title">
-                <i class="fas fa-robot"></i>
-                <span>Pristin Assistant</span>
-            </div>
-            <button class="chat-close" onclick="toggleChat()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="message bot-message">
-                {{ 'Hello! I am your virtual health assistant. How can I help you today?' | translate }}
-            </div>
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" placeholder="{{ 'Type your question...' | translate }}"
-                onkeypress="handleChatEnter(event)">
-            <button onclick="sendMessage()">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Chat Scripts -->
     <script>
-
-        // Notification Toggle
-        const notifToggle = document.getElementById('notifToggle');
-        const notifDropdown = document.getElementById('notifDropdown');
-        const notifBadge = document.getElementById('notifBadge');
-
-        if (notifToggle) {
-            notifToggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                notifDropdown.classList.toggle('active');
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (notifDropdown && !notifDropdown.contains(e.target) && !notifToggle.contains(e.target)) {
-                notifDropdown.classList.remove('active');
-            }
-        });
-
-        const markRead = document.querySelector('.mark-read');
-        if (markRead) {
-            markRead.addEventListener('click', () => {
-                if (notifBadge) notifBadge.style.display = 'none';
-                notifDropdown.classList.remove('active');
-            });
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
         }
     </script>
 </body>

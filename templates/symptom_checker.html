@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ session.get('lang', 'en') }}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Symptom Checker</title>
+    <title>{{ 'Symptom Checker' | translate }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
@@ -11,6 +12,7 @@
             font-family: 'Poppins', sans-serif;
             background-color: #f4f7fa;
         }
+
         .container {
             max-width: 600px;
             margin-top: 50px;
@@ -19,28 +21,34 @@
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+
         .section-title {
             color: #007bff;
             font-size: 24px;
             font-weight: 600;
             margin-bottom: 20px;
         }
+
         .btn-primary {
             background-color: #007bff;
             border-color: #007bff;
         }
+
         .btn-primary:hover {
             background-color: #0056b3;
         }
+
         .loading {
             display: none;
             font-size: 18px;
             color: #ff9800;
         }
+
         .error-message {
             display: none;
             color: red;
         }
+
         .result-section {
             display: none;
             background-color: #f0f9ff;
@@ -51,31 +59,34 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h2 class="section-title text-center">🔍 Symptom Checker</h2>
-        <p class="text-center">Enter your symptoms below to get AI-powered analysis.</p>
+        <h2 class="section-title text-center">{{ '🔍 Symptom Checker' | translate }}</h2>
+        <p class="text-center">{{ 'Enter your symptoms below to get AI-powered analysis.' | translate }}</p>
 
         <form id="symptomForm">
-            <textarea id="symptomInput" class="form-control" rows="4" placeholder="Describe your symptoms..." required></textarea>
-            <button type="submit" class="btn btn-primary mt-3 w-100">Check Symptoms</button>
+            <textarea id="symptomInput" class="form-control" rows="4"
+                placeholder="{{ 'Describe your symptoms...' | translate }}" required></textarea>
+            <button type="submit" class="btn btn-primary mt-3 w-100">{{ 'Check Symptoms' | translate }}</button>
         </form>
 
-        <div id="loading" class="loading text-center mt-3">⏳ Analyzing symptoms... Please wait.</div>
+        <div id="loading" class="loading text-center mt-3">{{ '⏳ Analyzing symptoms... Please wait.' | translate }}
+        </div>
         <div id="errorMessage" class="error-message text-center mt-3"></div>
 
         <div id="results" class="result-section mt-4">
-            <h4>🩺 AI Diagnosis Result</h4>
-            <p><strong>Description:</strong> <span id="description"></span></p>
-            <p><strong>Causes & Risk Factors:</strong> <span id="causes"></span></p>
-            <p><strong>Symptoms:</strong> <span id="symptoms"></span></p>
-            <p><strong>Treatment & Medications:</strong> <span id="treatment"></span></p>
-            <p><strong>Which Doctor to Consult?</strong> <span id="doctor"></span></p>
+            <h4>{{ '🩺 AI Diagnosis Result' | translate }}</h4>
+            <p><strong>{{ 'Description:' | translate }}</strong> <span id="description"></span></p>
+            <p><strong>{{ 'Causes & Risk Factors:' | translate }}</strong> <span id="causes"></span></p>
+            <p><strong>{{ 'Symptoms:' | translate }}</strong> <span id="symptoms"></span></p>
+            <p><strong>{{ 'Treatment & Medications:' | translate }}</strong> <span id="treatment"></span></p>
+            <p><strong>{{ 'Which Doctor to Consult?' | translate }}</strong> <span id="doctor"></span></p>
         </div>
     </div>
 
     <script>
-        document.getElementById("symptomForm").addEventListener("submit", function(event) {
+        document.getElementById("symptomForm").addEventListener("submit", function (event) {
             event.preventDefault();
 
             let symptoms = document.getElementById("symptomInput").value.trim();
@@ -85,7 +96,7 @@
 
             if (!symptoms) {
                 errorMessage.style.display = "block";
-                errorMessage.innerText = "❌ Please enter your symptoms.";
+                errorMessage.innerText = "{{ '❌ Please enter your symptoms.' | translate }}";
                 return;
             }
 
@@ -100,29 +111,30 @@
                 },
                 body: JSON.stringify({ symptoms: symptoms })
             })
-            .then(response => response.json())
-            .then(data => {
-                loadingDiv.style.display = "none";
+                .then(response => response.json())
+                .then(data => {
+                    loadingDiv.style.display = "none";
 
-                if (data.error) {
+                    if (data.error) {
+                        errorMessage.style.display = "block";
+                        errorMessage.innerText = "⚠️ " + data.error;
+                    } else {
+                        resultsDiv.style.display = "block";
+                        document.getElementById("description").innerText = data.description;
+                        document.getElementById("causes").innerText = data.causes;
+                        document.getElementById("symptoms").innerText = data.symptoms;
+                        document.getElementById("treatment").innerText = data.treatment;
+                        document.getElementById("doctor").innerText = data.doctor;
+                    }
+                })
+                .catch(error => {
+                    loadingDiv.style.display = "none";
                     errorMessage.style.display = "block";
-                    errorMessage.innerText = "⚠️ " + data.error;
-                } else {
-                    resultsDiv.style.display = "block";
-                    document.getElementById("description").innerText = data.description;
-                    document.getElementById("causes").innerText = data.causes;
-                    document.getElementById("symptoms").innerText = data.symptoms;
-                    document.getElementById("treatment").innerText = data.treatment;
-                    document.getElementById("doctor").innerText = data.doctor;
-                }
-            })
-            .catch(error => {
-                loadingDiv.style.display = "none";
-                errorMessage.style.display = "block";
-                errorMessage.innerText = "❌ An error occurred. Please try again.";
-                console.error("Fetch error:", error);
-            });
+                    errorMessage.innerText = "{{ '❌ An error occurred. Please try again.' | translate }}";
+                    console.error("Fetch error:", error);
+                });
         });
     </script>
 </body>
+
 </html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ session.get('lang', 'en') }}">
 
 <head>
     <meta charset="UTF-8">
@@ -31,8 +31,8 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            opacity: 0.5;
-            /* Placeholder effect */
+            display: none;
+            /* Hidden until connected */
         }
 
         .remote-placeholder {
@@ -119,6 +119,37 @@
             z-index: 10;
         }
 
+        /* Signaling Console */
+        .signaling-console {
+            position: fixed;
+            bottom: 120px;
+            left: 20px;
+            width: 300px;
+            max-height: 200px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: #0f0;
+            font-family: monospace;
+            font-size: 0.75rem;
+            padding: 10px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            pointer-events: none;
+        }
+
+        .show-console .signaling-console {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .signaling-console {
+                width: calc(100% - 40px);
+                bottom: 180px;
+            }
+        }
+
         .status-dot {
             width: 8px;
             height: 8px;
@@ -159,8 +190,12 @@
         <!-- Remote Video (Placeholder) -->
         <div class="remote-placeholder">
             <i class="fas fa-user-md" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-            <h3>{{ 'Waiting for doctor...' | translate }}</h3>
+            <h3>{% if current_user.role == 'doctor' %}{{ 'Waiting for patient...' | translate }}{% else %}{{ 'Waiting
+                for doctor...' | translate }}{% endif %}</h3>
             <p>{{ 'Your unique room ID is' | translate }} {{ room_id }}</p>
+            <button class="btn btn-primary" style="margin-top: 1rem; padding: 0.5rem 1.5rem;" onclick="startCalling()">
+                <i class="fas fa-phone"></i> {{ 'Start Call' | translate }}
+            </button>
         </div>
         <!-- Remote Video -->
         <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
@@ -171,37 +206,35 @@
 
     <!-- Controls -->
     <div class="video-controls">
-        <button class="control-btn" id="micBtn" onclick="toggleMic()">
+        <button id="micBtn" class="control-btn" onclick="toggleMic()" title="Toggle Microphone">
             <i class="fas fa-microphone"></i>
         </button>
-        <button class="control-btn" id="camBtn" onclick="toggleCam()">
+        <button id="camBtn" class="control-btn" onclick="toggleCam()" title="Toggle Camera">
             <i class="fas fa-video"></i>
         </button>
-        <button class="control-btn btn-danger" onclick="endCall()">
+        <button class="control-btn btn-danger" onclick="endCall()" title="End Consultation">
             <i class="fas fa-phone-slash"></i>
         </button>
-        <button class="control-btn" onclick="shareScreen()">
+        <button class="control-btn" onclick="shareScreen()" title="Share Screen">
             <i class="fas fa-desktop"></i>
         </button>
-        <button class="control-btn" onclick="toggleChat()">
-            <i class="fas fa-comment"></i>
+        <button class="control-btn" onclick="toggleConsole()" title="Toggle Debug Console">
+            <i class="fas fa-terminal"></i>
         </button>
     </div>
 
+    <div id="signalingConsole" class="signaling-console"></div>
+
     <!-- PeerJS -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
     <script>
         const roomID = "{{ room_id }}";
         const userRole = "{{ current_user.role }}"; // 'doctor', 'chw', 'patient'
-
-        // Determine Peer IDs
-        // Doctor/CHW acts as the "Host" (suffix: -doc)
-        // Patient acts as the "Guest" (suffix: -pat)
         const isDoctor = ['doctor', 'chw'].includes(userRole);
 
-        const myPeerID = `pristin-${roomID}-${isDoctor ? 'doc' : 'pat'}`;
-        const targetPeerID = `pristin-${roomID}-${isDoctor ? 'pat' : 'doc'}`;
+        const myPeerID = `pristin-${roomID}-${isDoctor ? 'doc' : 'pat'}`.toLowerCase();
+        const targetPeerID = `pristin-${roomID}-${isDoctor ? 'pat' : 'doc'}`.toLowerCase();
 
         // Translated alerts
         const MSG_INIT = "{{ 'Initializing connection...' | translate }}";
@@ -209,6 +242,8 @@
         const MSG_WAITING_DOCTOR = "{{ 'Waiting for doctor...' | translate }}";
         const MSG_CONNECTED = "{{ 'Connected' | translate }}";
         const MSG_CALL_ENDED = "{{ 'Call Ended' | translate }}";
+        const MSG_CALL_LOST = "{{ 'Call ended or lost.' | translate }}";
+        const MSG_DISCONNECTED = "{{ 'Disconnected from signaling server.' | translate }}";
         const MSG_ROOM_FULL = "{{ 'Room already active! Only one doctor and one patient allowed.' | translate }}";
         const MSG_PERMISSION_DENIED = "{{ 'Camera/Microphone access denied. Please allow permissions.' | translate }}";
 
@@ -216,110 +251,204 @@
         let conn;
         let localStream;
         let currentCall;
+        let isConnected = false;
         let isAudioMuted = false;
         let isVideoOff = false;
         let seconds = 0;
         let timerInterval;
+        let callInterval;
 
-        // Initialize
+        function log(msg) {
+            const consoleEl = document.getElementById('signalingConsole');
+            const entry = document.createElement('div');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            consoleEl.appendChild(entry);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+            console.log(msg);
+        }
+
+        function toggleConsole() {
+            document.body.classList.toggle('show-console');
+        }
+
         async function init() {
+            log("Checking secure context...");
+            if (!window.isSecureContext && location.hostname !== "localhost") {
+                log("ERROR: Not a secure context!");
+                alert("Video calls require a secure HTTPS connection. Please use the ngrok link provided.");
+                return;
+            }
+
             try {
-                // 1. Get Local Stream
+                log("Requesting media permissions...");
                 localStream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: 1280, height: 720, facingMode: "user" },
-                    audio: true
-                });
-                document.getElementById('localVideo').srcObject = localStream;
-                updateStatus(MSG_INIT, "warning");
-
-                // 2. Initialize Peer
-                peer = new Peer(myPeerID, {
-                    debug: 2
-                });
-
-                peer.on('open', (id) => {
-                    console.log('My peer ID is: ' + id);
-                    updateStatus(isDoctor ? MSG_WAITING_PATIENT : MSG_WAITING_DOCTOR, "info");
-
-                    // Attempt to call the other side continuously until connected
-                    connectToPeer();
-                });
-
-                peer.on('call', (call) => {
-                    console.log("Incoming call...");
-                    // Answer the call with our stream
-                    call.answer(localStream);
-                    handleCall(call);
-                });
-
-                peer.on('error', (err) => {
-                    console.error(err);
-                    if (err.type === 'peer-unavailable') {
-                        // Peer not found, just keep waiting/retrying
-                        console.log("Peer not found yet.");
-                    } else if (err.type === 'unavailable-id') {
-                        alert(MSG_ROOM_FULL);
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: "user",
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
                     }
                 });
 
+                log("Media stream acquired.");
+                document.getElementById('localVideo').srcObject = localStream;
+                updateStatus(MSG_INIT, "warning");
+
+                initializePeer();
+
             } catch (err) {
+                log(`PERMISSION ERROR: ${err.name} - ${err.message}`);
                 console.error("Failed to get local stream", err);
-                alert(MSG_PERMISSION_DENIED);
+                alert(MSG_PERMISSION_DENIED + " (" + err.name + ")");
             }
         }
 
-        // Connect to the target peer
+        function initializePeer() {
+            log(`Starting PeerJS as ${myPeerID}...`);
+
+            if (peer) {
+                log("Destroying existing peer instance...");
+                peer.destroy();
+            }
+
+            peer = new Peer(myPeerID, {
+                debug: 2,
+                config: {
+                    'iceServers': [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' }
+                    ],
+                    'sdpSemantics': 'unified-plan'
+                }
+            });
+
+            peer.on('open', (id) => {
+                log(`Registered with PeerID: ${id}`);
+                updateStatus(isDoctor ? MSG_WAITING_PATIENT : MSG_WAITING_DOCTOR, "info");
+                startCalling();
+            });
+
+            peer.on('call', (call) => {
+                log(`Incoming call from ${call.peer}`);
+                if (currentCall) {
+                    log("Replacing existing call...");
+                    currentCall.close();
+                }
+
+                call.answer(localStream);
+                handleCall(call);
+            });
+
+            peer.on('error', (err) => {
+                log(`PEER ERROR: ${err.type}`);
+                if (err.type === 'peer-unavailable') {
+                    // Normal during waiting phase
+                } else if (err.type === 'unavailable-id') {
+                    log("CRITICAL: ID already taken. Room occupied?");
+                    alert(MSG_ROOM_FULL);
+                } else {
+                    log(`Unexpected Error: ${err.message}`);
+                }
+
+                if (['disconnected', 'network', 'socket-error'].includes(err.type)) {
+                    log("Attempting auto-reconnect in 5s...");
+                    setTimeout(initializePeer, 5000);
+                }
+            });
+
+            peer.on('disconnected', () => {
+                log("Signaling server disconnected. Reconnecting...");
+                peer.reconnect();
+            });
+        }
+
+        function startCalling() {
+            if (callInterval) clearInterval(callInterval);
+            log(`Starting call loop to ${targetPeerID}...`);
+
+            connectToPeer();
+            callInterval = setInterval(() => {
+                if (!isConnected) {
+                    connectToPeer();
+                } else {
+                    clearInterval(callInterval);
+                }
+            }, 3000);
+        }
+
         function connectToPeer() {
-            if (currentCall) return; // Already in a call
+            if (isConnected || !peer || peer.disconnected) return;
 
-            console.log(`Attempting to call ${targetPeerID}...`);
-            const call = peer.call(targetPeerID, localStream);
+            log(`Dialing ${targetPeerID}...`);
+            const call = peer.call(targetPeerID, localStream, {
+                metadata: { role: userRole }
+            });
 
-            // If the call initializes (peer exists), handle it
             if (call) {
                 handleCall(call);
-            } else {
-                // Retry in 3 seconds
-                setTimeout(connectToPeer, 3000);
             }
         }
 
-        // Handle a call (incoming or outgoing)
         function handleCall(call) {
-            if (currentCall) return; // Already handled
             currentCall = call;
 
             call.on('stream', (remoteStream) => {
+                log("Remote stream active.");
                 const remoteVideo = document.getElementById('remoteVideo');
-                // Only set if not already set to avoid flickering
+
                 if (remoteVideo.srcObject !== remoteStream) {
                     remoteVideo.srcObject = remoteStream;
                     document.querySelector('.remote-placeholder').style.display = 'none';
-                    remoteVideo.srcObject = remoteStream;
-                    document.querySelector('.remote-placeholder').style.display = 'none';
+                    remoteVideo.style.display = 'block';
+
+                    isConnected = true;
+                    log("CONSULTATION CONNECTED.");
                     updateStatus(MSG_CONNECTED, "success");
                     startTimer();
                 }
             });
 
             call.on('close', () => {
-                endCallUI();
+                log("Remote hanging up.");
+                handleCallEnd();
             });
 
             call.on('error', (err) => {
-                console.error("Call error:", err);
-                endCallUI();
+                log(`Call level error: ${err.message}`);
+                handleCallEnd();
             });
+
+            // Timeout if no stream received
+            setTimeout(() => {
+                if (!isConnected && currentCall === call) {
+                    log("Call hang identified. Resetting...");
+                    handleCallEnd();
+                }
+            }, 10000);
         }
 
-        function endCallUI() {
-            document.getElementById('remoteVideo').srcObject = null;
-            document.querySelector('.remote-placeholder').style.display = 'block';
-            updateStatus(MSG_CALL_ENDED, "danger");
-            stopTimer();
+        function handleCallEnd() {
+            if (isConnected) {
+                log("Closing session components...");
+            }
+            isConnected = false;
             currentCall = null;
-            // Try to reconnect?
-            setTimeout(connectToPeer, 2000);
+            document.getElementById('remoteVideo').srcObject = null;
+            document.getElementById('remoteVideo').style.display = 'none';
+            document.querySelector('.remote-placeholder').style.display = 'flex';
+            updateStatus(MSG_CALL_LOST, "warning");
+            stopTimer();
+
+            // Resume calling
+            startCalling();
         }
 
         function updateStatus(msg, type) {
@@ -327,12 +456,15 @@
             const statusDot = statusBadge.querySelector('.status-dot');
             statusBadge.querySelector('span:nth-child(2)').textContent = msg;
 
-            statusDot.style.background = type === 'success' ? 'var(--success)' :
-                type === 'warning' ? 'var(--warning)' :
-                    type === 'danger' ? 'var(--error)' : '#fff';
+            const colors = {
+                'success': '#00ff88',
+                'warning': '#ffcc00',
+                'danger': '#ff4d4d',
+                'info': '#00d4ff'
+            };
+            statusDot.style.background = colors[type] || '#fff';
         }
 
-        // Timer
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
             seconds = 0;

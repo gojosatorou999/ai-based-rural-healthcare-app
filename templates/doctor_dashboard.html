@@ -33,9 +33,13 @@
         }
 
         .doctor-header {
-            background: linear-gradient(135deg, var(--bg-card), rgba(196, 255, 13, 0.05));
+            background: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
-            padding: 1.5rem 0;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
         }
 
         .header-content {
@@ -44,195 +48,300 @@
             justify-content: space-between;
         }
 
+        .doctor-profile-brief {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .doctor-p-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-primary);
+            font-size: 1.2rem;
+            box-shadow: var(--glow-green);
+        }
+
         .doctor-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(196, 255, 13, 0.15);
+            background: rgba(196, 255, 13, 0.1);
             color: var(--primary);
-            padding: 0.375rem 0.75rem;
-            border-radius: var(--radius-full);
-            font-size: 0.75rem;
-            font-weight: 600;
+            padding: 0.25rem 0.6rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
         }
 
         .stat-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem;
-            text-align: center;
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            opacity: 0.05;
+            border-radius: 0 0 0 100%;
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 800;
-            color: var(--primary);
+            color: var(--text-primary);
+            line-height: 1;
         }
 
         .stat-label {
             color: var(--text-tertiary);
-            font-size: 0.8125rem;
-            margin-top: 0.25rem;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .section-title i {
+        .stat-icon {
+            font-size: 1.2rem;
             color: var(--primary);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title i {
+            width: 32px;
+            height: 32px;
+            background: rgba(196, 255, 13, 0.1);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
         }
 
         .pending-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
-            padding: 1rem;
-            margin-bottom: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 1rem;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .pending-card {
+                flex-direction: row;
+                align-items: center;
+            }
         }
 
         .pending-card:hover {
             border-color: var(--primary);
-            transform: translateX(4px);
+            background: rgba(196, 255, 13, 0.02);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .pending-main {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex: 1;
         }
 
         .pending-avatar {
-            width: 48px;
-            height: 48px;
-            background: rgba(196, 255, 13, 0.1);
+            width: 56px;
+            height: 56px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem;
-            color: var(--primary);
+            font-size: 1.5rem;
+            color: var(--text-tertiary);
         }
 
         .pending-info {
             flex: 1;
         }
 
+        .pending-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
         .pending-symptoms {
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 0.25rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
         }
 
         .pending-meta {
             display: flex;
-            gap: 0.75rem;
-            font-size: 0.8125rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.85rem;
             color: var(--text-tertiary);
         }
 
+        .pending-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .ai-summary {
+            background: rgba(196, 255, 13, 0.05);
+            border-left: 2px solid var(--primary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin: 0.75rem 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-left: auto;
+        }
+
         .severity-badge {
-            padding: 0.25rem 0.5rem;
+            padding: 0.4rem 0.8rem;
             border-radius: var(--radius-sm);
-            font-size: 0.6875rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .severity-high {
-            background: rgba(255, 77, 77, 0.15);
-            color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
         .severity-medium {
-            background: rgba(255, 184, 0, 0.15);
-            color: var(--warning);
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.2);
         }
 
         .severity-low {
-            background: rgba(0, 255, 136, 0.15);
-            color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
-        .review-btn {
-            padding: 0.5rem 1rem;
-            background: var(--primary);
+        .btn-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(196, 255, 13, 0.05);
+        }
+
+        .btn-review {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--primary-gradient);
             color: var(--bg-primary);
             border: none;
             border-radius: var(--radius-md);
-            font-weight: 600;
-            font-size: 0.8125rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
-        .review-btn:hover {
+        .btn-review:hover {
             box-shadow: var(--glow-green);
+            transform: scale(1.02);
         }
 
         .approved-list {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
         }
 
         .approved-item {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
         }
 
-        .approved-item:last-child {
-            border-bottom: none;
-        }
-
-        .approved-check {
-            color: var(--success);
-        }
-
-        .approved-info {
-            flex: 1;
-        }
-
-        .approved-disease {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-        }
-
-        .approved-date {
-            color: var(--text-tertiary);
-            font-size: 0.75rem;
-        }
-
-        .empty-state {
+        .empty-appt-card {
+            background: var(--bg-card);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-xl);
+            padding: 2.5rem;
             text-align: center;
-            padding: 3rem;
             color: var(--text-tertiary);
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -242,29 +351,30 @@
     <header class="doctor-header">
         <div class="container">
             <div class="header-content">
-                <div>
-                    <h1 style="font-size: 1.5rem; margin-bottom: 0.25rem;">{{ 'Doctor Dashboard' | translate }}</h1>
-                    <span class="doctor-badge">
+                <div class="doctor-profile-brief">
+                    <div class="doctor-p-icon">
                         <i class="fas fa-user-md"></i>
-                        {{ 'Medical Officer' | translate }}
-                    </span>
-                    <button class="theme-toggle" onclick="toggleTheme()" title="{{ 'Toggle Theme' | translate }}"
-                        style="margin-left: 1rem;">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                </div>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <a href="{{ url_for('admin_all_patients') }}" class="btn btn-secondary">
-                        <i class="fas fa-users-cog"></i> {{ 'Manage Patients' | translate }}
-                    </a>
-                    <a href="{{ url_for('chw_dashboard') }}" class="btn btn-ghost">
-                        <i class="fas fa-hospital-user"></i> {{ 'CHW View' | translate }}
-                    </a>
-                    <a href="{{ url_for('logout') }}" class="btn btn-ghost" style="color: var(--error);">
-                        <i class="fas fa-sign-out-alt"></i> {{ 'Logout' | translate }}
-                    </a>
+                    </div>
+                    <div>
+                        <h1 style="font-size: 1.1rem; margin: 0; line-height: 1.2;">{{ 'Dr.' | translate }} {{
+                            current_user.username }}</h1>
+                        <span class="doctor-badge">{{ 'Senior Consultant' | translate }}</span>
+                    </div>
                 </div>
 
+                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <!-- Language Switcher Removed -->
+                    <button class="theme-toggle" onclick="toggleTheme()" title="{{ 'Toggle Theme' | translate }}">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div style="width: 1px; height: 24px; background: var(--border-color); margin: 0 0.25rem;"></div>
+                    <a href="{{ url_for('chw_dashboard') }}" class="btn btn-ghost btn-sm">
+                        <i class="fas fa-hospital-user"></i>
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm" style="color: var(--error);">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
@@ -273,29 +383,93 @@
     <main class="main-content" style="padding: 2rem 0;">
         <div class="container">
             <!-- Quick Actions -->
-            <div style="margin-bottom: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
-                <a href="{{ url_for('admin_all_patients') }}" class="btn btn-secondary">
-                    <i class="fas fa-users"></i> {{ 'View All Patients' | translate }}
-                </a>
-                <a href="{{ url_for('video_start') }}" class="btn btn-primary">
-                    <i class="fas fa-video"></i> {{ 'Start Video Consultation' | translate }}
-                </a>
+            <div style="margin-bottom: 2rem; display: flex; flex-wrap: wrap; gap: 1rem;">
+                <div style="flex: 1; min-width: 200px;">
+                    <h2 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem;">{{ "Morning, Dr." |
+                        translate }} {{ current_user.username }}</h2>
+                    <p style="color: var(--text-tertiary);">{{ "Here is what's happening today." | translate }}</p>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <a href="{{ url_for('export_symptoms_csv') }}" class="btn btn-secondary"
+                        style="background: rgba(196, 255, 13, 0.1); border: 1px solid var(--primary); color: var(--primary);">
+                        <i class="fas fa-file-csv"></i> {{ 'Export Data (CSV)' | translate }}
+                    </a>
+                    <a href="{{ url_for('admin_all_patients') }}" class="btn btn-secondary">
+                        <i class="fas fa-users"></i> {{ 'Patient Database' | translate }}
+                    </a>
+                    <a href="{{ url_for('video_start') }}" class="btn btn-primary"
+                        style="box-shadow: var(--glow-green);">
+                        <i class="fas fa-video"></i> {{ 'Tele-Consult' | translate }}
+                    </a>
+                </div>
             </div>
 
             <!-- Stats -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-value">{{ stats.pending_count }}</div>
-                    <div class="stat-label">{{ 'Pending Review' | translate }}</div>
+                    <div class="stat-label">
+                        <i class="fas fa-clock stat-icon"></i> {{ 'Awaiting Review' | translate }}
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">{{ stats.approved_today }}</div>
-                    <div class="stat-label">{{ 'Approved Today' | translate }}</div>
+                    <div class="stat-value">{{ appointments|length }}</div>
+                    <div class="stat-label">
+                        <i class="fas fa-calendar-check stat-icon"></i> {{ "Today's Appts" | translate }}
+                    </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">{{ stats.total_approved }}</div>
-                    <div class="stat-label">{{ 'Total Approved' | translate }}</div>
+                    <div class="stat-label">
+                        <i class="fas fa-heartbeat stat-icon"></i> {{ 'Cases Resolved' | translate }}
+                    </div>
                 </div>
+            </div>
+
+            <div class="section-title">
+                <i class="fas fa-calendar-alt"></i>
+                {{ 'Upcoming Consultations' | translate }}
+            </div>
+            <div class="pending-grid" style="margin-bottom: 2rem;">
+                {% if appointments %}
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+                    {% for appt in appointments %}
+                    <div class="report-card" style="padding: 1.5rem;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div
+                                    style="width: 40px; height: 40px; border-radius: 50%; background: var(--bg-secondary); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 800; color: var(--text-primary);">{{ appt.user.username }}
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: var(--primary);">{{
+                                        appt.appointment_date.strftime('%I:%M %p') }}</div>
+                                </div>
+                            </div>
+                            <div class="doctor-badge"
+                                style="background: rgba(16, 185, 129, 0.1); color: var(--success);">{{ 'Confirmed' |
+                                translate }}</div>
+                        </div>
+                        <div
+                            style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.5;">
+                            {{ appt.reason }}
+                        </div>
+                        <a href="{{ url_for('video_start') }}" class="btn-review"
+                            style="width: 100%; justify-content: center;">
+                            <i class="fas fa-video"></i> {{ 'Start Video Call' | translate }}
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-appt-card">
+                    <i class="fas fa-calendar-day" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                    <p>{{ 'No consultations scheduled for today.' | translate }}</p>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Pending Reviews -->
@@ -305,29 +479,52 @@
             </div>
 
             {% if pending %}
-            {% for report in pending %}
-            <div class="pending-card">
-                <div class="pending-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="pending-info">
-                    <div class="pending-symptoms">{{ report.symptoms_text[:50] }}{% if report.symptoms_text|length > 50
-                        %}...{% endif %}</div>
-                    <div class="pending-meta">
-                        <span><i class="fas fa-map-marker-alt"></i> {{ report.affected_area or 'Not specified' |
-                            translate }}</span>
-                        <span><i class="fas fa-clock"></i> {{ report.created_at.strftime('%b %d, %H:%M') }}</span>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                {% for report in pending %}
+                <div class="pending-card">
+                    <div class="pending-main">
+                        <div class="pending-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="pending-info">
+                            <div class="pending-header">
+                                <div class="pending-symptoms">{{ report.symptoms_text[:60] }}{% if
+                                    report.symptoms_text|length > 60 %}...{% endif %}</div>
+                                <span
+                                    class="severity-badge severity-{% if report.severity >= 7 %}high{% elif report.severity >= 4 %}medium{% else %}low{% endif %}">
+                                    {{ report.severity or '5' }}
+                                </span>
+                            </div>
+
+                            <div class="pending-meta">
+                                <span><i class="fas fa-map-marker-alt"></i> {{ report.affected_area or 'Not specified' |
+                                    translate }}</span>
+                                <span><i class="fas fa-calendar-alt"></i> {{ report.created_at.strftime('%d %b, %H:%M')
+                                    }}</span>
+                                <span><i class="fas fa-user-circle"></i> {{ report.user.username }}</span>
+                            </div>
+
+                            {% set ai_data = report.ai_prediction|from_json if report.ai_prediction else {} %}
+                            {% if ai_data.ai_summary %}
+                            <div class="ai-summary">
+                                <i class="fas fa-robot"></i> {{ ai_data.ai_summary }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card-actions">
+                        <a href="{{ url_for('video_call_patient', report_id=report.id) }}" class="btn-icon"
+                            title="{{ 'WhatsApp Call' | translate }}">
+                            <i class="fas fa-phone"></i>
+                        </a>
+                        <a href="{{ url_for('doctor_review', report_id=report.id) }}" class="btn-review">
+                            <i class="fas fa-notes-medical"></i> {{ 'Review Case' | translate }}
+                        </a>
                     </div>
                 </div>
-                <span
-                    class="severity-badge severity-{% if report.severity >= 7 %}high{% elif report.severity >= 4 %}medium{% else %}low{% endif %}">
-                    {{ 'Severity' | translate }} {{ report.severity or 'N/A' }}
-                </span>
-                <a href="{{ url_for('doctor_review', report_id=report.id) }}" class="review-btn">
-                    <i class="fas fa-eye"></i> {{ 'Review' | translate }}
-                </a>
+                {% endfor %}
             </div>
-            {% endfor %}
             {% else %}
             <div class="empty-state">
                 <i class="fas fa-check-circle"></i>
@@ -345,13 +542,17 @@
             <div class="approved-list">
                 {% for report in recent %}
                 <div class="approved-item">
-                    <i class="fas fa-check-circle approved-check"></i>
+                    <div
+                        style="width: 32px; height: 32px; border-radius: 50%; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: var(--success);">
+                        <i class="fas fa-check"></i>
+                    </div>
                     <div class="approved-info">
-                        <div class="approved-disease">{{ report.symptoms_text[:40] }}{% if report.symptoms_text|length >
-                            40 %}...{% endif %}</div>
-                        <div class="approved-date">{{ 'Approved' | translate }} {{ report.approved_at.strftime('%b %d at
-                            %H:%M') if
-                            report.approved_at else 'N/A' }}</div>
+                        <div class="approved-disease">{{ report.symptoms_text[:50] }}{% if report.symptoms_text|length >
+                            50 %}...{% endif %}</div>
+                        <div class="approved-date">
+                            <i class="fas fa-calendar-check" style="font-size: 0.7rem;"></i>
+                            {{ report.approved_at.strftime('%d %b, %H:%M') if report.approved_at else 'Completed' }}
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -366,10 +567,11 @@
     </main>
 
     <!-- AI Call Bot -->
-    <a href="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev" class="call-bot-toggle"
-        target="_blank" title="AI Call Bot">
+    <a href="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev" class="floating-ai-btn"
+        target="_blank" title="AI Call Bot" style="background: var(--success); bottom: 6rem;">
         <i class="fas fa-phone"></i>
     </a>
+
 
     <!-- Chatbot -->
     <button class="chatbot-toggle" onclick="toggleChat()" title="AI Assistant">

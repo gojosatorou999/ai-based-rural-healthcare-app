@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="{{ current_user.preferred_language if current_user.is_authenticated else 'en' }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'Book Appointment' | translate }} | Pristin Healthcare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body data-theme="dark">
+    <div class="container mx-auto px-4 py-8 max-w-lg">
+        <div class="flex items-center gap-4 mb-8">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-icon btn-sm"
+                style="background: rgba(255,255,255,0.05);">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="text-2xl font-bold">{{ 'Book Appointment' | translate }}</h1>
+        </div>
+
+        <div class="card p-xl">
+            <form action="{{ url_for('book_appointment') }}" method="POST" class="flex flex-col gap-6">
+                <div class="form-group">
+                    <label class="block mb-2 text-sm text-secondary">{{ 'Preferred Date' | translate }}</label>
+                    <input type="date" name="date" class="form-control" required min="{{ now().strftime('%Y-%m-%d') }}">
+                </div>
+
+                <div class="form-group">
+                    <label class="block mb-2 text-sm text-secondary">{{ 'Preferred Time' | translate }}</label>
+                    <input type="time" name="time" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="block mb-2 text-sm text-secondary">{{ 'Reason for Consultation' | translate }}</label>
+                    <textarea name="reason" rows="3" class="form-control"
+                        placeholder="{{ 'Describe your symptoms or reason for visit...' | translate }}"
+                        required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full py-4">
+                    <i class="fas fa-calendar-check mr-2"></i> {{ 'Submit Request' | translate }}
+                </button>
+            </form>
+        </div>
+
+        <div class="mt-8 p-md text-center text-muted text-xs">
+            <p><i class="fas fa-info-circle mr-1"></i> {{ 'Your request will be sent to our medical officers. You will
+                receive a WhatsApp confirmation link.' | translate }}</p>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+
+</html>

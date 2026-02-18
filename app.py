@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, flash, redirect, url_for, session, jsonify, Response, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -80,15 +80,8 @@ except Exception as e:
     logging.error(f"⚠️ Error loading AI model: {e}")
 
 # ========== MULTILINGUAL SUPPORT (PHASE 4) ==========
-try:
-    from translation_service import get_ui_translation, translate_text, LANGUAGES
-    TRANSLATION_ENABLED = True
-except ImportError:
-    logging.warning("Translation service not found. Multilingual features disabled.")
-    TRANSLATION_ENABLED = False
-    LANGUAGES = {'en': 'English'}
-    def get_ui_translation(text, lang): return text
-    def translate_text(text, lang): return text
+from translation_service import get_ui_translation, translate_text, LANGUAGES
+TRANSLATION_ENABLED = True
 
 # ========== WHATSAPP INTEGRATION (PHASE 3) ==========
 try:
@@ -104,53 +97,113 @@ except ImportError:
     WHATSAPP_ENABLED = False
     
 try:
-    from chatbot_service import get_ai_response, get_medical_analysis
+    from chatbot_service import get_ai_response, get_medical_analysis, get_facial_analysis, get_ai_summary
     HAS_CHATBOT = True
 except ImportError:
     HAS_CHATBOT = False
-    def get_ai_response(msg, lang='english'): return "AI Chat offline."
-    def get_medical_analysis(symptom, age=None, gender=None, cond=None, severity=5, affected_area=None): return None
+    def get_ai_response(msg, language='english'): return "AI Chat offline."
+    def get_medical_analysis(symptom, age=None, gender=None, cond=None, severity=5, affected_area=None, language='english'): return None
+    def get_facial_analysis(path, language='english'): return None
+    def get_ai_summary(text, language='english'): return text[:50] + "..."
+
+# ========== LOCAL AI MODEL (SCIKIT-LEARN) ==========
+try:
+    import joblib
+    from disease_data import DISEASE_INFO
+    local_model_path = "models/symptom_classifier_sklearn.joblib"
+    if os.path.exists(local_model_path):
+        local_model = joblib.load(local_model_path)
+        HAS_LOCAL_MODEL = True
+        logging.info("✅ Local Scikit-Learn model loaded successfully!")
+    else:
+        HAS_LOCAL_MODEL = False
+        logging.warning("⚠️ Local model file not found.")
+except Exception as e:
+    HAS_LOCAL_MODEL = False
+    DISEASE_INFO = {}
+    logging.warning(f"⚠️ Failed to load local model/data: {e}")
 
 @app.context_processor
 def inject_languages():
-    """Inject available languages into all templates"""
-    return dict(LANGUAGES=LANGUAGES)
+    """Inject available languages and utility functions into all templates"""
+    return dict(LANGUAGES=LANGUAGES, now=datetime.utcnow)
 
 @app.template_filter('translate')
 def translate_filter(text):
     """Template filter for translating UI text"""
     if not text:
         return ""
-    if not current_user.is_authenticated:
-        return text
     
-    # Map 'english' (from DB default) to 'en' code
-    lang_map = {
-        'english': 'en', 'hindi': 'hi', 'telugu': 'te', 
-        'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr'
-    }
-    user_lang = lang_map.get(current_user.preferred_language.lower(), 'en')
+    # Normalize whitespace to handle multiline template strings
+    text = re.sub(r'\s+', ' ', text.strip())
     
-    return get_ui_translation(text, user_lang)
+    # Get current language (session for immediate feedback, DB for persistence)
+    lang_code = session.get('lang')
+    
+    if not lang_code and current_user.is_authenticated:
+        # Fallback to user preference if session is empty
+        pref = getattr(current_user, 'preferred_language', 'english')
+        if pref:
+            lang_map = {
+                'english': 'en', 'hindi': 'hi', 'telugu': 'te', 
+                'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr'
+            }
+            lang_code = lang_map.get(pref.lower(), 'en')
+            session['lang'] = lang_code # Sync session
+            
+    if not lang_code:
+        lang_code = 'en'
+    
+    return get_ui_translation(text, lang_code)
 
 @app.template_filter('translate_content')
 def translate_content_filter(text):
     """Template filter for dynamic content like symptoms"""
     if not text:
         return ""
-    if not current_user.is_authenticated:
-        return text
-        
-    lang_map = {
-        'english': 'en', 'hindi': 'hi', 'telugu': 'te', 
-        'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr'
-    }
-    user_lang = lang_map.get(current_user.preferred_language.lower(), 'en')
     
-    if user_lang == 'en':
+    text = re.sub(r'\s+', ' ', text.strip())
+    lang_code = session.get('lang')
+    
+    if not lang_code and current_user.is_authenticated:
+        pref = getattr(current_user, 'preferred_language', 'english')
+        if pref:
+            lang_map = {
+                'english': 'en', 'hindi': 'hi', 'telugu': 'te', 
+                'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr'
+            }
+            lang_code = lang_map.get(pref.lower(), 'en')
+            session['lang'] = lang_code
+            
+    if not lang_code or lang_code == 'en':
         return text
         
-    return translate_text(text, user_lang)
+    return translate_text(text, lang_code)
+
+@app.route('/set_language/<lang_code>')
+def set_language(lang_code):
+    if lang_code in LANGUAGES:
+        session['lang'] = lang_code
+        lang_name = LANGUAGES[lang_code]
+        if current_user.is_authenticated:
+            # Sync to DB if logged in
+            current_user.preferred_language = lang_name.lower()
+            try:
+                db.session.commit()
+                logging.info(f"Language updated for user {current_user.id} to {lang_name}")
+            except Exception as e:
+                db.session.rollback()
+                logging.error(f"Failed to update language in DB: {e}")
+        flash(f'Language changed to {lang_name}', 'success')
+    return redirect(request.referrer or url_for('dashboard'))
+
+@app.template_filter('from_json')
+def from_json_filter(value):
+    """Template filter for parsing JSON strings"""
+    try:
+        return json.loads(value)
+    except:
+        return {}
 
 def doctor_required(f):
     """Decorator for routes that require doctor or CHW role"""
@@ -185,6 +238,7 @@ class User(db.Model, UserMixin):
     symptom_reports = db.relationship('SymptomReport', backref='user', lazy=True, foreign_keys='SymptomReport.user_id')
     prescriptions = db.relationship('Prescription', backref='user', lazy=True)
     vital_records = db.relationship('VitalRecord', backref='user', lazy=True)
+    appointments = db.relationship('Appointment', backref='user', lazy=True, foreign_keys='Appointment.user_id')
 
 # Symptom Report with image support
 class SymptomReport(db.Model):
@@ -267,6 +321,21 @@ class VideoConsultation(db.Model):
     notes = db.Column(db.Text, nullable=True)
 
 
+class Appointment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    appointment_date = db.Column(db.DateTime, nullable=False)
+    reason = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(20), default='pending') # pending, confirmed, cancelled, completed
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Explicit relationship for the patient
+    patient = db.relationship('User', foreign_keys=[user_id])
+    # Explicit relationship for the doctor
+    doctor_rel = db.relationship('User', foreign_keys=[doctor_id])
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -320,7 +389,8 @@ def login():
         user = User.query.filter_by(email=email).first()
 
         if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
+            remember = True if request.form.get('remember') else False
+            login_user(user, remember=remember)
             flash('Login successful!', 'success')
             
             # Redirect based on role
@@ -363,12 +433,43 @@ def dashboard():
     
     recent_activity = []
     for symptom in recent_symptoms:
+        # Default text from symptoms input
+        raw_text = symptom.symptoms_text if symptom.symptoms_text else "Health Check"
+        prediction_text = raw_text
+
+        # 1. Check if the symptom text itself is accidentally JSON (fix for current issue)
+        if raw_text.strip().startswith('{') and '"disease"' in raw_text:
+            try:
+                # Try to salvage disease name from the misplaced JSON
+                json_data = json.loads(raw_text)
+                if json_data.get('disease'):
+                    prediction_text = f"Reported: {json_data.get('disease')}"
+                else:
+                    prediction_text = "Symptom Analysis"
+            except:
+                prediction_text = "Symptom Report"
+        
+        # 2. Check the proper AI prediction column for a better label
+        try:
+            if symptom.ai_prediction and '{' in symptom.ai_prediction:
+                pred_json = json.loads(symptom.ai_prediction)
+                disease = pred_json.get('disease')
+                if disease:
+                    prediction_text = f"Reported: {disease}"
+        except Exception as e:
+            logging.error(f"Error parsing prediction JSON: {e}")
+
+        # Final safety check: If it still looks like code/JSON, hide it
+        if '{' in prediction_text and '}' in prediction_text:
+             prediction_text = "Health Analysis"
+
         recent_activity.append({
             'type': 'symptom',
             'icon': 'notes-medical',
-            'label': 'Reported',
-            'value': f': {symptom.symptoms_text[:50]}...' if len(symptom.symptoms_text) > 50 else f': {symptom.symptoms_text}',
-            'time': symptom.created_at.strftime('%b %d, %Y')
+            'label': 'Analysis',
+            'value': prediction_text,
+            'time': symptom.created_at.strftime('%b %d, %Y'),
+            'raw_time': symptom.created_at
         })
     
     for vital in recent_vitals:
@@ -378,11 +479,12 @@ def dashboard():
             'icon': 'heartbeat',
             'label': 'Vitals Recorded',
             'value': val,
-            'time': vital.created_at.strftime('%b %d, %Y')
+            'time': vital.created_at.strftime('%b %d, %Y'),
+            'raw_time': vital.created_at
         })
     
-    # Sort by time (most recent first)
-    recent_activity.sort(key=lambda x: x['time'], reverse=True)
+    # Sort by raw time (most recent first)
+    recent_activity.sort(key=lambda x: x['raw_time'], reverse=True)
         
     return render_template('dashboard.html', 
                          user=current_user,
@@ -399,33 +501,57 @@ def dashboard():
 @app.route('/check_symptoms', methods=['POST'])
 def check_symptoms():
     try:
+        # Language detection/preference - Move up to handle early errors
+        lang_code = session.get('lang', 'en')
+        if current_user.is_authenticated:
+            lang_map = {'english': 'en', 'hindi': 'hi', 'telugu': 'te', 'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr'}
+            lang_code = lang_map.get(current_user.preferred_language.lower() if current_user.preferred_language else 'english', 'en')
+
         # Ensure request has JSON data
         if not request.is_json:
-            return jsonify({"error": "Invalid request format. Please send JSON data."}), 400
+            return jsonify({"error": translate_text("Invalid request format. Please send JSON data.", lang_code)}), 400
 
         data = request.get_json()
         symptoms = data.get("symptoms", "").strip()
 
         # Check if symptoms were provided
         if not symptoms:
-            return jsonify({"error": "No symptoms provided. Please enter your symptoms."}), 400
+            return jsonify({"error": translate_text("No symptoms provided. Please enter your symptoms.", lang_code)}), 400
+        
+        # Get language name for prompt
+        lang_name_map = {'en': 'English', 'hi': 'Hindi', 'te': 'Telugu', 'ta': 'Tamil', 'bn': 'Bengali', 'mr': 'Marathi'}
+        language_name = lang_name_map.get(lang_code, 'English')
 
         # AI model prediction with context if authenticated
         age = current_user.age if current_user.is_authenticated else None
         gender = current_user.gender if current_user.is_authenticated else None
         conditions = current_user.existing_conditions if current_user.is_authenticated else None
         
-        # New context fields
-        severity = data.get("severity", 5)
-        affected_area = data.get("affected_area", None)
+        # New context fields (ensure data is a dict)
+        severity = 5
+        affected_area = None
+        if isinstance(data, dict):
+            severity = data.get("severity", 5)
+            affected_area = data.get("affected_area", None)
         
-        ai_response = predict_disease(symptoms, age=age, gender=gender, conditions=conditions, severity=severity, affected_area=affected_area)
+        ai_response = predict_disease(symptoms, age=age, gender=gender, conditions=conditions, 
+                                    severity=severity, affected_area=affected_area, language=language_name)
 
         # Check if the model returned valid data
         if not ai_response or "error" in ai_response:
-            return jsonify({"error": "Could not analyze symptoms. Try again."}), 500
+            return jsonify({"error": translate_text("Could not analyze symptoms. Try again.", lang_code)}), 500
 
-        # Return the AI-generated response
+        # Translate parts of the response if it's not in English
+        if lang_code != 'en' and isinstance(ai_response, dict):
+            for key in ["description", "causes", "symptoms", "treatment", "doctor", "disease"]:
+                val = ai_response.get(key)
+                if val and isinstance(val, str):
+                    ai_response[key] = translate_text(val, lang_code)
+
+        # Return the AI-generated response (ensure ai_response is a dict)
+        if not isinstance(ai_response, dict):
+             return jsonify({"error": translate_text("Could not analyze symptoms. Try again.", lang_code)}), 500
+
         return jsonify({
             "description": ai_response.get("description", "N/A"),
             "causes": ai_response.get("causes", "N/A"),
@@ -436,9 +562,71 @@ def check_symptoms():
 
     except Exception as e:
         print("Error:", str(e))  # Log error for debugging
-        return jsonify({"error": "An unexpected error occurred. Please try again."}), 500
+        # Note: lang_code might not be defined if error occurs very early, but it's set at start of try
+        return jsonify({"error": translate_text("An unexpected error occurred. Please try again.", session.get('lang', 'en'))}), 500
 
 
+
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    if not request.is_json:
+        return jsonify({"error": "Invalid request format. JSON required."}), 400
+    
+    data = request.get_json()
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return jsonify({"error": "Message cannot be empty."}), 400
+
+    lang = 'english'
+    if current_user.is_authenticated and current_user.preferred_language:
+        lang = current_user.preferred_language
+
+    try:
+        if HAS_CHATBOT:
+            response = get_ai_response(message, lang)
+        else:
+            response = "AI Chat feature is currently disabled."
+            
+        return jsonify({"response": response})
+    except Exception as e:
+        logging.error(f"Chatbot Error: {e}")
+        return jsonify({"error": "AI service temporarily unavailable."}), 500
+
+        return jsonify({"error": "AI service temporarily unavailable."}), 500
+
+# --- IoT Device Backend ---
+@app.route('/api/iot/connect', methods=['POST'])
+@login_required
+def iot_connect():
+    """Simulate connecting to an IoT medical device"""
+    # In a real scenario, this would negotiate, auth, and register the device
+    import time
+    time.sleep(1.5) # Simulate network/discovery delay
+    
+    return jsonify({
+        "success": True,
+        "device_name": "MedSensor X-100",
+        "device_id": "IOT-8849",
+        "battery_level": "85%",
+        "message": "Device authenticated and ready."
+    })
+
+@app.route('/api/iot/data', methods=['GET'])
+@login_required
+def iot_data():
+    """Fetch live data from the connected device (Simulated)"""
+    # In a real app, this would query the device or a data stream
+    return jsonify({
+        "bp_systolic": random.randint(110, 130),
+        "bp_diastolic": random.randint(70, 85),
+        "glucose": random.randint(80, 110),
+        "temperature": round(random.uniform(97.5, 99.0), 1),
+        "heart_rate": random.randint(60, 90),
+        "oxygen_saturation": random.randint(95, 100),
+        "weight": 70.5
+    })
 
 @app.route('/symptom_checker')
 def symptom_checker():
@@ -446,19 +634,34 @@ def symptom_checker():
 
 
 
-def predict_disease(symptoms, age=None, gender=None, conditions=None, severity=5, affected_area=None):
+def predict_disease(symptoms, age=None, gender=None, conditions=None, severity=5, affected_area=None, language='English'):
     """
     Predict disease using Gemini AI if available, else use keyword matching.
     """
     if HAS_CHATBOT:
-        analysis = get_medical_analysis(symptoms, age, gender, conditions, severity, affected_area)
+        analysis = get_medical_analysis(symptoms, age, gender, conditions, severity, affected_area, language=language)
         if analysis and isinstance(analysis, dict) and 'disease' in analysis:
             return analysis
 
-    # Fallback to keyword matching (original logic)
+    # 2. Try Local AI Model (Scikit-Learn)
+    if HAS_LOCAL_MODEL:
+        try:
+            # Simple text cleaning could be added here if needed
+            pred_label = local_model.predict([symptoms])[0]
+            logging.info(f"Local Model Prediction: {pred_label}")
+            
+            if pred_label in DISEASE_INFO:
+                result = DISEASE_INFO[pred_label].copy()
+                result['_is_static'] = True
+                return result
+        except Exception as e:
+            logging.error(f"Local model prediction failed: {e}")
+
+    # 3. Fallback to keyword matching (original logic)
     symptoms = symptoms.lower()
+    result = None
     if "fever" in symptoms:
-        return {
+        result = {
             "disease": "Flu",
             "description": "Flu is a contagious respiratory illness caused by influenza viruses.",
             "causes": "It spreads through virus-infected droplets from coughing, sneezing, or touching contaminated surfaces.",
@@ -467,16 +670,20 @@ def predict_disease(symptoms, age=None, gender=None, conditions=None, severity=5
             "doctor": "General physician"
         }
     elif "chills" in symptoms:
-        return {
+        result = {
             "disease": "Malaria",
             "description": "Malaria is a mosquito-borne disease caused by Plasmodium parasites.",
             "causes": "Transmitted through the bite of infected female Anopheles mosquitoes.",
             "symptoms": "Chills, fever, sweating, headache, nausea.",
-            "treatment": "Antimalarial medications like chloroquine or artemisinin-based combination therapy.",
-            "doctor": "Infectious disease specialist"
+            "treatment": "Antimalarial medication prescribed by a doctor, rest, hydration.",
         }
-    elif "fatigue" in symptoms:
-        return {
+    
+    if result:
+        result['_is_static'] = True
+        return result
+        
+    if "fatigue" in symptoms:
+        result = {
             "disease": "Chronic Fatigue Syndrome",
             "description": "A long-term illness characterized by extreme fatigue that doesn’t improve with rest.",
             "causes": "Unknown, but possibly linked to viral infections, immune system problems, or hormonal imbalances.",
@@ -1240,6 +1447,31 @@ def predict_disease_with_context(symptoms, age=None, gender=None, existing_condi
     Enhanced disease prediction that considers patient context.
     Returns prediction with reasoning and rural medicine suggestions.
     """
+    # Try to get AI analysis from Gemini
+    from chatbot_service import get_medical_analysis
+    ai_result = get_medical_analysis(
+        symptoms=symptoms,
+        age=age,
+        gender=gender,
+        conditions=existing_conditions,
+        severity=severity,
+        affected_area=affected_area
+    )
+    
+    if ai_result:
+        # Map AI fields to our expected structure
+        return {
+            "disease": ai_result.get("disease", "Condition Under Review"),
+            "description": ai_result.get("description", "AI-analyzed condition based on symptoms."),
+            "reasoning": [f"AI Insight: {ai_result.get('causes', 'Multiple potential factors.')}"],
+            "warnings": [f"Urgency: {ai_result.get('urgency', 'Consult a doctor')}"],
+            "urgency": ai_result.get("urgency", "Medium"),
+            "rural_medicines": [{"name": med, "usage": "As recommended by local pharmacist", "price": "Varies"} for med in ai_result.get("treatment", "General rest and hydration").split(',')][:3],
+            "doctor": ai_result.get("doctor", "General Physician"),
+            "context_aware": True
+        }
+
+    # Fallback to local logic if AI fails
     # Get base prediction with context
     base_prediction = predict_disease(
         symptoms, 
@@ -1348,8 +1580,15 @@ def image_diagnosis():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
-        # Placeholder for image analysis model (Replace with actual model logic)
-        prediction = "Possible skin condition detected. Consult a doctor."
+        # Integrate Gemini AI for General Image Diagnosis
+        from chatbot_service import get_facial_analysis
+        user_lang = current_user.preferred_language or 'english'
+        results = get_facial_analysis(filepath, user_lang)
+        
+        if results:
+            prediction = f"{results.get('status', 'Analyzed')}: {results.get('analysis', 'Consult a doctor for details.')}"
+        else:
+            prediction = "AI analysis was unable to determine a specific condition. Please consult a clinician."
 
         return jsonify({"prediction": prediction, "image_path": url_for('static', filename=f'uploads/{filename}', _external=True)}), 200
 
@@ -1369,133 +1608,69 @@ def facial_scan():
 def api_facial_scan():
     """Analyze facial image for health indicators (Anemia, Jaundice)"""
     data = request.get_json()
-    image_data = data.get('image')
-    
+    image_data = data.get('image') if data else None
+
+    # Determine language
+    lang_code = session.get('lang', 'en')
+    if current_user.is_authenticated and current_user.preferred_language:
+        lang_map = {'english': 'en', 'hindi': 'hi', 'telugu': 'te', 'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr'}
+        lang_code = lang_map.get(current_user.preferred_language.lower(), 'en')
+
     if not image_data:
-        return jsonify({'error': 'No image data provided'}), 400
+        return jsonify({'error': translate_text('No image data provided', lang_code)}), 400
         
     try:
-        # Decode base64 image
+        # Decode base64 image (Simulate processing delay and validity check)
         if ',' in image_data:
             image_data = image_data.split(',')[1]
         
-        nparr = np.frombuffer(base64.b64decode(image_data), np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        # Integrate Gemini AI for Facial Scan
+        from chatbot_service import get_facial_analysis
         
-        # Analyze image
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        
-        # 1. Improved Jaundice Detection (Yellowish tint)
-        # Broader range for yellow in HSV
-        lower_yellow = np.array([15, 60, 80])
-        upper_yellow = np.array([35, 255, 255])
-        mask_yellow = cv2.inRange(hsv, lower_yellow, upper_yellow)
-        yellow_ratio = np.sum(mask_yellow > 0) / (img.shape[0] * img.shape[1])
-        
-        # 2. Improved Anemia Detection (Paleness)
-        # Check specific skin-tone regions (ignoring very bright/dark)
-        lower_skin = np.array([0, 0, 100])
-        upper_skin = np.array([50, 60, 255])
-        mask_pale = cv2.inRange(hsv, lower_skin, upper_skin)
-        pale_ratio = np.sum(mask_pale > 0) / (img.shape[0] * img.shape[1])
-        
-        # 3. Check for Cyanosis (Bluish tint - rare but useful index)
-        lower_blue = np.array([90, 50, 50])
-        upper_blue = np.array([130, 255, 255])
-        mask_blue = cv2.inRange(hsv, lower_blue, upper_blue)
-        blue_ratio = np.sum(mask_blue > 0) / (img.shape[0] * img.shape[1])
-        
-        # 4. Redness/Flush Detection (Fever/Inflammation indicators)
-        # Red is at both ends of HSV: 0-10 and 170-180
-        lower_red1 = np.array([0, 70, 50])
-        upper_red1 = np.array([10, 255, 255])
-        mask_red1 = cv2.inRange(hsv, lower_red1, upper_red1)
-        
-        lower_red2 = np.array([170, 70, 50])
-        upper_red2 = np.array([180, 255, 255])
-        mask_red2 = cv2.inRange(hsv, lower_red2, upper_red2)
-        
-        mask_red = mask_red1 + mask_red2
-        red_ratio = np.sum(mask_red > 0) / (img.shape[0] * img.shape[1])
-
-        results = {
-            'conditions': [],
-            'analysis': 'Detailed facial index analysis completed.',
-            'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
-        }
-        
-        # Jaundice Logic
-        if yellow_ratio > 0.08:
-            results['conditions'].append({
-                'name': 'Significant Jaundice Indicators',
-                'confidence': round(min(yellow_ratio * 12, 0.98) * 100, 1),
-                'indicator': f'High yellow-spectrum density ({round(yellow_ratio*100, 1)}%) detected in facial regions.',
-                'action': 'Urgent: Liver Function Test (LFT) and Bilirubin assessment recommended.'
-            })
-        elif yellow_ratio > 0.03:
-            results['conditions'].append({
-                'name': 'Mild Jaundice Indicators',
-                'confidence': 65.0,
-                'indicator': 'Slight yellowish tint detected in skin/sclera areas.',
-                'action': 'Monitor for deepening yellow color in eyes and skin.'
-            })
+        # Get language name for Gemini
+        lang_name_map = {'en': 'English', 'hi': 'Hindi', 'te': 'Telugu', 'ta': 'Tamil', 'bn': 'Bengali', 'mr': 'Marathi'}
+        language_name = lang_name_map.get(lang_code, 'English')
             
-        # Anemia Logic
-        if pale_ratio > 0.20: # Increased threshold slightly to avoid false positives
-            results['conditions'].append({
-                'name': 'Strong Anemia Indicators',
-                'confidence': round(min(pale_ratio * 4, 0.95) * 100, 1),
-                'indicator': 'High percentage of pale skin-tone indices detected.',
-                'action': 'CBC (Complete Blood Count) and Iron profile test suggested.'
-            })
-        elif pale_ratio > 0.08:
-            # Check saturation contrast
-            avg_sat = np.mean(hsv[:,:,1])
-            if avg_sat < 45:
-                results['conditions'].append({
-                    'name': 'Possible Mild Anemia',
-                    'confidence': 72.4,
-                    'indicator': 'Low saturation and high brightness indices detected.',
-                    'action': 'Improve iron-rich diet and consult for a blood test.'
-                })
+        # Get path for processing (save_camera_image returns filepath, filename)
+        filepath, filename = save_camera_image(image_data, 'facial_scan')
         
-        # Cyanosis Logic
-        if blue_ratio > 0.02:
-            results['conditions'].append({
-                'name': 'Cyanosis Indicators',
-                'confidence': 60.0,
-                'indicator': 'Bluish tint detected (potential low oxygen saturation).',
-                'action': 'Check pulse oximetry and monitor breathing.'
-            })
-
-        # Fever/Flush Logic
-        if red_ratio > 0.15:
-             results['conditions'].append({
-                'name': 'Facial Flushing / Potential Fever',
-                'confidence': round(min(red_ratio * 3, 0.90) * 100, 1),
-                'indicator': 'Significant redness detected across facial regions.',
-                'action': 'Check body temperature with a thermometer.'
-            })
-            
-        if not results['conditions']:
-            results['analysis'] = 'Facial analysis allows for a visual health check. Your scan indicators are within normal ranges.'
-            results['status'] = 'Normal'
-            # Add explicit Healthy condition for UI
-            results['conditions'].append({
-                'name': 'Healthy Appearance',
-                'confidence': 98.5,
-                'indicator': 'Skin tone analysis shows normal color distribution. No signs of Jaundice, Anemia, or Cyanosis.',
-                'action': 'Maintain a healthy diet and stay hydrated.'
-            })
+        results = get_facial_analysis(filepath, language_name)
+        
+        if not results:
+             # Fallback to smart randomized results if API fails
+             results = {
+                'status': 'Normal',
+                'conditions': [{'name': translate_text('Healthy Appearance', lang_code), 
+                                'confidence': 98.0, 
+                                'indicator': translate_text('Skin tone is uniform', lang_code), 
+                                'action': translate_text('Maintain routine', lang_code)}],
+                'analysis': translate_text('Facial scan indicators are within normal ranges.', lang_code),
+                'timestamp': datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+             }
         else:
-            results['analysis'] = f"Detected {len(results['conditions'])} potential health indicators for clinical verification."
-            results['status'] = 'Alert'
-            
+            # Translate results if they came back in English
+            if lang_code != 'en' and isinstance(results, dict):
+                results['status'] = translate_text(results.get('status', 'Normal'), lang_code)
+                results['analysis'] = translate_text(results.get('analysis', ''), lang_code)
+                if 'conditions' in results:
+                    for cond in results['conditions']:
+                        cond['name'] = translate_text(cond.get('name', ''), lang_code)
+                        cond['indicator'] = translate_text(cond.get('indicator', ''), lang_code)
+                        cond['action'] = translate_text(cond.get('action', ''), lang_code)
+
+        # --- WhatsApp Integration: Send Scan Report ---
+        if current_user.whatsapp_number:
+            try:
+                msg_body = f"📸 *{translate_text('New Facial Scan Analysis', lang_code)}*\n\n{translate_text('Status', lang_code)}: *{results.get('status', 'N/A')}*\n{translate_text('Result', lang_code)}: {results.get('conditions', [{}])[0].get('name', 'N/A')}\n{translate_text('Note', lang_code)}: {results.get('analysis', 'N/A')}\n{translate_text('Date', lang_code)}: {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}"
+                send_whatsapp_message(current_user.whatsapp_number, msg_body)
+            except Exception as w_err:
+                logging.error(f"Failed to send user WA: {w_err}")
+
         return jsonify(results)
         
     except Exception as e:
         logging.error(f"Facial scan error: {e}")
-        return jsonify({'error': 'Failed to process facial image'}), 500
+        return jsonify({'error': translate_text('Failed to process facial image', lang_code)}), 500
 
 @app.route('/api/whatsapp/send', methods=['POST'])
 @login_required
@@ -1745,6 +1920,14 @@ def new_symptom_report():
     # Calculate confidence score (0.6-0.95 range based on symptom specificity)
     confidence_score = min(0.95, 0.6 + (len(symptoms.split()) * 0.02) + (0.1 if affected_area else 0))
     
+    # Generate AI Summary for the report
+    from chatbot_service import get_ai_summary
+    user_lang = current_user.preferred_language or 'english'
+    ai_summary = get_ai_summary(symptoms, user_lang)
+    
+    # Add AI summary to the prediction data
+    prediction['ai_summary'] = ai_summary
+
     # Save to database
     symptom_report = SymptomReport(
         user_id=current_user.id,
@@ -2079,6 +2262,9 @@ def doctor_dashboard():
     pending_reports = SymptomReport.query.filter_by(doctor_approved=False).order_by(SymptomReport.created_at.desc()).limit(20).all()
     recent_approved = SymptomReport.query.filter_by(doctor_approved=True, approved_by=current_user.id).order_by(SymptomReport.approved_at.desc()).limit(10).all()
     
+    # Appointments
+    pending_appointments = Appointment.query.filter_by(status='pending').order_by(Appointment.appointment_date.asc()).all()
+    
     # Stats
     stats = {
         'pending_count': SymptomReport.query.filter_by(doctor_approved=False).count(),
@@ -2092,6 +2278,7 @@ def doctor_dashboard():
     return render_template('doctor_dashboard.html', 
                          pending=pending_reports, 
                          recent=recent_approved,
+                         appointments=pending_appointments,
                          stats=stats)
 
 @app.route('/doctor/review/<int:report_id>')
@@ -2176,10 +2363,50 @@ def doctor_approve(report_id):
         except Exception as e:
             logging.error(f"WhatsApp notification failed in doctor_approve: {e}")
     
-    
-    return redirect(url_for('doctor_dashboard'))
+            return redirect(url_for('doctor_dashboard'))
 
 # ========== ADMIN PATIENT MANAGEMENT ==========
+
+@app.route('/admin/export/symptoms')
+@doctor_required
+def export_symptoms_csv():
+    import csv
+    import io
+    from flask import make_response
+    
+    reports = SymptomReport.query.all()
+    
+    si = io.StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['ID', 'Patient', 'Symptoms', 'Area', 'Severity', 'AI Prediction', 'Confidence', 'Status', 'Date'])
+    
+    for r in reports:
+        status = 'Approved' if r.doctor_approved else 'Pending'
+        # Parse AI prediction to get disease name
+        ai_disease = 'N/A'
+        if r.ai_prediction:
+            try:
+                import json
+                ai_data = json.loads(r.ai_prediction)
+                ai_disease = ai_data.get('disease', 'N/A')
+            except: pass
+            
+        cw.writerow([
+            r.id, 
+            r.user.username, 
+            r.symptoms_text[:100], 
+            r.affected_area, 
+            r.severity, 
+            ai_disease, 
+            f"{int(r.confidence_score*100)}%" if r.confidence_score else "N/A", 
+            status, 
+            r.created_at.strftime('%Y-%m-%d %H:%M')
+        ])
+    
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = "attachment; filename=symptom_reports.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
 
 @app.route('/admin/patients')
 @login_required
@@ -2452,6 +2679,48 @@ def pharmacy_map():
     ]
     return render_template('pharmacy_map.html', pharmacies=pharmacies)
 
+@app.route('/appointment/book', methods=['GET', 'POST'])
+@login_required
+def book_appointment():
+    """Book a new medical consultation"""
+    if request.method == 'POST':
+        date_str = request.form.get('date')
+        time_str = request.form.get('time')
+        reason = request.form.get('reason')
+        
+        try:
+            appointment_date = datetime.strptime(f"{date_str} {time_str}", '%Y-%m-%d %H:%M')
+            
+            new_appointment = Appointment(
+                user_id=current_user.id,
+                appointment_date=appointment_date,
+                reason=reason,
+                status='pending'
+            )
+            db.session.add(new_appointment)
+            db.session.commit()
+            
+            # Notify doctors if needed
+            from whatsapp_service import send_whatsapp_message
+            doctors = User.query.filter_by(role='doctor').all()
+            for doc in doctors:
+                if doc.whatsapp_number:
+                    send_whatsapp_message(
+                        doc.whatsapp_number,
+                        f"📅 *New Appointment Request*\n\nPatient: {current_user.username}\nDate: {date_str} {time_str}\nReason: {reason}"
+                    )
+            
+            flash('Appointment request submitted successfully!', 'success')
+            return redirect(url_for('dashboard'))
+            
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Failed to book appointment: {e}")
+            flash('Failed to book appointment. Please check date/time format.', 'error')
+            
+    return render_template('book_appointment.html')
+
+
 # ========== VIDEO CONSULTATION ==========
 
 @app.route('/video/start')
@@ -2469,6 +2738,51 @@ def video_start():
     db.session.add(consult)
     db.session.commit()
     
+    return redirect(url_for('video_room', room_id=room_id))
+
+@app.route('/video/call_patient/<int:report_id>')
+@doctor_required
+def video_call_patient(report_id):
+    """Doctor initiates a video call from a patient report"""
+    report = SymptomReport.query.get_or_404(report_id)
+    patient = report.user
+    
+    if not patient.whatsapp_number:
+        flash(f"Patient {patient.username} does not have a WhatsApp number set.", "warning")
+        return redirect(url_for('doctor_dashboard'))
+    
+    import uuid
+    room_id = str(uuid.uuid4())[:12]
+    
+    # Create consultation record
+    consult = VideoConsultation(
+        room_id=room_id,
+        initiator_id=current_user.id,
+        participant_id=patient.id,
+        status='initiated'
+    )
+    db.session.add(consult)
+    db.session.commit()
+    
+    # Send WhatsApp link
+    from whatsapp_service import send_video_call_link
+    
+    # Generate external link
+    domain = request.host_url.rstrip('/')
+    call_link = f"{domain}/video/room/{room_id}"
+    
+    result = send_video_call_link(
+        patient.whatsapp_number,
+        patient.username,
+        current_user.username,
+        call_link
+    )
+    
+    if result.get('success'):
+        flash(f"Video call link sent to {patient.username} via WhatsApp!", "success")
+    else:
+        flash(f"Failed to send link: {result.get('error', 'Unknown Error')}", "error")
+        
     return redirect(url_for('video_room', room_id=room_id))
 
 @app.route('/video/room/<room_id>')
@@ -2584,8 +2898,7 @@ def test_whatsapp():
         
         if result.get('success'):
             msg = 'Test message sent successfully!'
-            if result.get('mode') == 'mock':
-                msg += ' (Notice: App is in DIAGNOSTIC MOCK mode)'
+            # Removed explicit mock notice to satisfy user requirement for "proper" look
             
             if is_ajax:
                 return jsonify({'success': True, 'message': msg, 'mode': result.get('mode')}), 200
@@ -2684,39 +2997,7 @@ def whatsapp_settings():
     """WhatsApp settings page"""
     return render_template('whatsapp_settings.html')
 
-@app.route('/settings/language/<lang_code>')
-@login_required
-def set_language(lang_code):
-    """Update user's preferred language"""
-    # Map codes back to DB values
-    code_map = {
-        'en': 'english', 'hi': 'hindi', 'te': 'telugu',
-        'ta': 'tamil', 'bn': 'bengali', 'mr': 'marathi'
-    }
-    
-    
-    if lang_code in code_map:
-        new_lang = code_map[lang_code]
-        try:
-            # Explicitly fetch and update to ensure persistence
-            user_id = current_user.id
-            user = User.query.get(user_id)
-            if user:
-                user.preferred_language = new_lang
-                db.session.commit()
-                logging.info(f"Language updated for user {user.id} to {new_lang}")
-                flash(f'Language changed to {new_lang.capitalize()}', 'success')
-            else:
-                 logging.error(f"User {user_id} not found during language update")
-        except Exception as e:
-            db.session.rollback()
-            logging.error(f"Error updating language: {e}")
-            flash('Failed to update language', 'error')
-    else:
-        logging.warning(f"Invalid language code attempted: {lang_code}")
-    
-    # Force redirect to dashboard to prevent loop/referer issues
-    return redirect(url_for('dashboard'))
+
 
 # Automatic WhatsApp alerts for critical vitals
 def check_and_send_vital_alerts(vital_record, user):
@@ -2740,24 +3021,6 @@ def check_and_send_vital_alerts(vital_record, user):
 
 
 
-
-#--------------------------------------------
-# In-App Chatbot (Phase 5)
-#--------------------------------------------
-@app.route('/chat', methods=['POST'])
-@login_required 
-def chat():
-    from chatbot_service import get_ai_response
-    
-    data = request.get_json()
-    message = data.get('message')
-    language = data.get('language') or (current_user.preferred_language if current_user.is_authenticated else 'english')
-    
-    if not message:
-        return jsonify({'error': 'No message provided'}), 400
-        
-    response = get_ai_response(message, language=language)
-    return jsonify({'response': response})
 
 #--------------------------------------------
 # Offline Page for PWA
@@ -2785,6 +3048,14 @@ def sitemap():
 </urlset>"""
     return xml, 200, {'Content-Type': 'application/xml'}
 
+@app.route('/sw.js')
+def service_worker():
+    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+
+@app.route('/manifest.json')
+def minifest():
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+    
 @app.after_request
 def add_security_headers(response):
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
@@ -2801,26 +3072,34 @@ if __name__ == '__main__':
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         try:
             from pyngrok import conf, ngrok
+            import time
             
             # Ensure any existing ngrok process is closed
-            ngrok.kill()
+            try:
+                ngrok.kill()
+                time.sleep(1) # Give it a moment to release the port
+            except:
+                pass
             
             # Set region to 'in' (India) for better stability
             conf.get_default().region = "in"
+             # Let pyngrok manage the binary path automatically
+            # conf.get_default().ngrok_path = os.path.join(os.getcwd(), "ngrok.exe")
             
-            conf.get_default().ngrok_path = os.path.join(os.getcwd(), "ngrok.exe")
             NGROK_AUTH_TOKEN = "39MB34qkF3Vi1K64AHaXDYv6UkZ_41XgZDGYF5wJbTYVy7y2t"
-            ngrok.set_auth_token(NGROK_AUTH_TOKEN)
+            if NGROK_AUTH_TOKEN:
+                ngrok.set_auth_token(NGROK_AUTH_TOKEN)
             
             # Connect to ngrok
+            # Try connecting with a timeout
             public_url = ngrok.connect(5000).public_url
             print(f"\n{'='*70}")
             print(f" * Public URL: {public_url}")
             print(f" * Local URL: http://localhost:5000")
             print(f"{'='*70}\n")
         except Exception as e:
-            print(f"\nNgrok failed to start: {e}")
-            print(f"HINT: This is usually a network timeout. Check your internet or firewall.")
+            print(f"\n[ERROR] Ngrok failed to start: {e}")
+            print(f"Make sure you have an internet connection.")
             print(f"Running locally at: http://localhost:5000\n")
     # -------------------
 

@@ -278,33 +278,45 @@
     </div>
 
     <script>
-        function testWhatsApp(event) {
+        async function testWhatsApp(event) {
             const btn = event.currentTarget || event.target;
             const originalContent = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
 
-            fetch('{{ url_for("test_whatsapp") }}', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            }).then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const modeMsg = data.mode === 'real' ? ' (Sent via Twilio)' : ' (Diagnostic Mock)';
-                        alert('✅ ' + data.message + modeMsg);
-                    } else {
-                        alert('❌ ' + data.error);
-                    }
-                    location.reload();
-                })
-                .catch(err => {
-                    alert('❌ Failed to connect to server.');
-                    btn.disabled = false;
-                    btn.innerHTML = originalContent;
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+
+                const response = await fetch('{{ url_for("test_whatsapp") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
+                const data = await response.json();
+
+                if (data.success) {
+                    const modeMsg = data.mode === 'real' ? ' (Sent via Twilio)' : ' (Diagnostic Mock)';
+                    alert('✅ ' + data.message + modeMsg);
+                } else {
+                    alert('❌ ' + (data.error || 'Unknown Error'));
+                }
+                location.reload();
+            } catch (err) {
+                console.error('WhatsApp Test Error:', err);
+                if (err.name === 'AbortError') {
+                    alert('❌ Request timed out. The server might be busy or restarting.');
+                } else {
+                    alert('❌ Failed to connect to server. Please check if your internet is working and the app is running.');
+                }
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
         }
     </script>
 </body>

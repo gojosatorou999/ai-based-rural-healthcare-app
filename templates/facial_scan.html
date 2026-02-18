@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_user.preferred_language if current_user.is_authenticated else 'en' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Facial Health Scan - Pristin Healthcare</title>
+    <title>{{ 'AI Facial Health Scan' | translate }} - Pristin Healthcare</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
@@ -116,13 +116,13 @@
             <a href="javascript:history.back()" class="btn btn-ghost">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h1>Facial Health Index Scan</h1>
+            <h1>{{ 'Facial Health Index Scan' | translate }}</h1>
         </div>
 
         <div class="card" style="margin-bottom: 2rem;">
             <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                <i class="fas fa-info-circle"></i> Position your face in the center of the guide. Ensure you are in a
-                brightly lit area for accurate color analysis (Jaundice/Anemia).
+                <i class="fas fa-info-circle"></i> {{ 'Position your face in the center of the guide. Ensure you are in
+                a brightly lit area for accurate color analysis (Jaundice/Anemia).' | translate }}
             </p>
 
             <div class="camera-box">
@@ -137,22 +137,24 @@
 
             <div style="margin-top: 1.5rem; text-align: center;">
                 <button id="captureBtn" class="btn btn-primary btn-lg">
-                    <i class="fas fa-camera"></i> Scan Face Now
+                    <i class="fas fa-camera"></i> {{ 'Scan Face Now' | translate }}
                 </button>
                 <p id="statusMsg" style="margin-top: 1rem; color: var(--text-tertiary);"></p>
             </div>
         </div>
 
         <div id="resultsPanel" class="results-panel">
-            <h2 class="section-title">Diagnostic Indicators</h2>
+            <h2 class="section-title">{{ 'Diagnostic Indicators' | translate }}</h2>
             <div id="conditionsList"></div>
 
-            <div class="card" style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2);">
-                <h3 style="color: var(--info); font-size: 1rem; margin-bottom: 0.5rem;">AI Analysis Summary</h3>
+            <div id="summaryCard" class="card"
+                style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2);">
+                <h3 id="summaryTitle" style="color: var(--info); font-size: 1rem; margin-bottom: 0.5rem;">{{ 'AI
+                    Analysis Summary' | translate }}</h3>
                 <p id="analysisSummary"></p>
                 <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 1rem;">
-                    * This is an experimental AI screening tool. Results are indices for preliminary assessment and must
-                    be confirmed by a medical professional through blood tests.
+                    * {{ 'This is an experimental AI screening tool. Results are indices for preliminary assessment and
+                    must be confirmed by a medical professional through blood tests.' | translate }}
                 </p>
             </div>
         </div>
@@ -165,6 +167,8 @@
         const scanningBar = document.getElementById('scanningBar');
         const resultsPanel = document.getElementById('resultsPanel');
         const conditionsList = document.getElementById('conditionsList');
+        const summaryCard = document.getElementById('summaryCard');
+        const summaryTitle = document.getElementById('summaryTitle');
         const analysisSummary = document.getElementById('analysisSummary');
         const statusMsg = document.getElementById('statusMsg');
 
@@ -175,7 +179,7 @@
                 video.srcObject = stream;
             } catch (err) {
                 console.error("Error accessing camera: ", err);
-                statusMsg.innerText = "Error: Camera access denied or not found.";
+                statusMsg.innerText = "{{ 'Error: Camera access denied or not found.' | translate }}";
             }
         }
 
@@ -185,8 +189,8 @@
             // Show scanning animation
             scanningBar.style.display = 'block';
             captureBtn.disabled = true;
-            captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
-            statusMsg.innerText = "Capturing facial indices and analyzing color distribution...";
+            captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ "Analyzing..." | translate }}';
+            statusMsg.innerText = "{{ 'Capturing facial indices and analyzing color distribution...' | translate }}";
 
             // Wait a bit to simulate processing
             await new Promise(r => setTimeout(r, 1500));
@@ -212,11 +216,11 @@
                     displayResults(data);
                 }
             } catch (err) {
-                alert("Server connection failed.");
+                alert("{{ 'Server connection failed.' | translate }}");
             } finally {
                 scanningBar.style.display = 'none';
                 captureBtn.disabled = false;
-                captureBtn.innerHTML = '<i class="fas fa-camera"></i> Rescan Face';
+                captureBtn.innerHTML = '<i class="fas fa-camera"></i> {{ "Rescan Face" | translate }}';
             }
         });
 
@@ -226,23 +230,22 @@
             conditionsList.innerHTML = '';
 
             // Update summary text
-            const summaryBox = document.querySelector('.card h3').parentNode; // The summary card
-            document.querySelector('.card h3').innerText = data.status === 'Normal' ? 'Healthy Scan' : 'Health Alert';
+            summaryTitle.innerText = data.status === 'Normal' ? '{{ "Healthy Scan" | translate }}' : '{{ "Health Alert" | translate }}';
             document.getElementById('analysisSummary').innerText = data.analysis;
 
             // Style summary box based on status
             if (data.status === 'Normal') {
-                summaryBox.style.background = 'rgba(0, 255, 136, 0.05)';
-                summaryBox.style.borderColor = 'rgba(0, 255, 136, 0.2)';
-                document.querySelector('.card h3').style.color = 'var(--success)';
+                summaryCard.style.background = 'rgba(0, 255, 136, 0.05)';
+                summaryCard.style.borderColor = 'rgba(0, 255, 136, 0.2)';
+                summaryTitle.style.color = 'var(--success)';
             } else {
-                summaryBox.style.background = 'rgba(255, 77, 77, 0.05)';
-                summaryBox.style.borderColor = 'rgba(255, 77, 77, 0.2)';
-                document.querySelector('.card h3').style.color = 'var(--error)';
+                summaryCard.style.background = 'rgba(255, 77, 77, 0.05)';
+                summaryCard.style.borderColor = 'rgba(255, 77, 77, 0.2)';
+                summaryTitle.style.color = 'var(--error)';
             }
 
-            if (data.conditions.length === 0) {
-                // Fallback if no conditions returned (should not happen with new API)
+            if (!data.conditions || data.conditions.length === 0) {
+                // Fallback if no conditions returned
                 conditionsList.innerHTML = `<div style="text-align: center; color: var(--text-secondary);">No specific indicators found.</div>`;
             } else {
                 data.conditions.forEach(cond => {

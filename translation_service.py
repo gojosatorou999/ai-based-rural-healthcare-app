@@ -1,44 +1,13 @@
-# Translation Service for Rural Healthcare App
+# Translation Service for Rural Healthcare App - STATIC MODE (No API)
 
 """
 This module handles all multilingual support features:
-1. UI Translation (Static dictionary for speed)
-2. Dynamic Content Translation (Google Gemini API)
-3. Language Preferences Management
+1. UI Translation (Static dictionary for speed - NO API)
+2. Language Preferences Management
 """
 
 import os
 from functools import lru_cache
-from dotenv import load_dotenv
-import google.generativeai as genai
-
-# Load environment variables
-load_dotenv()
-
-# API Configuration
-API_KEYS = [
-    os.getenv("GEMINI_API_KEY_1"),
-    os.getenv("GEMINI_API_KEY_2")
-]
-# Filter out None values in case some aren't set
-API_KEYS = [k for k in API_KEYS if k]
-
-if not API_KEYS:
-    # Fallback/Default for development if .env is missing
-    API_KEYS = ["AIzaSyC9QuwKKF4TmXnwOxL3GvNR9fBvI36979A"]
-
-CURRENT_KEY_INDEX = 0
-
-def get_model():
-    """Get configured Gemini model with current key"""
-    global CURRENT_KEY_INDEX
-    try:
-        genai.configure(api_key=API_KEYS[CURRENT_KEY_INDEX])
-        # Using gemini-2.5-flash as per specific requirement
-        return genai.GenerativeModel('gemini-2.5-flash')
-    except Exception as e:
-        print(f"Error configuring Gemini: {e}")
-        return None
 
 # Supported Languages
 LANGUAGES = {
@@ -59,7 +28,8 @@ _KEYS = [
     'Report New Symptom','Log Vital Signs','Upload Prescription','Start Video Call',
     'Find Pharmacy','Symptoms Reports','Vitals Recorded','AI Insights',
     'Search health records...','Install App','Recent Activity','Notifications',
-    'Mark all as read','Report Approved','Medication Reminder','Toggle Theme',
+    'Mark all as read','Report Approved','Medication Reminder','Toggle Theme','Symptom Checker','Symptom Analysis',
+    '❌ Please enter your symptoms.','❌ An error occurred. Please try again.',
     'Hello! I am your virtual health assistant. How can I help you today?',
     'Type your question...','No activity yet. Start by using the Quick Actions above!',
     'Describe how you feel and get instant AI analysis.',
@@ -69,6 +39,18 @@ _KEYS = [
     'Locate nearby medicine stores.',
     'Your last symptom report has been reviewed by Dr. Sharma.',
     'Time to take your Paracetamol (500mg).','2 hours ago','4 hours ago',
+    'Waiting for patient...','Waiting for doctor...','Your unique room ID is',
+    'Video Consultations','Telemedicine Hub','Remote Video','Waiting for connection...',
+    'Microphone','Camera','Screen','End Call','Room ID','Duration','Status',
+    'Connected','Reconnecting...','Disconnected','Call ended or lost.',
+    'Disconnected from signaling server.','Smart Summary','Start Call','Room:',
+    'Login','Register','Email Address','Password','Sign In','Full Name','Age','Gender',
+    'Create Account','AI Diagnosis','Doctor Consults','Offline First','Heart Rate',
+    'Blood Pressure','Glucose','Temperature','Oxygen (SpO2)','Weight','Notes','Optional',
+    'No image data provided','Healthy Appearance','Skin tone is uniform','Maintain routine',
+    'Facial scan indicators are within normal ranges.','New Facial Scan Analysis',
+    'Result','Note','Date','Failed to process facial image',
+    'Malaria','Dengue','Flu','Common Cold','Diabetes','Hypertension','Anemia','Jaundice'
 ]
 
 UI_TRANSLATIONS = {
@@ -152,6 +134,313 @@ UI_TRANSLATIONS = {
         'Please enter a message.': 'कृपया एक संदेश दर्ज करें।', 'Sending...': 'भेजा जा रहा है...', 
         'Message sent successfully!': 'संदेश सफलतापूर्वक भेजा गया!', 'Failed to send message.': 'संदेश भेजने में विफल।',
         'Server connection failed.': 'सर्वर कनेक्शन विफल।',
+        'Welcome Back': 'वापसी पर स्वागत है',
+        'Your health AI is active and monitoring.': 'आपका स्वास्थ्य एआई सक्रिय है और निगरानी कर रहा है।',
+        'Run Health Scan': 'स्वास्थ्य स्कैन करें',
+        'Reports': 'रिपोर्ट',
+        'Total': 'कुल',
+        'All time': 'हर समय',
+        'Last updated': 'अंतिम अपडेट', 'ago': 'पहले',
+        'Next Consult': 'अगला परामर्श', 'Tomorrow': 'कल',
+        'Get AI diagnosis': 'एआई निदान प्राप्त करें',
+        'Track metrics': 'मेट्रिक्स ट्रैक करें',
+        'Video Consult': 'वीडियो परामर्श',
+        'Talk to a doctor': 'डॉक्टर से बात करें',
+        'Find Medicine': 'दवा खोजें',
+        'Locate pharmacies': 'फार्मेसी खोजें',
+        'View All': 'सभी देखें',
+        'Ask me anything about your health.': 'मुझसे अपने स्वास्थ्य के बारे में कुछ भी पूछें।',
+        'Start Chat': 'चैट शुरू करें',
+        'Search reports, doctors...': 'रिपोर्ट, डॉक्टर खोजें...',
+        'Heart Rate': 'हृदय गति', 'Blood Pressure': 'रक्तचाप', 'Normal Range': 'सामान्य सीमा',
+        'bpm': 'bpm', 'mmHg': 'mmHg', 'Optimal Visual Index': 'इष्टतम दृश्य सूचकांक',
+        'Diagnostic Indicators': 'नैदानिक संकेतक', 'AI Facial Health Scan': 'एआई चेहरे का स्वास्थ्य स्कैन',
+        'AI Analysis Summary': 'एआई विश्लेषण सारांश',
+        'No visual indicators for Jaundice or severe Anemia detected in current scan.': 'वर्तमान स्कैन में पीलिया या गंभीर एनीमिया के लिए कोई दृश्य संकेतक नहीं मिले।',
+        'Waiting for patient...': 'मरीज़ की प्रतीक्षा की जा रही है...',
+        'Waiting for doctor...': 'डॉक्टर की प्रतीक्षा की जा रही है...',
+        'Your unique room ID is': 'आपकी विशिष्ट रूम आईडी है',
+        'Video Consultations': 'वीडियो परामर्श',
+        'Telemedicine Hub': 'टेलीमेडिसिन हब',
+        'Remote Video': 'रिमोट वीडियो',
+        'Waiting for connection...': 'कनेक्शन की प्रतीक्षा की जा रही है...',
+        'Microphone': 'माइक्रोफोन',
+        'Camera': 'कैमरा',
+        'Screen': 'स्क्रीन',
+        'End Call': 'कॉल समाप्त करें',
+        'Room ID': 'रूम आईडी',
+        'Duration': 'अवधि',
+        'Status': 'स्थिति',
+        'Connected': 'जुड़ा हुआ',
+        'Reconnecting...': 'पुनः कनेक्ट किया जा रहा है...',
+        'Disconnected': 'डिस्कनेक्ट हो गया', 'Call ended or lost.': 'कॉल समाप्त हो गई या संपर्क टूट गया।',
+        'Disconnected from signaling server.': 'सिग्नलिंग सर्वर से संपर्क टूट गया।',
+        'Smart Summary': 'स्मार्ट सारांश', 'Start Call': 'कॉल शुरू करें', 'Room:': 'कमरा:',
+        'Login': 'लॉगिन', 'Register': 'रजिस्टर', 'Email Address': 'ईमेल पता', 'Password': 'पासवर्ड', 
+        'Sign In': 'साइन इन', 'Full Name': 'पूरा नाम', 'Age': 'आयु', 'Gender': 'लिंग',
+        'Create Account': 'खाता बनाएं', 'AI Diagnosis': 'एआई निदान', 'Doctor Consults': 'डॉक्टर परामर्श', 
+        'Offline First': 'पहले ऑफलाइन', 'Malaria': 'मलेरिया', 'Dengue': 'डेंगू', 'Flu': 'फ्लू', 
+        'Common Cold': 'सर्दी-जुकाम', 'Diabetes': 'मधुमेह', 'Hypertension': 'उच्च रक्तचाप', 
+        'Anemia': 'एनीमिया', 'Jaundice': 'पीलिया',
+        'Identify symptoms instantly with our advanced machine learning models.': 'हमारे उन्नत मशीन लर्निंग मॉडल के साथ लक्षणों की तुरंत पहचान करें।',
+        'Connect with specialists via high-quality video calls anytime.': 'किसी भी समय उच्च गुणवत्ता वाले वीडियो कॉल के माध्यम से विशेषज्ञों से जुड़ें।',
+        'No internet? No problem. Use core features without connectivity.': 'इंटरनेट नहीं है? कोई बात नहीं। बिना कनेक्टिविटी के मुख्य सुविधाओं का उपयोग करें।',
+        'Maximum Intelligence,': 'अधिकतम बुद्धिमत्ता,', 'Maximum Safety': 'अधिकतम सुरक्षा',
+        'Advanced diagnostic AI bridging the gap for rural communities. Symptom analysis, facial scanning, and doctor consultations—offline first.': 'ग्रामीण समुदायों के लिए अंतर को पाटने वाला उन्नत नैदानिक एआई। लक्षण विश्लेषण, चेहरे की स्कैनिंग और डॉक्टर परामर्श—पहले ऑफलाइन।',
+        'Morning, Dr.': 'सुप्रभात, डॉक्टर', 'Here is what\'s happening today.': 'आज यह सब हो रहा है।',
+        'Login to Dashboard': 'डैशबोर्ड में लॉगिन करें',
+        '🩺 AI Diagnosis Result': '🩺 एआई निदान परिणाम',
+        'Description:': 'विवरण:', 'Causes & Risk Factors:': 'कारण और जोखिम कारक:',
+        'Symptoms:': 'लक्षण:', 'Treatment & Medications:': 'उपचार और दवाएं:',
+        'Which Doctor to Consult?': 'किस डॉक्टर से परामर्श लें?',
+        '⏳ Analyzing symptoms... Please wait.': '⏳ लक्षणों का विश्लेषण किया जा रहा है... कृपया प्रतीक्षा करें।',
+        '🔍 Symptom Checker': '🔍 लक्षण जांचक',
+        'Symptom Checker': 'लक्षण जांचक',
+        'Symptom Analysis': 'लक्षण विश्लेषण',
+        '❌ Please enter your symptoms.': '❌ कृपया अपने लक्षण दर्ज करें।',
+        '❌ An error occurred. Please try again.': '❌ एक त्रुटि हुई। कृपया पुन: प्रयास करें।',
+        'Enter your symptoms below to get AI-powered analysis.': 'एआई-संचालित विश्लेषण प्राप्त करने के लिए नीचे अपने लक्षण दर्ज करें।',
+        'Check Symptoms': 'लक्षणों की जांच करें',
+        'No image data provided': 'कोई छवि डेटा प्रदान नहीं किया गया',
+        'Healthy Appearance': 'स्वस्थ उपस्थिति',
+        'Skin tone is uniform': 'त्वचा का रंग एकसमान है',
+        'Maintain routine': 'नियमित दिनचर्या बनाए रखें',
+        'Facial scan indicators are within normal ranges.': 'चेहरे के स्कैन संकेतक सामान्य सीमा के भीतर हैं।',
+        'New Facial Scan Analysis': 'नया चेहरा स्कैन विश्लेषण',
+        'Result': 'परिणाम', 'Note': 'नोट', 'Date': 'तारीख', 'Status': 'स्थिति',
+        'Failed to process facial image': 'चेहरे की छवि को संसाधित करने में विफल',
+        'Healthy Scan': 'स्वस्थ स्कैन', 'Health Alert': 'स्वास्थ्य अलर्ट',
+        'Error: Camera access denied or not found.': 'त्रुटि: कैमरा एक्सेस अस्वीकृत या नहीं मिला।',
+        # Dashboard Cards
+        'Report Symptoms': 'लक्षण रिपोर्ट करें',
+        'Log Vitals': 'वाइटल रिकाॅर्ड करें',
+        'Video Consult': 'वीडियो परामर्श',
+        'AI Face Scan': 'एआई फेस स्कैन', 
+        'Book Call': 'कॉल बुक करें',
+        'Find Medicine': 'दवा खोजें',
+        'Get AI diagnosis': 'एआई निदान प्राप्त करें',
+        'Track metrics': 'मेट्रिक्स ट्रैक करें',
+        'Talk to a doctor': 'डॉक्टर से बात करें',
+        'Analyze your health': 'अपने स्वास्थ्य का विश्लेषण करें',
+        'Schedule a consultation': 'परामर्श शेड्यूल करें',
+        'Locate pharmacies': 'फार्मेसी खोजें',
+        'Processed': 'संसाधित',
+        'No recent activity': 'कोई हालिया गतिविधि नहीं',
+        # Login Page
+        'AI-Powered Rural Telemedicine': 'AI-संचालित ग्रामीण टेलीमेडिसिन',
+        'Login to access your health dashboard': 'अपने स्वास्थ्य डैशबोर्ड पर जाने के लिए लॉगिन करें',
+        'Remember me': 'मुझे याद रखें',
+        'Forgot password?': 'पासवर्ड भूल गए?',
+        "Don't have an account?": 'क्या आपके पास खाता नहीं है?',
+        'Recent Activity': 'हाल की गतिविधि',
+        'View All': 'सभी देखें',
+        # Doctor Dashboard
+        'Dr.': 'डा.',
+        'Senior Consultant': 'वरिष्ठ सलाहकार',
+        'Export Data (CSV)': 'डेटा निर्यात करें (CSV)',
+        'Patient Database': 'रोगी डेटाबेस',
+        'Tele-Consult': 'टेली-परामर्श',
+        'Awaiting Review': 'समीक्षा की प्रतीक्षा में',
+        "Today's Appts": 'आज की नियुक्तियाँ',
+        'Cases Resolved': 'सुलझाए गए मामले',
+        'Upcoming Consultations': 'आगामी परामर्श',
+        'Confirmed': 'पुष्टि की गई',
+        'No consultations scheduled for today.': 'आज के लिए कोई परामर्श निर्धारित नहीं है।',
+        'Review Case': 'मामले की समीक्षा करें',
+    },
+    # -------- TELUGU --------
+    'te': {
+        'Dashboard': 'డాష్‌బోర్డ్', 'Profile': 'ప్రొఫైల్', 'Logout': 'లాగ్ అవుట్',
+        'Symptoms': 'లక్షణాలు', 'Vitals': 'వైటల్స్', 'Prescriptions': 'మందుల చీటీలు',
+        'Overview': 'అవలోకనం', 'Family': 'కుటుంబం', 'Pharmacy': 'ఫార్మసీ',
+        'Settings': 'సెట్టింగ్‌లు', 'Language': 'భాష', 'Submit': 'సమర్పించండి',
+        'Cancel': 'రద్దు చేయండి', 'Edit': 'సవరించండి', 'Delete': 'తొలగించండి',
+        'View': 'చూడండి', 'Doctor': 'వైద్యుడు', 'Patient': 'రోగి',
+        'Welcome': 'స్వాగతం', 'WhatsApp Settings': 'వాట్సాప్ సెట్టింగ్‌లు',
+        'Consultation': 'సలహా', 'Quick Actions': 'త్వరిత చర్యలు',
+        'Report New Symptom': 'కొత్త లక్షణాన్ని రిపోర్ట్ చేయండి',
+        'Log Vital Signs': 'వైటల్ సంకేతాలను నమోదు చేయండి',
+        'Upload Prescription': 'మందుల చీటీని అప్‌లోడ్ చేయండి',
+        'Start Video Call': 'వీడియో కాల్ ప్రారంభించండి',
+        'Find Pharmacy': 'ఫార్మసీని కనుగొనండి',
+        'Symptoms Reports': 'లక్షణాల నివేదికలు',
+        'Vitals Recorded': 'నమోదు చేయబడిన వైటల్స్',
+        'AI Insights': 'ఏఐ విశ్లేషణలు',
+        'Search health records...': 'ఆరోగ్య రికార్డులను శోధించండి...',
+        'Install App': 'యాప్‌ను ఇన్‌స్టాల్ చేయండి',
+        'Recent Activity': 'ఇటీవలి కార్యాచరణ',
+        'Notifications': 'నోటిఫికేషన్లు', 'Mark all as read': 'అన్నీ చదివినట్లు గుర్తు పెట్టు',
+        'Report Approved': 'నివేదిక ఆమోదించబడింది', 'Medication Reminder': 'మందుల గుర్తు',
+        'Toggle Theme': 'థీమ్‌ను మార్చండి',
+        'Hello! I am your virtual health assistant. How can I help you today?': 'నమస్తే! నేను మీ వర్చువల్ హెల్త్ అసిస్టెంట్‌ని. ఈ రోజు నేను మీకు ఎలా సహాయపడగలను?',
+        'Type your question...': 'మీ ప్రశ్న టైప్ చేయండి...',
+        'No activity yet. Start by using the Quick Actions above!': 'ఇంకా ఏ కార్యాచరణ లేదు. పైన ఉన్న త్వరిత చర్యలను ఉపయోగించడం ప్రారంభించండి!',
+        'Describe how you feel and get instant AI analysis.': 'మీరు ఎలా భావిస్తున్నారో వివరించండి మరియు తక్షణమే ఏఐ విశ్లేషణ పొందండి.',
+        'Record BP, Glucose, Temp, etc.': 'బీపీ, గ్లూకోజ్, ఉష్ణోగ్రత మొదలైనవి నమోదు చేయండి.',
+        'Digitize your paper prescriptions with OCR.': 'OCRతో మీ కాగితపు మందుల చీటీలను డిజిటైజ్ చేయండి.',
+        'Connect with a doctor instantly.': 'వెంటనే డాక్టర్‌తో కనెక్ట్ అవ్వండి.',
+        'Locate nearby medicine stores.': 'దగ్గరలోని మెడికల్ స్టోర్లను గుర్తించండి.',
+        'Your last symptom report has been reviewed by Dr. Sharma.': 'మీ చివరి లక్షణ నివేదికను డాక్టర్ శర్మ సమీక్షించారు.',
+        'Time to take your Paracetamol (500mg).': 'మీ పారాసిటమాల్ (500mg) తీసుకునే సమయం అయ్యింది.',
+        '2 hours ago': '2 గంటల క్రితం', '4 hours ago': '4 గంటల క్రితం', 'Reported': 'నివేదించబడింది',
+        'Community Health Worker': 'కమ్యూనిటీ హెల్త్ వర్కర్', 'Quick Screening Tools': 'త్వరిత స్క్రీనింగ్ టూల్స్',
+        'Maternal Checklist': 'మాతృ చెక్‌లిస్ట్', 'Child Health': 'పిల్లల ఆరోగ్యం',
+        'Recent Patient Entries': 'ఇటీవలి రోగి ఎంట్రీలు', 'Verified': 'ధృవీకరించబడింది', 'Pending': 'పెండింగ్‌లో ఉంది',
+        'No recent entries': 'ఇటీవలి ఎంట్రీలు లేవు', 'Pristin AI Assistant': 'ప్రిస్టిన్ ఏఐ అసిస్టెంట్', 'CHW Dashboard': 'CHW డాష్‌బోర్డ్',
+        'Doctor Dashboard': 'డాక్టర్ డాష్‌బోర్డ్', 'View All Patients': 'అందరి రోగులను చూడండి', 'Start Video Consultation': 'వీడియో సంప్రదింపులను ప్రారంభించండి',
+        'Pending Review': 'సమీక్ష పెండింగ్‌లో ఉంది', 'Approved Today': 'ఈ రోజు ఆమోదించబడ్డాయి', 'Total Approved': 'మొత్తం ఆమోదించబడ్డాయి',
+        'Pending Reviews': 'పెండింగ్ సమీక్షలు', 'Review': 'సమీక్షించండి', 'No pending reports to review!': 'సమీక్షించడానికి పెండింగ్ నివేదికలు ఏమీ లేవు!',
+        'Recently Approved': 'ఇటీవల ఆమోదించబడినవి', 'No reports approved yet.': 'ఇంకా ఏ నివేదికలు ఆమోదించబడలేదు.',
+        'Recently Approved by You': 'మీరు ఇటీవల ఆమోదించినవి', 'Medical Officer': 'వైద్య అధికారి',
+        'Manage Patients': 'రోగులను నిర్వహించండి', 'CHW View': 'CHW వీక్షణ',
+        'Patient Information': 'రోగి సమాచారం', 'Name': 'పేరు', 'Age': 'వయస్సు', 'Gender': 'లింగం',
+        'Conditions': 'పరిస్థితులు', 'None': 'ఏమీ లేదు', 'Symptom Report': 'లక్షణ రిపోర్ట్',
+        'Affected Area': 'ప్రభావిత ప్రాంతం', 'Duration': 'కాలపరిమితి', 'AI Analysis': 'ఏఐ విశ్లేషణ',
+        'Confidence': 'నమ్మకం', 'Suggested Rural Medicines': 'సూచించబడిన గ్రామీణ మందులు',
+        'Doctor Verification': 'డాక్టర్ ధృవీకరణ', 'Modified Diagnosis': 'సవరించిన నిర్ధారణ',
+        'Doctor Notes': 'డాక్టర్ నోట్స్', 'Approve AI Diagnosis': 'ఏఐ నిర్ధారణను ఆమోదించండి',
+        'Modify Diagnosis': 'నిర్ధారణను సవరించండి', 'Reject': 'తిరస్కరించండి',
+        'AI-generated preliminary diagnosis based on reported symptoms.': 'నివేదించబడిన లక్షణాల ఆధారంగా ఏఐ రూపొందించిన ప్రాథమిక నిర్ధారణ.',
+        'Hello! I am your AI healthcare assistant. How can I help you today?': 'నమస్తే! నేను మీ ఏఐ హెల్త్ అసిస్టెంట్‌ని. ఈ రోజు నేను మీకు ఎలా సహాయపడగలను?',
+        'Type a message...': 'సందేశాన్ని టైప్ చేయండి...',
+        'Facial Scan': 'ముఖం స్కాన్', 'AI Facial Scan': 'ఏఐ ముఖ స్కాన్',
+        'Non-invasive scan for Anemia and Jaundice indications.': 'రక్తహీనత మరియు పచ్చకామెర్లు సంకేతాల కోసం నాన్-ఇన్వేసివ్ స్కాన్.',
+        'Community Outreach Tools': 'కమ్యూనిటీ ఔట్రీచ్ టూల్స్', 'Local Outreach Tasks': 'స్థానిక ఔట్రీచ్ పనులు',
+        'Community Outreach Worker': 'కమ్యూనిటీ ఔట్రీచ్ వర్కర్', 'Cloud Sync Active': 'క్లౌడ్ సింక్ యాక్టివ్‌గా ఉంది',
+        'Screenings': 'స్క్రీనింగ్‌లు', 'Critical': 'కీలక', 'Home Visit: Shanti Devi': 'గృహ సందర్శన: శాంతి దేవి',
+        'Post-screening follow up - Location: North Block': 'స్క్రీనింగ్ తర్వాత ఫాలో అప్ - స్థానం: నార్త్ బ్లాక్',
+        'Polio Vaccination Drive': 'పోలియో టీకా డ్రైవ్', 'Sector 4 Community Center - Starts 10 AM': 'సెక్టార్ 4 కమ్యూనిటీ సెంటర్ - ఉదయం 10 గంటలకు ప్రారంభమవుతుంది',
+        'No recent screenings found.': 'ఇటీవలి స్క్రీనింగ్‌లేవీ కనుగొనబడలేదు.', 'High Priority': 'అధిక ప్రాధాన్యత',
+        'Doctor Verified': 'డాక్టర్ ధృవీకరించారు', 'Awaiting Review': 'సమీక్ష కోసం వేచి ఉంది',
+        'Facial Health Index Scan': 'ఫేషియల్ హెల్త్ ఇండెక్స్ స్కాన్', 'Scan Face Now': 'ఇప్పుడే ముఖం స్కాన్ చేయండి',
+        'Diagnostic Indicators': 'నిర్ధారణ సూచికలు', 'AI Analysis Summary': 'ఏఐ విశ్లేషణ సారాంశం',
+        'Rescan Face': 'ముఖాన్ని మళ్లీ స్కాన్ చేయండి', 'Analyzing...': 'విశ్లేషిస్తోంది...',
+        'Optimal Visual Index': 'సరైన విజువల్ ఇండెక్స్', 'No visual indicators for Jaundice or severe Anemia detected in current scan.': 'ప్రస్తుత స్కాన్‌లో పచ్చకామెర్లు లేదా తీవ్రమైన రక్తహీనత కోసం ఎటువంటి దృశ్య సూచికలు కనుగొనబడలేదు.',
+        'My Location': 'నా స్థానం', 'You are here': 'మీరు ఇక్కడ ఉన్నారు', 'Could not pull location. Using default.': 'స్థానాన్ని పొందలేకపోయింది. డిఫాల్ట్‌ను ఉపయోగిస్తోంది.',
+        'Geolocation is not supported by this browser.': 'ఈ బ్రౌజర్‌లో జియోలొకేషన్ మద్దతు లేదు.',
+        'Search Health Records...': 'ఆరోగ్య రికార్డులను శోధించండి...', 'Search': 'శోధించండి', 'Search for a location': 'స్థానం కోసం శోధించండి',
+        'Nearby Pharmacies': 'దగ్గర్లోని ఫార్మసీలు', 'Find Pharmacy': 'ఫార్మసీని కనుగొనండి', 'Not specified': 'పేర్కొనబడలేదు',
+        'Admin Dashboard': 'అడ్మిన్ డాష్‌బోర్డ్', 'Manage all patients and their health records': 'అందరి రోగులను మరియు వారి ఆరోగ్య రికార్డులను నిర్వహించండి',
+        'Back to Reviews': 'సమీక్షలకు తిరిగి వెళ్లండి', 'Search patients by name, email, or condition...': 'పేరు, ఇమెయిల్ లేదా పరిస్థితి ద్వారా రోగులను శోధించండి...',
+        'All Patients': 'అందరి రోగులు', 'Patients Only': 'రోగులు మాత్రమే', 'Doctors': 'డాక్టర్లు', 'CHWs': 'CHWలు',
+        'View Full Profile': 'పూర్తి ప్రొఫైల్ చూడండి', 'Message': 'సందేశం', 'No patients registered yet.': 'ఇంకా రోగులు ఎవరూ నమోదు కాలేదు.',
+        'Send WhatsApp Message': 'వాట్సాప్ సందేశం పంపండి', 'Recipient': 'స్వీకర్త', 'Type your message here...': 'మీ సందేశాన్ని ఇక్కడ టైప్ చేయండి...',
+        'Please enter a message.': 'దయచేసి సందేశాన్ని నమోదు చేయండి.', 'Sending...': 'పంపిస్తోంది...', 
+        'Message sent successfully!': 'సందేశం విజయవంతంగా పంపబడింది!', 'Failed to send message.': 'సందేశం పంపడంలో విఫలమైంది.',
+        'Server connection failed.': 'సర్వర్ కనెక్షన్ విఫలమైంది.',
+        'Welcome Back': 'తిరిగి స్వాగతం',
+        'Your health AI is active and monitoring.': 'మీ హెల్త్ ఏఐ యాక్టివ్‌గా ఉంది మరియు పర్యవేక్షిస్తోంది.',
+        'Run Health Scan': 'హెల్త్ స్కాన్ రన్ చేయండి',
+        'Reports': 'నివేదికలు',
+        'Total': 'మొత్తం',
+        'All time': 'ఎల్లప్పుడూ',
+        'Last updated': 'చివరిగా నవీకరించబడింది', 'ago': 'క్రితం',
+        'Next Consult': 'తదుపరి సంప్రదింపు', 'Tomorrow': 'రేపు',
+        'Get AI diagnosis': 'ఏఐ నిర్ధారణ పొందండి',
+        'Track metrics': 'మెట్రిక్స్‌ను ట్రాక్ చేయండి',
+        'Video Consult': 'వీడియో సంప్రదింపు',
+        'Talk to a doctor': 'డాక్టర్‌తో మాట్లాడండి',
+        'Find Medicine': 'మందులు కనుగొనండి',
+        'Locate pharmacies': 'ఫార్మసీలను గుర్తించండి',
+        'View All': 'అన్నీ చూడండి',
+        'Ask me anything about your health.': 'మీ ఆరోగ్యం గురించి నన్ను ఏమైనా అడగండి.',
+        'Start Chat': 'చాట్ ప్రారంభించండి',
+        'Search reports, doctors...': 'రిపోర్ట్‌లు, డాక్టర్లను శోధించండి...',
+        'Heart Rate': 'హృదయ స్పందన రేటు', 'Blood Pressure': 'రక్తపోటు', 'Normal Range': 'సాధారణ పరిధి',
+        'bpm': 'bpm', 'mmHg': 'mmHg', 'Optimal Visual Index': 'సరైన విజువల్ ఇండెక్స్',
+        'Diagnostic Indicators': 'నిర్ధారణ సూచికలు', 'AI Facial Health Scan': 'ఏఐ ఫేషియల్ హెల్త్ స్కాన్',
+        'AI Analysis Summary': 'ఏఐ విశ్లేషణ సారాంశం',
+        'No visual indicators for Jaundice or severe Anemia detected in current scan.': 'ప్రస్తుత స్కాన్‌లో పచ్చకామెర్లు లేదా తీవ్రమైన రక్తహీనత కోసం ఎటువంటి దృశ్య సూచికలు కనుగొనబడలేదు.',
+        'Waiting for patient...': 'రోగి కోసం వేచి ఉంది...',
+        'Waiting for doctor...': 'డాక్టర్ కోసం వేచి ఉంది...',
+        'Your unique room ID is': 'మీ ప్రత్యేక గది ID',
+        'Video Consultations': 'వీడియో సంప్రదింపులు',
+        'Telemedicine Hub': 'టెలిమెడిసిన్ హబ్',
+        'Remote Video': 'రిమోట్ వీడియో',
+        'Waiting for connection...': 'కనెక్షన్ కోసం వేచి ఉంది...',
+        'Microphone': 'మైక్రోఫోన్',
+        'Camera': 'కెమెరా',
+        'Screen': 'స్క్రీన్',
+        'End Call': 'కాల్ ముగించండి',
+        'Room ID': 'గది ID',
+        'Duration': 'కాలపరిమితి',
+        'Status': 'స్థితి',
+        'Connected': 'కనెక్ట్ అయ్యింది',
+        'Reconnecting...': 'మళ్లీ కనెక్ట్ అవుతోంది...',
+        'Disconnected': 'డిస్కనెక్ట్ అయ్యింది', 'Call ended or lost.': 'కాల్ ముగిసింది లేదా కోల్పోయింది.',
+        'Disconnected from signaling server.': 'సిగ్నలింగ్ సర్వర్ నుండి డిస్కనెక్ట్ అయ్యింది.',
+        'Smart Summary': 'స్మార్ట్ సారాంశం', 'Start Call': 'కాల్ ప్రారంభించండి', 'Room:': 'గది:',
+        'Login': 'లॉगిన్', 'Register': 'రిజిస్టర్', 'Email Address': 'ఇమెయిల్ చిరునామా', 'Password': 'పాస్‌వర్డ్', 
+        'Sign In': 'సైన్ ఇన్', 'Full Name': 'పూర్తి పేరు', 'Age': 'వయస్సు', 'Gender': 'లింగం',
+        'Create Account': 'ఖాతా సృష్టించండి', 'AI Diagnosis': 'ఏఐ నిర్ధారణ', 'Doctor Consults': 'డాక్టర్ సంప్రదింపులు', 
+        'Offline First': 'ఆఫ్‌లైన్ మొదట', 'Malaria': 'మలేరియా', 'Dengue': 'డెంగు', 'Flu': 'ఫ్లూ', 
+        'Common Cold': 'సాధారణ జలుబు', 'Diabetes': 'మధుమేహం', 'Hypertension': 'అధిక రక్తపోటు', 
+        'Anemia': 'రక్తహీనత', 'Jaundice': 'పచ్చకామెర్లు',
+        'Identify symptoms instantly with our advanced machine learning models.': 'మా అధునాతన మెషిన్ లెర్నింగ్ మోడల్స్‌తో లక్షణాలను తక్షణమే గుర్తించండి.',
+        'Connect with specialists via high-quality video calls anytime.': 'అధిక నాణ్యత గల వీడియో కాల్స్ ద్వారా ఎప్పుడైనా నిపుణులతో కనెక్ట్ అవ్వండి.',
+        'No internet? No problem. Use core features without connectivity.': 'ఇంటర్నెట్ లేదా? పర్వాలేదు. కనెక్టివిటీ లేకుండానే ముఖ్యమైన ఫీచర్లను ఉపయోగించండి.',
+        'Maximum Intelligence,': 'గరిష్ట తెలివితేటలు,', 'Maximum Safety': 'గరిష్ట భద్రత',
+        'Advanced diagnostic AI bridging the gap for rural communities. Symptom analysis, facial scanning, and doctor consultations—offline first.': 'గ్రామీణ వర్గాల కోసం అంతరాలను తగ్గించే అధునాతన నిర్ధారణ ఏఐ. లక్షణ విశ్లేషణ, ముఖ స్కానింగ్ మరియు డాక్టర్ సంప్రదింపులు—ఆఫ్‌లైన్ మొదట.',
+        'Morning, Dr.': 'శుభోదయం, డాక్టర్', 'Here is what\'s happening today.': 'ఈ రోజు జరుగుతున్న విషయాలు ఇవే.',
+        'Login to Dashboard': 'డాష్‌బోర్డ్‌లో లాగిన్ అవ్వండి',
+        '🩺 AI Diagnosis Result': '🩺 ఏఐ నిర్ధారణ ఫలితం',
+        'Description:': 'వివరణ:', 'Causes & Risk Factors:': 'కారణాలు & ప్రమాద కారకాలు:',
+        'Symptoms:': 'లక్షణాలు:', 'Treatment & Medications:': 'చికిత్స & మందులు:',
+        'Which Doctor to Consult?': 'ఏ డాక్టర్‌ని సంప్రదించాలి?',
+        '⏳ Analyzing symptoms... Please wait.': '⏳ లక్షణాలను విశ్లేషిస్తోంది... దయచేసి వేచి ఉండండి.',
+        '🔍 Symptom Checker': '🔍 సింప్టమ్ చెకర్',
+        'Symptom Checker': 'సింప్టమ్ చెకర్',
+        'Symptom Analysis': 'లక్షణ విశ్లేషణ',
+        '❌ Please enter your symptoms.': '❌ దయచేసి మీ లక్షణాలను నమోదు చేయండి.',
+        '❌ An error occurred. Please try again.': '❌ ఒక లోపం సంభవించింది. దయచేసి మళ్ళీ ప్రయత్నించండి.',
+        'Enter your symptoms below to get AI-powered analysis.': 'ఏఐ-ఆధారిత విశ్లేషణ పొందడానికి మీ లక్షణాలను కింద నమోదు చేయండి.',
+        'Check Symptoms': 'లక్షణాలను తనిఖీ చేయండి',
+        'No image data provided': 'ఇমেজ డేటా ఏదీ అందించబడలేదు',
+        'Healthy Appearance': 'ఆరోగ్యకరమైన ప్రదర్శన',
+        'Skin tone is uniform': 'చర్మం రంగు ఏకరీతిగా ఉంది',
+        'Maintain routine': 'నిత్యకృత్యాలను నిర్వహించండి',
+        'Facial scan indicators are within normal ranges.': 'ఫేషియల్ స్కాన్ సూచికలు సాధారణ పరిధిలో ఉన్నాయి.',
+        'New Facial Scan Analysis': 'కొత్త ఫేషియల్ స్కాన్ విశ్లేషణ',
+        'Result': 'ఫలితం', 'Note': 'గమనిక', 'Date': 'తేదీ', 'Status': 'స్థితి',
+        'Failed to process facial image': 'ఫేషియల్ ఇమేజ్‌ని ప్రాసెస్ చేయడంలో విఫలమైంది',
+        'Healthy Scan': 'ఆరోగ్యకరమైన స్కాన్', 'Health Alert': 'హెల్త్ అలర్ట్',
+        'Error: Camera access denied or not found.': 'లోపం: కెమెరా యాక్సెస్ నిరాకరించబడింది లేదా కనుగొనబడలేదు.',
+        # Dashboard Cards
+        'Report Symptoms': 'లక్షణాలు నివేదించండి',
+        'Log Vitals': 'వైటల్స్ నమోదు',
+        'Video Consult': 'వీడియో సంప్రదింపు',
+        'AI Face Scan': 'AI ఫేస్ స్కాన్',
+        'Book Call': 'కాల్ బుక్ చేయండి',
+        'Find Medicine': 'మందులు కనుగొనండి',
+        'Get AI diagnosis': 'ఏఐ నిర్ధారణ పొందండి',
+        'Track metrics': 'మెట్రిక్స్‌ను ట్రాక్ చేయండి',
+        'Talk to a doctor': 'డాక్టర్‌తో మాట్లాడండి',
+        'Analyze your health': 'మీ ఆరోగ్యాన్ని విశ్లేషించండి',
+        'Schedule a consultation': 'సంప్రదింపులను షెడ్యూల్ చేయండి',
+        'Locate pharmacies': 'ఫార్మసీలను గుర్తించండి',
+        'Processed': 'ప్రాసెస్ చేయబడింది',
+        'No recent activity': 'ఇటీవలి కార్యాచరణ ఏదీ లేదు',
+        # Login Page
+        'AI-Powered Rural Telemedicine': 'AI-ఆధారిత గ్రామీణ టెలిమెడిసిన్',
+        'Login to access your health dashboard': 'మీ హెల్త్ డాష్‌బోర్డ్‌ను యాక్సెస్ చేయడానికి లాగిన్ చేయండి',
+        'Remember me': 'నన్ను గుర్తుంచుకోండి',
+        'Forgot password?': 'పాస్‌వర్డ్ మర్చిపోయారా?',
+        "Don't have an account?": 'ఖాతా లేదా?',
+        'Recent Activity': 'ఇటీవలి కార్యాచరణ',
+        'View All': 'అన్నీ చూడు',
+        # Doctor Dashboard
+        'Dr.': 'డా.',
+        'Senior Consultant': 'సీనియర్ కన్సల్టెంట్',
+        'Export Data (CSV)': 'డేటాను ఎగుమతి చేయండి (CSV)',
+        'Patient Database': 'రోగి డేటాబేస్',
+        'Tele-Consult': 'టెలి-కన్సల్ట్',
+        'Awaiting Review': 'సమీక్ష కోసం వేచి ఉంది',
+        "Today's Appts": 'నేటి అపాయింట్‌మెంట్‌లు',
+        'Cases Resolved': 'పరిష్కరించబడిన కేసులు',
+        'Upcoming Consultations': 'రాబోయే సంప్రదింపులు',
+        'Confirmed': 'ధృవీకరించబడింది',
+        'No consultations scheduled for today.': 'ఈ రోజు ఎటువంటి సంప్రదింపులు షెడ్యూల్ చేయబడలేదు.',
+        'Review Case': 'కేసును సమీక్షించండి', 	
     },
     # -------- BENGALI --------
     'bn': {
@@ -225,6 +514,65 @@ UI_TRANSLATIONS = {
         'Please enter a message.': 'অনুগ্রহ করে একটি বার্তা লিখুন।', 'Sending...': 'পাঠানো হচ্ছে...', 
         'Message sent successfully!': 'বার্তা সফলভাবে পাঠানো হয়েছে!', 'Failed to send message.': 'বার্তা পাঠাতে ব্যর্থ হয়েছে।',
         'Server connection failed.': 'সার্ভার সংযোগ ব্যর্থ হয়েছে।',
+        'Welcome Back': 'ফিরে আসার জন্য স্বাগতম',
+        'Your health AI is active and monitoring.': 'আপনার স্বাস্থ্য এআই সক্রিয় এবং পর্যবেক্ষণ করছে।',
+        'Run Health Scan': 'স্বাস্থ্য স্ক্যান চালান',
+        'Reports': 'রিপোর্ট', 'Total': 'মোট', 'All time': 'সব সময়',
+        'Last updated': 'শেষ আপডেট', 'ago': 'আগে',
+        'Next Consult': 'পরবর্তী পরামর্শ', 'Tomorrow': 'আগামীকাল',
+        'Get AI diagnosis': 'AI ডায়াগনসিস পান',
+        'Track metrics': 'মেট্রিক্স ট্র্যাক করুন',
+        'Video Consult': 'ভিডিও পরামর্শ',
+        'Talk to a doctor': 'ডাক্তারের সাথে কথা বলুন',
+        'Find Medicine': 'ঔষধ খুঁজুন',
+        'Locate pharmacies': 'ফার্মেসি খুঁজুন',
+        'View All': 'সব দেখুন',
+        'Ask me anything about your health.': 'আপনার স্বাস্থ্য সম্পর্কে আমাকে যা খুশি জিজ্ঞাসা করুন।',
+        'Start Chat': 'চ্যাট শুরু করুন',
+        'Search reports, doctors...': 'রিপোর্ট, ডাক্তার খুঁজুন...',
+        'Heart Rate': 'হৃদস্পন্দন', 'Blood Pressure': 'রক্তচাপ', 'Normal Range': 'স্বাভাবিক পরিসীমা',
+        'bpm': 'bpm', 'mmHg': 'mmHg', 'Optimal Visual Index': 'সর্বোত্তম দৃশ্যমান সূচক',
+        'Diagnostic Indicators': 'ডায়াগনস্টিক সূচক', 'AI Facial Health Scan': 'এআই ফেসিয়াল হেলথ স্ক্যান',
+        'AI Analysis Summary': 'এআই বিশ্লেষণ সারাংশ',
+        'No visual indicators for Jaundice or severe Anemia detected in current scan.': 'বর্তমান স্ক্যানে জন্ডিস বা গুরুতর অ্যানিমিয়ার কোনো ভিজ্যুয়াল সূচক পাওয়া যায়নি।',
+        'Waiting for patient...': 'রোগীর জন্য অপেক্ষা করা হচ্ছে...',
+        'Waiting for doctor...': 'ডাক্তারের জন্য অপেক্ষা করা হচ্ছে...',
+        'Your unique room ID is': 'আপনার অনন্য রুম আইডি হলো',
+        'Video Consultations': 'ভিডিও পরামর্শ',
+        'Telemedicine Hub': 'টেলিমেডিসিন হাব',
+        'Remote Video': 'রিমোট ভিডিও',
+        'Waiting for connection...': 'সংযোগের জন্য অপেক্ষা করা হচ্ছে...',
+        'Microphone': 'মাইক্রোফোন',
+        'Camera': 'ক্যামেরা',
+        'Screen': 'স্ক্রিন',
+        'End Call': 'কল শেষ করুন',
+        'Room ID': 'রুম আইডি',
+        'Duration': 'সময়কাল',
+        'Status': 'অবস্থা',
+        'Connected': 'সংযুক্ত',
+        'Reconnecting...': 'পুনরায় সংযোগ করা হচ্ছে...',
+        'Disconnected': 'বিচ্ছিন্ন',
+        'Login': 'লগইন', 'Register': 'রেজিস্টার', 'Email Address': 'ইমেল ঠিকানা', 'Password': 'পাসওয়ার্ড',
+        'Sign In': 'সাইন ইন', 'Full Name': 'পুরো নাম', 'Age': 'বয়স', 'Gender': 'লিঙ্গ',
+        'Create Account': 'অ্যাকাউন্ট তৈরি করুন', 'AI Diagnosis': 'এআই নির্ণয়', 'Doctor Consults': 'ডাক্তার পরামর্শ',
+        'Offline First': 'অফলাইন প্রথম', 'Malaria': 'ম্যালেরিয়া', 'Dengue': 'ডেঙ্গু', 'Flu': 'ফ্লু',
+        'Common Cold': 'সাধারণ ঠান্ডা', 'Diabetes': 'ডায়াবেটিস', 'Hypertension': 'উচ্চ রক্তচাপ',
+        'Anemia': 'অ্যানিমিয়া', 'Jaundice': 'জন্ডিস',
+        'Identify symptoms instantly with our advanced machine learning models.': 'আমাদের উন্নত মেশিন লার্নিং মডেলের সাথে তাৎক্ষণিকভাবে লক্ষণগুলি সনাক্ত করুন।',
+        'Connect with specialists via high-quality video calls anytime.': 'যেকোনো সময় উচ্চ মানের ভিডিও কলের মাধ্যমে বিশেষজ্ঞদের সাথে যোগাযোগ করুন।',
+        'No internet? No problem. Use core features without connectivity.': 'ইন্টারনেট নেই? সমস্যা নেই। সংযোগ ছাড়াই মূল বৈশিষ্ট্যগুলি ব্যবহার করুন।',
+        'Maximum Intelligence,': 'সর্বোচ্চ বুদ্ধিমত্তা,', 'Maximum Safety': 'সর্বোচ্চ নিরাপত্তা',
+        'Advanced diagnostic AI bridging the gap for rural communities. Symptom analysis, facial scanning, and doctor consultations—offline first.': 'গ্রামীণ সম্প্রদায়ের জন্য ব্যবধান দূরকারী উন্নত ডায়াগনস্টিক এআই। লক্ষণ বিশ্লেষণ, ফেসিয়াল স্ক্যানিং এবং ডাক্তার পরামর্শ—অফলাইন প্রথম।',
+        'Morning, Dr.': 'সুপ্রভাত, ডাক্তার', 'Here is what\'s happening today.': 'আজ যা ঘটছে।',
+        'Login to Dashboard': 'ড্যাশবোর্ডে লগইন করুন',
+        '🩺 AI Diagnosis Result': '🩺 এআই নির্ণয়ের ফলাফল',
+        'Description:': 'বিবরণ:', 'Causes & Risk Factors:': 'কারণ এবং ঝুঁকির কারণগুলি:',
+        'Symptoms:': 'উপসর্গ:', 'Treatment & Medications:': 'চিকিৎসা এবং ওষুধ:',
+        'Which Doctor to Consult?': 'কোন ডাক্তারের সাথে পরামর্শ করবেন?',
+        '⏳ Analyzing symptoms... Please wait.': '⏳ লক্ষণ বিশ্লেষণ করা হচ্ছে... অনুগ্রহ করে অপেক্ষা করুন।',
+        '🔍 Symptom Checker': '🔍 উপসর্গ পরীক্ষক',
+        'Enter your symptoms below to get AI-powered analysis.': 'এআই-চালিত বিশ্লেষণ পেতে নিচে আপনার লক্ষণগুলি লিখুন।',
+        'Check Symptoms': 'উপসর্গ পরীক্ষা করুন'
     },
     # -------- TELUGU --------
     'te': {
@@ -298,6 +646,65 @@ UI_TRANSLATIONS = {
         'Please enter a message.': 'దయచేసి ఒక సందేశాన్ని నమోదు చేయండి.', 'Sending...': 'పంపుతోంది...', 
         'Message sent successfully!': 'సందేశం విజయవంతంగా పంపబడింది!', 'Failed to send message.': 'సందేశం పంపడం విఫలమైంది.',
         'Server connection failed.': 'సర్వర్ కనెక్షన్ విఫలమైంది.',
+        'Welcome Back': 'తిరిగి స్వాగతం',
+        'Your health AI is active and monitoring.': 'మీ హెల్త్ AI యాక్టివ్‌గా ఉంది మరియు పర్యవేక్షిస్తోంది.',
+        'Run Health Scan': 'హెల్త్ స్కాన్ చేయండి',
+        'Reports': 'నివేదికలు', 'Total': 'మొత్తం', 'All time': 'అన్ని సమయాల్లో',
+        'Last updated': 'చివరిగా నవీకరించబడింది', 'ago': 'క్రితం',
+        'Next Consult': 'తదుపరి సంప్రదింపు', 'Tomorrow': 'రేపు',
+        'Get AI diagnosis': 'AI నిర్ధారణ పొందండి',
+        'Track metrics': 'కొలమానాలను ట్రాక్ చేయండి',
+        'Video Consult': 'వీడియో సంప్రదింపు',
+        'Talk to a doctor': 'డాక్టర్‌తో మాట్లాడండి',
+        'Find Medicine': 'మందులు కనుగొనండి',
+        'Locate pharmacies': 'ఫార్మసీలను గుర్తించండి',
+        'View All': 'అన్నింటినీ చూడండి',
+        'Ask me anything about your health.': 'మీ ఆరోగ్యం గురించి నన్ను ఏదైనా అడగండి.',
+        'Start Chat': 'చాట్ ప్రారంభించండి',
+        'Search reports, doctors...': 'నివేదికలు, డాక్టర్లను వెతకండి...',
+        'Heart Rate': 'గుండె వేగం', 'Blood Pressure': 'రక్తపోటు', 'Normal Range': 'సాధారణ పరిధి',
+        'bpm': 'bpm', 'mmHg': 'mmHg', 'Optimal Visual Index': 'సరైన విజువల్ ఇండెక్స్',
+        'Diagnostic Indicators': 'రోగనిర్ధారణ సూచికలు', 'AI Facial Health Scan': 'AI ఫేషియల్ హెల్త్ స్కాన్',
+        'AI Analysis Summary': 'AI విశ్లేషణ సారాంశం',
+        'No visual indicators for Jaundice or severe Anemia detected in current scan.': 'ప్రస్తుత స్కాన్‌లో కామెర్లు లేదా తీవ్రమైన ఎనీమియాకు ఎటువంటి విజువల్ సూచికలు కనుగొనబడలేదు।',
+        'Waiting for patient...': 'రోగి కోసం వేచి ఉంది...',
+        'Waiting for doctor...': 'డాక్టర్ కోసం వేచి ఉంది...',
+        'Your unique room ID is': 'మీ ప్రత్యేక గది ఐడి',
+        'Video Consultations': 'వీడియో సంప్రదింపులు',
+        'Telemedicine Hub': 'టెలిమెడిసిన్ హబ్',
+        'Remote Video': 'రిమోట్ వీడియో',
+        'Waiting for connection...': 'కనెక్షన్ కోసం వేచి ఉంది...',
+        'Microphone': 'మైక్రోఫోన్',
+        'Camera': 'కెమెరా',
+        'Screen': 'స్క్రీన్',
+        'End Call': 'కాల్ ముగించు',
+        'Room ID': 'గది ఐడి',
+        'Duration': 'వ్యవధి',
+        'Status': 'స్థితి',
+        'Connected': 'కనెక్ట్ చేయబడింది',
+        'Reconnecting...': 'మళ్లీ కనెక్ట్ అవుతోంది...',
+        'Disconnected': 'డిస్కనెక్ట్ చేయబడింది',
+        'Login': 'లాగిన్', 'Register': 'రిజిస్టర్', 'Email Address': 'ఇమెయిల్ చిరునామా', 'Password': 'పాస్‌వర్డ్',
+        'Sign In': 'సైన్ ఇన్', 'Full Name': 'పూర్తి పేరు', 'Age': 'వయస్సు', 'Gender': 'లింగం',
+        'Create Account': 'ఖాతా సృష్టించండి', 'AI Diagnosis': 'AI నిర్ధారణ', 'Doctor Consults': 'డాక్టర్ సంప్రదింపులు',
+        'Offline First': 'ఆఫ్‌లైన్ ఫస్ట్', 'Malaria': 'మలేరియా', 'Dengue': 'డెంగ్యూ', 'Flu': 'ఫ్లూ',
+        'Common Cold': 'సాధారణ జలుబు', 'Diabetes': 'మధుమేహం', 'Hypertension': 'అధిక రక్తపోటు',
+        'Anemia': 'రక్తహీనత', 'Jaundice': 'కామెర్లు',
+        'Identify symptoms instantly with our advanced machine learning models.': 'మా అధునాతన మెషీన్ లెర్నింగ్ మోడళ్లతో లక్షణాలను తక్షణమే గుర్తించండి.',
+        'Connect with specialists via high-quality video calls anytime.': 'ఎప్పుడైనా అధిక నాణ్యత గల వీడియో కాల్‌ల ద్వారా నిపుణులతో కనెక్ట్ అవ్వండి.',
+        'No internet? No problem. Use core features without connectivity.': 'ఇంటర్నెట్ లేదా? సమస్య లేదు. కనెక్టివిటీ లేకుండా ప్రధాన ఫీచర్లను ఉపయోగించండి.',
+        'Maximum Intelligence,': 'గరిష్ట మేధస్సు,', 'Maximum Safety': 'గరిష్ట భద్రత',
+        'Advanced diagnostic AI bridging the gap for rural communities. Symptom analysis, facial scanning, and doctor consultations—offline first.': 'గ్రామీణ వర్గాల కోసం అంతరాన్ని పూడ్చే అధునాతన రోగనిర్ధారణ AI. లక్షణాల విశ్లేషణ, ఫేషియల్ స్కానింగ్ మరియు డాక్టర్ సంప్రదింపులు—ఆఫ్‌లైన్ ఫస్ట్.',
+        'Morning, Dr.': 'శుభోదయం, డాక్టర్', 'Here is what\'s happening today.': 'ఈరోజు ఏమి జరుగుతుందో ఇక్కడ ఉంది.',
+        'Login to Dashboard': 'డాష్‌బోర్డ్‌లోకి లాగిన్ అవ్వండి',
+        '🩺 AI Diagnosis Result': '🩺 AI నిర్ధారణ ఫలితం',
+        'Description:': 'వివరణ:', 'Causes & Risk Factors:': 'కారణాలు & ప్రమాద కారకాలు:',
+        'Symptoms:': 'లక్షణాలు:', 'Treatment & Medications:': 'చికిత్స & మందులు:',
+        'Which Doctor to Consult?': 'ఏ డాక్టర్‌ను సంప్రదించాలి?',
+        '⏳ Analyzing symptoms... Please wait.': '⏳ లక్షణాలను విశ్లేషిస్తోంది... దయచేసి వేచి ఉండండి.',
+        '🔍 Symptom Checker': '🔍 లక్షణ తనిఖీ',
+        'Enter your symptoms below to get AI-powered analysis.': 'AI-శక్తితో కూడిన విశ్లేషణను పొందడానికి దిగువన మీ లక్షణాలను నమోదు చేయండి.',
+        'Check Symptoms': 'లక్షణాలను తనిఖీ చేయండి'
     },
     # -------- TAMIL --------
     'ta': {
@@ -371,6 +778,65 @@ UI_TRANSLATIONS = {
         'Please enter a message.': 'தயவுசெய்து ஒரு செய்தியை உள்ளிடவும்.', 'Sending...': 'அனுப்பப்படுகிறது...', 
         'Message sent successfully!': 'செய்தி வெற்றிகரமாக அனுப்பப்பட்டது!', 'Failed to send message.': 'செய்தி அனுப்புவதில் தோல்வி.',
         'Server connection failed.': 'சர்வர் இணைப்பு தோல்வியடைந்தது.',
+        'Welcome Back': 'மீண்டும் வருக',
+        'Your health AI is active and monitoring.': 'உங்கள் சுகாதார AI செயலில் உள்ளது மற்றும் கண்காணிக்கிறது.',
+        'Run Health Scan': 'சுகாதார ஸகேன் இயக்கவும்',
+        'Reports': 'அறிக்கைகள்', 'Total': 'மொத்தம்', 'All time': 'எல்லா நேரமும்',
+        'Last updated': 'கடைசியாக புதுப்பிக்கப்பட்டது', 'ago': 'முன்பு',
+        'Next Consult': 'அடுத்த ஆலோசனை', 'Tomorrow': 'நாளை',
+        'Get AI diagnosis': 'AI நோயறிதலைப் பெறுங்கள்',
+        'Track metrics': 'அளவீடுகளைக் கண்காணிக்கவும்',
+        'Video Consult': 'வீடியோ ஆலோசனை',
+        'Talk to a doctor': 'மருத்துவரிடம் பேசுங்கள்',
+        'Find Medicine': 'மருந்தைக் கண்டறியவும்',
+        'Locate pharmacies': 'மருந்தகங்களைக் கண்டறியவும்',
+        'View All': 'அனைத்தையும் காண்க',
+        'Ask me anything about your health.': 'உங்கள் ஆரோக்கியத்தைப் பற்றி என்னிடம் எதையும் கேளுங்கள்.',
+        'Start Chat': 'அரட்டையைத் தொடங்குங்கள்',
+        'Search reports, doctors...': 'அறிக்கைகள், மருத்துவர்களைத் தேடுங்கள்...',
+        'Heart Rate': 'இதயத் துடிப்பு', 'Blood Pressure': 'இரத்த அழுத்தம்', 'Normal Range': 'சாதாரண வரம்பு',
+        'bpm': 'bpm', 'mmHg': 'mmHg', 'Optimal Visual Index': 'சிறந்த காட்சி குறியீடு',
+        'Diagnostic Indicators': 'நோய் கண்டறியும் குறிகாட்டிகள்', 'AI Facial Health Scan': 'AI முக சுகாதார ஸ்கேன்',
+        'AI Analysis Summary': 'AI பகுப்பாய்வு சுருக்கம்',
+        'No visual indicators for Jaundice or severe Anemia detected in current scan.': 'தற்போதைய ஸ்கேனில் மஞ்சள் காமாலை அல்லது கடுமையான இரத்த சோகைக்கான காட்சி குறிகாட்டிகள் எதுவும் கண்டறியப்படவில்லை।',
+        'Waiting for patient...': 'நோயாளிக்காக காத்திருக்கிறது...',
+        'Waiting for doctor...': 'மருத்துவர் காக்கப்படுகிறார்...',
+        'Your unique room ID is': 'உங்கள் தனித்துவமான அறை ஐடி',
+        'Video Consultations': 'வீடியோ ஆலோசனைகள்',
+        'Telemedicine Hub': 'டெலிமெடிசின் மையம்',
+        'Remote Video': 'ரிமோட் வீடியோ',
+        'Waiting for connection...': 'இணைப்புக்காக காத்திருக்கிறது...',
+        'Microphone': 'மைக்ரோஃபோன்',
+        'Camera': 'கேமரா',
+        'Screen': 'திரை',
+        'End Call': 'அழைப்பை முடி',
+        'Room ID': 'அறை ஐடி',
+        'Duration': 'காலம்',
+        'Status': 'நிலை',
+        'Connected': 'இணைக்கப்பட்டது',
+        'Reconnecting...': 'மீண்டும் இணைக்கிறது...',
+        'Disconnected': 'துண்டிக்கப்பட்டது',
+        'Login': 'உள்நுழைவு', 'Register': 'பதிவு', 'Email Address': 'மின்னஞ்சல் முகவரி', 'Password': 'கடவுச்சொல்',
+        'Sign In': 'உள்நுழைக', 'Full Name': 'முழு பெயர்', 'Age': 'வயது', 'Gender': 'பாலினம்',
+        'Create Account': 'கணக்கை உருவாக்கு', 'AI Diagnosis': 'AI நோயறிதல்', 'Doctor Consults': 'மருத்துவர் ஆலோசனை',
+        'Offline First': 'முதலில் ஆஃப்லைன்', 'Malaria': 'மலேரியா', 'Dengue': 'டெங்கு', 'Flu': 'காய்ச்சல்',
+        'Common Cold': 'சாதாரண சளி', 'Diabetes': 'சர்க்கரை நோய்', 'Hypertension': 'உயர் இரத்த அழுத்தம்',
+        'Anemia': 'இரத்த சோகை', 'Jaundice': 'மஞ்சள் காமாலை',
+        'Identify symptoms instantly with our advanced machine learning models.': 'எங்கள் மேம்பட்ட இயந்திர கற்றல் மாதிரிகள் மூலம் அறிகுறிகளை உடனடியாக அடையாளம் காணவும்.',
+        'Connect with specialists via high-quality video calls anytime.': 'எந்த நேரத்திலும் உயர்தர வீடியோ அழைப்புகள் மூலம் நிபுணர்களுடன் இணையுங்கள்.',
+        'No internet? No problem. Use core features without connectivity.': 'இணையம் இல்லையா? பரவாயில்லை. இணைப்பு இல்லாமலேயே முக்கிய அம்சங்களைப் பயன்படுத்துங்கள்.',
+        'Maximum Intelligence,': 'அதிகபட்ச நுண்ணறிவு,', 'Maximum Safety': 'அதிகபட்ச பாதுகாப்பு',
+        'Advanced diagnostic AI bridging the gap for rural communities. Symptom analysis, facial scanning, and doctor consultations—offline first.': 'கிராமப்புற சமூகங்களுக்கான இடைவெளியைக் குறைக்கும் மேம்பட்ட நோய் கண்டறியும் AI. அறிகுறி பகுப்பாய்வு, முக ஸ்கேனிங் மற்றும் மருத்துவர் ஆலோசனைகள்—முதலில் ஆஃப்லைன்.',
+        'Morning, Dr.': 'காலை வணக்கம், டாக்டர்', 'Here is what\'s happening today.': 'இன்று என்ன நடக்கிறது என்பது இங்கே.',
+        'Login to Dashboard': 'டாஷ்போர்டில் உள்நுழைக',
+        '🩺 AI Diagnosis Result': '🩺 AI நோயறிதல் முடிவு',
+        'Description:': 'விளக்கம்:', 'Causes & Risk Factors:': 'காரணங்கள் மற்றும் ஆபத்து காரணிகள்:',
+        'Symptoms:': 'அறிகுறிகள்:', 'Treatment & Medications:': 'சிகிச்சை மற்றும் மருந்துகள்:',
+        'Which Doctor to Consult?': 'எந்த மருத்துவரை அணுக வேண்டும்?',
+        '⏳ Analyzing symptoms... Please wait.': '⏳ அறிகுறிகள் பகுப்பாய்வு செய்யப்படுகின்றன... தயவுசெய்து காத்திருக்கவும்.',
+        '🔍 Symptom Checker': '🔍 அறிகுறி சரிபார்ப்பு',
+        'Enter your symptoms below to get AI-powered analysis.': 'AI-பழக்கப்படுத்தப்பட்ட பகுப்பாய்வைப் பெற உங்கள் அறிகுறிகளை கீழே உள்ளிடவும்.',
+        'Check Symptoms': 'அறிகுறிகளைச் சரிபார்க்கவும்'
     },
     # -------- MARATHI --------
     'mr': {
@@ -452,6 +918,65 @@ UI_TRANSLATIONS = {
         'Please enter a message.': 'कृपया एक संदेश प्रविष्ट करा.', 'Sending...': 'पाठवत आहे...', 
         'Message sent successfully!': 'संदेश यशस्वीरित्या पाठवला!', 'Failed to send message.': 'संदेश पाठविण्यात अपयश.',
         'Server connection failed.': 'सर्व्हर कनेक्शन अयशस्वी.',
+        'Welcome Back': 'परत स्वागत आहे',
+        'Your health AI is active and monitoring.': 'तुमचे आरोग्य AI सक्रिय आहे आणि लक्ष ठेवून आहे.',
+        'Run Health Scan': 'हेल्थ स्कॅन करा',
+        'Reports': 'अहवाल', 'Total': 'एकूण', 'All time': 'सर्व वेळ',
+        'Last updated': 'शेवटचे अपडेट', 'ago': 'पूर्वी',
+        'Next Consult': 'पुढील सल्ला', 'Tomorrow': 'उद्या',
+        'Get AI diagnosis': 'AI निदान मिळवा',
+        'Track metrics': 'मेट्रिक्स ट्रॅक करा',
+        'Video Consult': 'व्हिडिओ सल्ला',
+        'Talk to a doctor': 'डॉक्टरांशी बोला',
+        'Find Medicine': 'औषध शोधा',
+        'Locate pharmacies': 'फार्मसी शोधा',
+        'View All': 'सर्व पहा',
+        'Ask me anything about your health.': 'मला तुमच्या आरोग्याबद्दल काहीही विचारा.',
+        'Start Chat': 'चॅट सुरू करा',
+        'Search reports, doctors...': 'अहवाल, डॉक्टर शोधा...',
+        'Heart Rate': 'हृदय गती', 'Blood Pressure': 'रक्तदाब', 'Normal Range': 'सामान्य मर्यादा',
+        'bpm': 'bpm', 'mmHg': 'mmHg', 'Optimal Visual Index': 'इष्टतम दृश्य निर्देशांक',
+        'Diagnostic Indicators': 'रोगनिदानविषयक संकेतक', 'AI Facial Health Scan': 'एआय फेशियल हेल्थ स्कॅन',
+        'AI Analysis Summary': 'एआई विश्लेषण सारांश',
+        'No visual indicators for Jaundice or severe Anemia detected in current scan.': 'सध्याच्या स्कॅनमध्ये कावीळ किंवा गंभीर अ‍ॅनिमियासाठी कोणतेही दृश्य संकेतक आढळले नाहीत।',
+        'Waiting for patient...': 'रुग्णाची वाट पाहत आहे...',
+        'Waiting for doctor...': 'डॉक्टरांची वाट पाहत आहे...',
+        'Your unique room ID is': 'तुमची युनिक रूम आयडी आहे',
+        'Video Consultations': 'व्हिडिओ सल्लामसलत',
+        'Telemedicine Hub': 'टेलीमेडिसिन हब',
+        'Remote Video': 'रिमोट व्हिडिओ',
+        'Waiting for connection...': 'कनेक्शनची प्रतीक्षा करत आहे...',
+        'Microphone': 'मायक्रोफोन',
+        'Camera': 'कॅमेरा',
+        'Screen': 'स्क्रीन',
+        'End Call': 'कॉल थांबवा',
+        'Room ID': 'रूम आयडी',
+        'Duration': 'कालावधी',
+        'Status': 'स्थिती',
+        'Connected': 'कनेक्ट झाले',
+        'Reconnecting...': 'पुन्हा कनेक्ट करत आहे...',
+        'Disconnected': 'डिस्कनेक्ट झाले',
+        'Login': 'लॉगिन', 'Register': 'रजिस्टर', 'Email Address': 'ईमेल पत्ता', 'Password': 'पासवर्ड',
+        'Sign In': 'साइन इन', 'Full Name': 'पूर्ण नाव', 'Age': 'वय', 'Gender': 'लिंग',
+        'Create Account': 'खाते तयार करा', 'AI Diagnosis': 'AI निदान', 'Doctor Consults': 'डॉक्टर सल्ला',
+        'Offline First': 'ऑफलाइन प्रथम', 'Malaria': 'मलेरिया', 'Dengue': 'डेंग्यू', 'Flu': 'फ्लू',
+        'Common Cold': 'सर्दी-खोकला', 'Diabetes': 'मधुमेह', 'Hypertension': 'उच्च रक्तदाब',
+        'Anemia': 'अ‍ॅनिमिया', 'Jaundice': 'कावीळ',
+        'Identify symptoms instantly with our advanced machine learning models.': 'आमच्या प्रगत मशीन लर्निंग मॉडेल्ससह त्वरित लक्षणे ओळखा.',
+        'Connect with specialists via high-quality video calls anytime.': 'कधीही उच्च-गुणवत्तेच्या व्हिडिओ कॉलद्वारे तज्ज्ञांशी संपर्क साधा.',
+        'No internet? No problem. Use core features without connectivity.': 'इंटरनेट नाही? काही हरकत नाही. कनेक्टिव्हिटीशिवाय मुख्य वैशिष्ट्ये वापरा.',
+        'Maximum Intelligence,': 'जास्तीत जास्त बुद्धिमत्ता,', 'Maximum Safety': 'जास्तीत जास्त सुरक्षा',
+        'Advanced diagnostic AI bridging the gap for rural communities. Symptom analysis, facial scanning, and doctor consultations—offline first.': 'ग्रामीण समुदायांसाठी दरी सांधणारे प्रगत निदानाचे AI. लक्षण विश्लेषण, फेशियल स्कॅनिंग आणि डॉक्टर सल्ला—ऑफलाइन प्रथम.',
+        'Morning, Dr.': 'सुप्रभात, डॉक्टर', 'Here is what\'s happening today.': 'आज काय घडत आहे ते पहा.',
+        'Login to Dashboard': 'डॅशबोर्डमध्ये लॉगिन करा',
+        '🩺 AI Diagnosis Result': '🩺 AI निदानाचा निकाल',
+        'Description:': 'वर्णन:', 'Causes & Risk Factors:': 'कारणे आणि जोखीम घटक:',
+        'Symptoms:': 'लक्षणे:', 'Treatment & Medications:': 'उपचार आणि औषधे:',
+        'Which Doctor to Consult?': 'कोणत्या डॉक्टरांचा सल्ला घ्यावा?',
+        '⏳ Analyzing symptoms... Please wait.': '⏳ लक्षणांचे विश्लेषण सुरू आहे... कृपया प्रतीक्षा करा.',
+        '🔍 Symptom Checker': '🔍 लक्षण तपासणी',
+        'Enter your symptoms below to get AI-powered analysis.': 'AI-आधारित विश्लेषण मिळवण्यासाठी खाली तुमची लक्षणे प्रविष्ट करा.',
+        'Check Symptoms': 'लक्षणे तपासा'
     },
 }
 
@@ -767,68 +1292,20 @@ for lang, trans in _SUBPAGE.items():
     else:
         UI_TRANSLATIONS[lang] = trans
 
-@lru_cache(maxsize=1000)
-def _cached_gemini_translate(text, target_lang):
-    """Helper to cache Gemini API calls with key rotation"""
-    global CURRENT_KEY_INDEX
-    
-    if not text:
-        return ""
-        
-    # Map internal lang codes to full names for better prompting
-    lang_names = {
-        'hi': 'Hindi',
-        'te': 'Telugu',
-        'ta': 'Tamil',
-        'bn': 'Bengali',
-        'mr': 'Marathi',
-        'en': 'English'
-    }
-    target_lang_name = lang_names.get(target_lang, target_lang)
-    
-    prompt = f"Translate the following text to {target_lang_name}. Return ONLY the translation, no explanation, no quotes.\n\nText: {text}"
-    
-    # Try with current key
-    try:
-        model = get_model()
-        if not model: return text
-        
-        response = model.generate_content(prompt)
-        return response.text.strip()
-    except Exception as e:
-        print(f"Gemini API Error (Key {CURRENT_KEY_INDEX}): {e}")
-        
-        # Rotate key and retry
-        CURRENT_KEY_INDEX = (CURRENT_KEY_INDEX + 1) % len(API_KEYS)
-        print(f"Switching to API Key Index: {CURRENT_KEY_INDEX}")
-        
-        try:
-            model = get_model()
-            if not model: return text
-            response = model.generate_content(prompt)
-            return response.text.strip()
-        except Exception as e2:
-            print(f"Gemini API Error (Retrying with second key): {e2}")
-            return text
-
 def get_ui_translation(text, target_lang):
-    """Get static UI translation if available, otherwise translate dynamically"""
-    if target_lang == 'en':
+    """Get static UI translation if available, otherwise return original text"""
+    if not text or target_lang == 'en':
         return text
         
-    # Check static dictionary first (faster)
+    # Check main translation dictionary
     if target_lang in UI_TRANSLATIONS and text in UI_TRANSLATIONS[target_lang]:
         return UI_TRANSLATIONS[target_lang][text]
         
-    # Fallback to dynamic translation with caching
-    return _cached_gemini_translate(text, target_lang)
+    return text
 
 def translate_text(text, target_lang):
-    """Translate arbitrary text (dynamic content like symptoms)"""
-    if not text:
-        return text
-        
-    return _cached_gemini_translate(text, target_lang)
+    """Return static UI translation if available, otherwise return original text (no dynamic translation)"""
+    return get_ui_translation(text, target_lang)
 
 def get_language_name(code):
     return LANGUAGES.get(code, 'English')

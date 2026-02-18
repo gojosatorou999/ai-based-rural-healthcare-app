@@ -4,575 +4,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0A0A0A">
-    <meta name="description"
-        content="Pristin Healthcare - AI-powered rural telemedicine platform connecting patients, CHWs, and doctors.">
-    <meta name="keywords" content="telemedicine, AI diagnosis, rural health, symptom checker, online doctor">
-
-    <!-- PWA / iOS Support -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Pristin">
-    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
-
-    <title>Pristin Healthcare - AI Rural Telemedicine</title>
-    <script>
-        // Apply theme early to prevent flash
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
-
-    <link rel="manifest" href="/static/manifest.json">
+    <title>Pristin Healthcare | MaxAlert AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
-
-    <style>
-        body {
-            background: var(--bg-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 1rem;
-            position: relative;
-        }
-
-        /* Gradient glow background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 30% 20%, rgba(196, 255, 13, 0.15) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -30%;
-            right: -30%;
-            width: 80%;
-            height: 80%;
-            background: radial-gradient(circle at 70% 80%, rgba(196, 255, 13, 0.08) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-
-        .auth-container {
-            width: 100%;
-            max-width: 440px;
-        }
-
-        .app-logo {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .logo-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--primary);
-            border-radius: var(--radius-xl);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: var(--bg-primary);
-            margin-bottom: 1rem;
-            box-shadow: var(--glow-green);
-        }
-
-        .app-name {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .app-tagline {
-            font-size: 0.9375rem;
-            color: var(--text-secondary);
-        }
-
-        .auth-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: 2.5rem;
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .auth-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .auth-subtitle {
-            font-size: 0.9375rem;
-            color: var(--text-secondary);
-        }
-
-        .auth-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-            padding: 0.25rem;
-        }
-
-        .auth-tab {
-            flex: 1;
-            padding: 0.75rem;
-            font-size: 0.9375rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            background: transparent;
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-
-        .auth-tab.active {
-            background: var(--bg-primary);
-            color: var(--primary);
-        }
-
-        .auth-form {
-            display: none;
-        }
-
-        .auth-form.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-tertiary);
-            font-size: 1.125rem;
-        }
-
-        .form-control {
-            padding-left: 3rem;
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-tertiary);
-            cursor: pointer;
-            font-size: 1.125rem;
-        }
-
-        .password-toggle:hover {
-            color: var(--primary);
-        }
-
-        .form-footer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-        }
-
-        .remember-me {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .remember-me input[type="checkbox"] {
-            width: 1.125rem;
-            height: 1.125rem;
-            cursor: pointer;
-        }
-
-        .forgot-link {
-            font-size: 0.875rem;
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .forgot-link:hover {
-            text-decoration: underline;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .divider-line {
-            flex: 1;
-            height: 1px;
-            background: var(--border-color);
-        }
-
-        .divider-text {
-            font-size: 0.875rem;
-            color: var(--text-tertiary);
-        }
-
-        .quick-actions {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
-            margin-top: 1.5rem;
-        }
-
-        .quick-action {
-            padding: 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            text-align: center;
-            transition: all var(--transition-fast);
-            cursor: pointer;
-        }
-
-        .quick-action:hover {
-            border-color: var(--primary);
-            background: var(--bg-tertiary);
-        }
-
-        .quick-action i {
-            font-size: 1.5rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .quick-action-label {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-
-        .install-prompt {
-            margin-top: 2rem;
-            padding: 1rem;
-            background: rgba(196, 255, 13, 0.05);
-            border: 1px solid rgba(196, 255, 13, 0.2);
-            border-radius: var(--radius-md);
-            text-align: center;
-        }
-
-        .install-prompt i {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .install-prompt p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.75rem;
-        }
-
-        @media (max-width: 480px) {
-            .auth-card {
-                padding: 1.5rem;
-            }
-
-            .app-logo {
-                margin-bottom: 2rem;
-            }
-
-            .logo-icon {
-                width: 64px;
-                height: 64px;
-                font-size: 2rem;
-            }
-
-            .app-name {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
+    <meta name="theme-color" content="#020617">
 </head>
 
-<body>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
-        style="position: absolute; top: 1rem; right: 1rem; z-index: 2000;">
-        <i class="fas fa-moon"></i>
-    </button>
-    <div class="auth-container">
-        <!-- App Logo -->
-        <div class="app-logo">
-            <div class="logo-icon">
-                <i class="fas fa-heartbeat"></i>
+<body
+    style="background: radial-gradient(circle at top center, #0f172a 0%, #020617 100%); min-height: 100vh; display: flex; flex-direction: column;">
+
+    <!-- Navbar -->
+    <nav class="container mx-auto flex justify-between items-center py-4 px-6">
+        <div class="flex items-center gap-2">
+            <div class="btn-icon bg-primary text-white p-2 rounded-lg">
+                <i class="fas fa-shield-virus"></i>
             </div>
-            <div class="app-name">Pristin Healthcare</div>
-            <div class="app-tagline">AI-Powered Rural Healthcare</div>
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400"
+                style="color: white;">{{ 'Pristin AI' | translate }}</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="relative group">
+                <button class="text-secondary hover:text-white flex items-center gap-1">
+                    <i class="fas fa-language"></i> {{ 'Language' | translate }}
+                </button>
+                <div
+                    class="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    <a href="{{ url_for('set_language', lang_code='en') }}"
+                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white rounded-t-lg">English</a>
+                    <a href="{{ url_for('set_language', lang_code='hi') }}"
+                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white">हिन्दी
+                        (Hindi)</a>
+                    <a href="{{ url_for('set_language', lang_code='bn') }}"
+                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white">বাংলা
+                        (Bengali)</a>
+                    <a href="{{ url_for('set_language', lang_code='te') }}"
+                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white">తెలుగు
+                        (Telugu)</a>
+                    <a href="{{ url_for('set_language', lang_code='ta') }}"
+                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white">தமிழ்
+                        (Tamil)</a>
+                    <a href="{{ url_for('set_language', lang_code='mr') }}"
+                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white rounded-b-lg">मराठी
+                        (Marathi)</a>
+                </div>
+            </div>
+            <a href="#about" class="text-secondary hover:text-white">{{ 'About' | translate }}</a>
+            <a href="#features" class="text-secondary hover:text-white">{{ 'Features' | translate }}</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="container mx-auto flex-1 flex flex-col justify-center items-center text-center mt-10 px-6">
+
+        <div class="mb-4">
+            <span
+                class="px-3 py-1 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 text-sm font-medium">
+                <i class="fas fa-bolt mr-1"></i> {{ 'AI-Powered Rural Healthcare' | translate }}
+            </span>
         </div>
 
+        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">
+            {{ 'Maximum Intelligence,' | translate }}<br>
+            <span
+                style="background: linear-gradient(to right, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">{{
+                'Maximum Safety' | translate }}</span>
+        </h1>
+
+        <p class="text-xl text-secondary max-w-2xl mb-12">
+            {{ 'Advanced diagnostic AI bridging the gap for rural communities. Symptom analysis, facial scanning, and
+            doctor consultations—offline first.' | translate }}
+        </p>
+
         <!-- Auth Card -->
-        <div class="auth-card">
+        <div class="card max-w-md w-full p-8 mx-auto"
+            style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.2);">
+
             <!-- Tabs -->
-            <div class="auth-tabs">
-                <button class="auth-tab active" onclick="switchTab('login')">
-                    <i class="fas fa-sign-in-alt"></i> Login
-                </button>
-                <button class="auth-tab" onclick="switchTab('register')">
-                    <i class="fas fa-user-plus"></i> Register
-                </button>
+            <div class="flex border-b border-gray-700 mb-6">
+                <button class="flex-1 pb-2 text-primary border-b-2 border-primary font-bold" id="tab-login"
+                    onclick="switchTab('login')">{{ 'Login' | translate }}</button>
+                <button class="flex-1 pb-2 text-secondary hover:text-white" id="tab-register"
+                    onclick="switchTab('register')">{{ 'Register' | translate }}</button>
             </div>
 
             <!-- Login Form -->
-            <form id="loginForm" class="auth-form active" action="{{ url_for('login') }}" method="POST">
-                <div class="form-group">
-                    <label class="form-label">Email Address</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
+            <form id="login-form" action="{{ url_for('login') }}" method="POST" class="flex flex-col gap-4">
+                <div class="text-left">
+                    <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Email Address' | translate
+                        }}</label>
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute left-3 top-3 text-gray-500"></i>
+                        <input type="email" name="email" class="form-control pl-10" placeholder="doctor@example.com"
+                            required style="padding-left: 2.5rem;">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" id="loginPassword" name="password" class="form-control"
-                            placeholder="Enter your password" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                <div class="text-left">
+                    <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Password' | translate }}</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-3 top-3 text-gray-500"></i>
+                        <input type="password" name="password" class="form-control pl-10" placeholder="••••••••"
+                            required style="padding-left: 2.5rem;">
                     </div>
                 </div>
 
-                <div class="form-footer">
-                    <label class="remember-me">
-                        <input type="checkbox" name="remember">
-                        <span>Remember me</span>
-                    </label>
-                    <a href="#" class="forgot-link">Forgot password?</a>
-                </div>
-
-                <button type="submit" class="btn btn-primary submit-btn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Login to Dashboard
+                <button type="submit" class="btn btn-primary w-full mt-2">
+                    {{ 'Sign In' | translate }} <i class="fas fa-arrow-right ml-2"></i>
                 </button>
             </form>
 
-            <!-- Register Form -->
-            <form id="registerForm" class="auth-form" action="{{ url_for('register') }}" method="POST">
-                <div class="form-group">
-                    <label class="form-label">Full Name</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-user input-icon"></i>
-                        <input type="text" name="username" class="form-control" placeholder="John Doe" required>
+            <!-- Register Form (Hidden) -->
+            <form id="register-form" action="{{ url_for('register') }}" method="POST" class="flex flex-col gap-4 hidden"
+                style="display: none;">
+                <div class="text-left">
+                    <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Full Name' | translate }}</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-3 top-3 text-gray-500"></i>
+                        <input type="text" name="username" class="form-control pl-10" placeholder="John Doe" required
+                            style="padding-left: 2.5rem;">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Email Address</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
+                <div class="text-left">
+                    <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Email Address' | translate
+                        }}</label>
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute left-3 top-3 text-gray-500"></i>
+                        <input type="email" name="email" class="form-control pl-10" placeholder="john@example.com"
+                            required style="padding-left: 2.5rem;">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Phone Number</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-phone input-icon"></i>
-                        <input type="tel" name="phone" class="form-control" placeholder="+91 98765 43210">
+                <div class="text-left">
+                    <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Password' | translate }}</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-3 top-3 text-gray-500"></i>
+                        <input type="password" name="password" class="form-control pl-10"
+                            placeholder="{{ 'Create a password' | translate }}" required style="padding-left: 2.5rem;">
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Age</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-calendar input-icon"></i>
-                        <input type="number" name="age" class="form-control" placeholder="25" min="1" max="120">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-left">
+                        <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Age' | translate }}</label>
+                        <input type="number" name="age" class="form-control" placeholder="25">
                     </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Gender</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-venus-mars input-icon"></i>
+                    <div class="text-left">
+                        <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Gender' | translate }}</label>
                         <select name="gender" class="form-control">
-                            <option value="">Select gender</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                            <option value="other">Other</option>
+                            <option value="Male">{{ 'Male' | translate }}</option>
+                            <option value="Female">{{ 'Female' | translate }}</option>
+                            <option value="Other">{{ 'Other' | translate }}</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" id="registerPassword" name="password" class="form-control"
-                            placeholder="Create a strong password" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword('registerPassword')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary submit-btn">
-                    <i class="fas fa-user-plus"></i>
-                    Create Account
+                <button type="submit" class="btn btn-primary w-full mt-2">
+                    {{ 'Create Account' | translate }} <i class="fas fa-user-plus ml-2"></i>
                 </button>
             </form>
 
-            <!-- Quick Actions -->
-            <div class="divider">
-                <div class="divider-line"></div>
-                <div class="divider-text">Quick Access</div>
-                <div class="divider-line"></div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="mt-4 p-3 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                {% for category, message in messages %}
+                {{ message | translate }}
+                {% endfor %}
             </div>
+            {% endif %}
+            {% endwith %}
 
-            <div class="quick-actions">
-                <div class="quick-action" onclick="alert('Demo mode - Login to access')">
-                    <i class="fas fa-notes-medical"></i>
-                    <div class="quick-action-label">Report Symptoms</div>
-                </div>
-                <div class="quick-action" onclick="alert('Demo mode - Login to access')">
-                    <i class="fas fa-heartbeat"></i>
-                    <div class="quick-action-label">Log Vitals</div>
-                </div>
-                <div class="quick-action" onclick="alert('Demo mode - Login to access')">
-                    <i class="fas fa-prescription"></i>
-                    <div class="quick-action-label">Scan Prescription</div>
-                </div>
-                <div class="quick-action" onclick="alert('Demo mode - Login to access')">
-                    <i class="fas fa-chart-line"></i>
-                    <div class="quick-action-label">View Timeline</div>
-                </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl w-full mx-auto pb-10">
+            <div class="card p-6 text-left hover:scale-105 transition-transform duration-300">
+                <div class="text-3xl text-blue-400 mb-3"><i class="fas fa-stethoscope"></i></div>
+                <h3 class="text-lg font-bold text-white mb-2">{{ 'AI Diagnosis' | translate }}</h3>
+                <p class="text-sm text-gray-400">{{ 'Identify symptoms instantly with our advanced machine learning
+                    models.' | translate }}
+                </p>
+            </div>
+            <div class="card p-6 text-left hover:scale-105 transition-transform duration-300">
+                <div class="text-3xl text-cyan-400 mb-3"><i class="fas fa-video"></i></div>
+                <h3 class="text-lg font-bold text-white mb-2">{{ 'Doctor Consults' | translate }}</h3>
+                <p class="text-sm text-gray-400">{{ 'Connect with specialists via high-quality video calls anytime.' |
+                    translate }}</p>
+            </div>
+            <div class="card p-6 text-left hover:scale-105 transition-transform duration-300">
+                <div class="text-3xl text-emerald-400 mb-3"><i class="fas fa-wifi"></i></div>
+                <h3 class="text-lg font-bold text-white mb-2">{{ 'Offline First' | translate }}</h3>
+                <p class="text-sm text-gray-400">{{ 'No internet? No problem. Use core features without connectivity.' |
+                    translate }}</p>
             </div>
         </div>
 
-        <!-- Install Prompt -->
-        <div class="install-prompt" id="installPrompt" style="display: none;">
-            <i class="fas fa-download"></i>
-            <p>Install this app for offline access and faster performance</p>
-            <button class="btn btn-primary btn-sm" id="installBtn">
-                <i class="fas fa-mobile-alt"></i>
-                Install App
-            </button>
-        </div>
-    </div>
-
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div id="notification-container" style="position: fixed; top: 2rem; right: 2rem; z-index: 1000; max-width: 400px;">
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} slide-down">
-            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
-            <div>{{ message }}</div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
+    </main>
 
     <script>
-        // Tab switching
         function switchTab(tab) {
-            const tabs = document.querySelectorAll('.auth-tab');
-            const forms = document.querySelectorAll('.auth-form');
-
-            tabs.forEach(t => t.classList.remove('active'));
-            forms.forEach(f => f.classList.remove('active'));
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const loginTab = document.getElementById('tab-login');
+            const registerTab = document.getElementById('tab-register');
 
             if (tab === 'login') {
-                tabs[0].classList.add('active');
-                document.getElementById('loginForm').classList.add('active');
+                loginForm.style.display = 'flex';
+                registerForm.style.display = 'none';
+                loginTab.classList.add('text-primary', 'border-b-2', 'border-primary', 'font-bold');
+                loginTab.classList.remove('text-secondary');
+                registerTab.classList.remove('text-primary', 'border-b-2', 'border-primary', 'font-bold');
+                registerTab.classList.add('text-secondary');
             } else {
-                tabs[1].classList.add('active');
-                document.getElementById('registerForm').classList.add('active');
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'flex';
+                registerTab.classList.add('text-primary', 'border-b-2', 'border-primary', 'font-bold');
+                registerTab.classList.remove('text-secondary');
+                loginTab.classList.remove('text-primary', 'border-b-2', 'border-primary', 'font-bold');
+                loginTab.classList.add('text-secondary');
             }
         }
-
-        // Password toggle
-        function togglePassword(inputId) {
-            const input = document.getElementById(inputId);
-            const icon = input.nextElementSibling.querySelector('i');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-
-        // PWA Install
-        let deferredPrompt;
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('installPrompt').style.display = 'block';
-        });
-
-        document.getElementById('installBtn')?.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                document.getElementById('installPrompt').style.display = 'none';
-            }
-        });
-
-        // Auto-hide flash messages
-        setTimeout(() => {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                alert.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => alert.remove(), 300);
-            });
-        }, 5000);
     </script>
-
-    <script src="/static/js/app.js"></script>
 </body>
 
 </html>

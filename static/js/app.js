@@ -9,43 +9,49 @@ class TelemedicineApp {
     }
 
     async init() {
-        // Register service worker
-        if ('serviceWorker' in navigator) {
-            try {
-                const registration = await navigator.serviceWorker.register('/static/sw.js');
-                console.log('ServiceWorker registered:', registration.scope);
+        console.log('Initializing Telemedicine App...');
 
-                // Check for updates
-                registration.addEventListener('updatefound', () => {
-                    const newWorker = registration.installing;
-                    newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            this.showUpdateNotification();
-                        }
-                    });
-                });
-            } catch (error) {
-                console.error('ServiceWorker registration failed:', error);
+        try {
+            // 1. Initialize Essential Data Stores
+            await this.initDB();
+
+            // 2. Setup Core Handlers
+            this.setupNetworkHandlers();
+            this.setupFormHandlers();
+            this.setupInstallPrompt();
+
+            // 3. Register Service Worker (Non-blocking)
+            if ('serviceWorker' in navigator) {
+                this.registerServiceWorker();
             }
+
+            // 4. Other features
+            this.requestNotificationPermission();
+            this.setupIOSPrompt();
+            this.startKeepAlive();
+
+            console.log('App initialized successfully.');
+        } catch (error) {
+            console.error('Critical initialization error:', error);
         }
+    }
 
-        // Initialize IndexedDB
-        await this.initDB();
+    async registerServiceWorker() {
+        try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('ServiceWorker registered:', registration.scope);
 
-        // Setup online/offline handlers
-        this.setupNetworkHandlers();
-
-        // Setup form handlers
-        this.setupFormHandlers();
-
-        // Request notification permission
-        this.requestNotificationPermission();
-
-        // Setup install prompt
-        this.setupInstallPrompt();
-
-        // iOS Specific setup
-        this.setupIOSPrompt();
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        this.showUpdateNotification();
+                    }
+                });
+            });
+        } catch (error) {
+            console.warn('ServiceWorker registration failed:', error);
+        }
     }
 
     async initDB() {
@@ -428,6 +434,17 @@ class TelemedicineApp {
         };
         return icons[type] || 'info-circle';
     }
+    startKeepAlive() {
+        setInterval(async () => {
+            if (this.isOnline) {
+                try {
+                    await fetch('/robots.txt', { method: 'HEAD', cache: 'no-store' });
+                } catch (e) {
+                    console.warn('Keep-alive ping failed:', e);
+                }
+            }
+        }, 15000); // Every 15 seconds
+    }
 }
 
 // Initialize app when DOM is ready
@@ -531,6 +548,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateThemeIcon(savedTheme);
 });
 
+
+
+
 // --- Chatbot Functionality ---
 function toggleChat() {
     const chatWindow = document.getElementById('chatWindow');
@@ -538,7 +558,7 @@ function toggleChat() {
         chatWindow.classList.toggle('active');
         if (chatWindow.classList.contains('active')) {
             const input = document.getElementById('chatInput');
-            if (input) input.focus();
+            if (input) setTimeout(() => input.focus(), 300); // Wait for animation
         }
     }
 }
@@ -565,8 +585,12 @@ async function sendMessage() {
     // Show typing indicator
     const typingDiv = document.createElement('div');
     typingDiv.className = 'typing-indicator';
-    typingDiv.innerText = 'Pristin AI is typing...';
-    typingDiv.style.display = 'block';
+    typingDiv.innerHTML = '<i class="fas fa-circle-notch fa-spin text-primary"></i> <span class="text-xs text-muted">Pristin AI is thinking...</span>';
+    typingDiv.style.padding = '0.5rem';
+    typingDiv.style.display = 'flex';
+    typingDiv.style.gap = '0.5rem';
+    typingDiv.style.alignItems = 'center';
+
     messagesContainer.appendChild(typingDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
@@ -589,7 +613,7 @@ async function sendMessage() {
         }
     } catch (error) {
         if (typingDiv) typingDiv.remove();
-        appendMessage("Sorry, I couldn't reach the server.", 'bot');
+        appendMessage("Network error. Please try again.", 'bot');
     }
 }
 
@@ -598,8 +622,38 @@ function appendMessage(text, sender) {
     if (!container) return;
 
     const div = document.createElement('div');
-    div.className = `message ${sender}-message`;
-    div.innerText = text; // Prevent XSS
+
+    // Modern Chat Styling
+    if (sender === 'user') {
+        div.className = 'chat-bubble user-message';
+        div.style.alignSelf = 'flex-end';
+        div.style.background = 'var(--primary)';
+        div.style.color = 'white';
+        div.style.padding = '0.75rem 1rem';
+        div.style.borderRadius = '1rem 1rem 0 1rem';
+        div.style.maxWidth = '85%';
+        div.style.marginBottom = '0.5rem';
+        div.style.fontSize = '0.9rem';
+        div.style.boxShadow = '0 2px 5px rgba(0,0,0,0.1)';
+    } else {
+        div.className = 'chat-bubble bot-message';
+        div.style.alignSelf = 'flex-start';
+        div.style.background = 'rgba(255, 255, 255, 0.1)';
+        div.style.backdropFilter = 'blur(4px)';
+        div.style.border = '1px solid var(--border-color)';
+        div.style.color = 'var(--text-primary)';
+        div.style.padding = '0.75rem 1rem';
+        div.style.borderRadius = '1rem 1rem 1rem 0';
+        div.style.maxWidth = '85%';
+        div.style.marginBottom = '0.5rem';
+        div.style.fontSize = '0.9rem';
+    }
+
+    // Format simple markdown-like syntax
+    let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    formattedText = formattedText.replace(/\n/g, '<br>');
+
+    div.innerHTML = formattedText;
     container.appendChild(div);
 
     // Scroll to bottom
@@ -608,80 +662,126 @@ function appendMessage(text, sender) {
     });
 }
 
-// --- IoT Device Simulation (Phase 4 / Domain: IoT) ---
-function connectIoTDevice() {
+// --- IoT Device Simulation ---
+async function connectIoTDevice() {
     const statusText = document.getElementById('iotStatusText');
     const statusPulse = document.getElementById('iotStatusPulse');
     const connectBtn = document.getElementById('iotConnectBtn');
 
     if (!statusText) return;
 
-    statusText.innerText = "Scanning for medical devices...";
-    statusPulse.style.background = "var(--warning)";
-    connectBtn.disabled = true;
+    // Loading state
+    statusText.innerText = "Searching for devices...";
+    statusText.style.color = "var(--warning)";
 
-    // Simulate Bluetooth/IoT connection delay
-    setTimeout(() => {
-        statusText.innerText = "Connected: MedSensor X-100 (Bluetooth)";
-        statusPulse.style.background = "var(--success)";
-        statusPulse.style.boxShadow = "0 0 10px var(--success)";
-        statusPulse.style.animation = "pulse 1.5s infinite";
+    if (connectBtn) {
+        connectBtn.disabled = true;
+        connectBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Scanning...';
 
-        // Show success notification
-        if (window.telemedicineApp) {
-            window.telemedicineApp.showNotification('IoT Sync Active', 'Receiving real-time data from MedSensor', 'success');
+        try {
+            const response = await fetch('/api/iot/connect', { method: 'POST' });
+            const data = await response.json();
+
+            if (data.success) {
+                statusText.innerText = `Connected: ${data.device_name} (Active)`;
+                statusText.style.color = "var(--success)";
+
+                if (statusPulse) {
+                    statusPulse.style.background = "var(--success)";
+                    statusPulse.style.boxShadow = "0 0 15px var(--success)";
+                    statusPulse.style.animation = "pulse 2s infinite";
+                }
+
+                connectBtn.innerHTML = '<i class="fas fa-check"></i> Connected';
+                connectBtn.style.color = 'var(--success)';
+                connectBtn.style.borderColor = 'var(--success)';
+
+                // Show success notification
+                if (window.telemedicineApp) {
+                    window.telemedicineApp.showNotification('Device Connected', data.message, 'success');
+                }
+
+                // Start fetching data from backend
+                fetchIoTData();
+            } else {
+                throw new Error("Connection failed");
+            }
+        } catch (error) {
+            console.error('IoT Connection Error:', error);
+            statusText.innerText = "Connection Failed. Try again.";
+            statusText.style.color = "var(--danger)";
+
+            connectBtn.disabled = false;
+            connectBtn.innerHTML = '<i class="fas fa-wifi"></i> Connect Device';
+
+            if (window.telemedicineApp) {
+                window.telemedicineApp.showNotification('Connection Error', 'Could not connect to medical device.', 'error');
+            }
         }
-
-        // Start fetching mock data
-        mockIoTDataFetch();
-    }, 2000);
+    }
 }
 
-function mockIoTDataFetch() {
-    // Simulate real-time data population from sensor
-    const inputs = {
-        'bp_systolic': 110 + Math.floor(Math.random() * 20),
-        'bp_diastolic': 70 + Math.floor(Math.random() * 15),
-        'glucose': 90 + Math.floor(Math.random() * 20),
-        'temperature': (36.5 + (Math.random() * 0.8)).toFixed(1),
-        'heart_rate': 65 + Math.floor(Math.random() * 15),
-        'oxygen_saturation': 97 + Math.floor(Math.random() * 3),
-        'weight': 70.2
-    };
+async function fetchIoTData() {
+    try {
+        const response = await fetch('/api/iot/data');
+        if (!response.ok) throw new Error('Failed to fetch data');
 
-    // Apply values to form fields with a slight delay to simulate "reading"
-    Object.keys(inputs).forEach((key, index) => {
-        setTimeout(() => {
-            const input = document.querySelector(`input[name="${key}"]`);
-            if (input) {
-                input.value = inputs[key];
-                input.style.borderColor = "var(--primary)";
-                input.style.backgroundColor = "rgba(196, 255, 13, 0.05)";
+        const inputs = await response.json();
 
-                // Add highlight effect
-                input.animate([
-                    { boxShadow: '0 0 0px var(--primary)' },
-                    { boxShadow: '0 0 10px var(--primary)' },
-                    { boxShadow: '0 0 0px var(--primary)' }
-                ], { duration: 500 });
-            }
-        }, index * 300);
+        // Apply values to form fields with a cascading effect
+        Object.keys(inputs).forEach((key, index) => {
+            setTimeout(() => {
+                const input = document.querySelector(`input[name="${key}"]`);
+                if (input) {
+                    input.value = inputs[key];
+
+                    // Visual feedback
+                    const originalBg = input.style.backgroundColor;
+                    const originalBorder = input.style.borderColor;
+
+                    input.style.borderColor = "var(--primary)";
+                    input.style.backgroundColor = "rgba(59, 130, 246, 0.1)";
+                    input.style.transition = "all 0.3s";
+
+                    // Reset after highlight
+                    setTimeout(() => {
+                        input.style.backgroundColor = originalBg;
+                        input.style.borderColor = originalBorder;
+                    }, 1000);
+                }
+            }, index * 400);
+        });
+    } catch (error) {
+        console.error('Error fetching IoT data:', error);
+    }
+}
+
+// Theme Management
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    html.setAttribute('data-theme', newTheme);
+    document.body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+
+    // Update icons in all theme toggle buttons
+    const themeIcons = document.querySelectorAll('.theme-toggle i');
+    themeIcons.forEach(icon => {
+        icon.className = newTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
     });
 }
 
-// Add CSS for pulse animation if not exists
-if (!document.getElementById('iotPulseStyles')) {
-    const style = document.createElement('style');
-    style.id = 'iotPulseStyles';
-    style.innerHTML = `
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.5); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-    `;
-    document.head.appendChild(style);
-}
+// Initial theme application
+(function () {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.body.setAttribute('data-theme', savedTheme); // Ensure body also gets theme immediately
 
-
-
+    // Update icons based on saved theme
+    const themeIcons = document.querySelectorAll('.theme-toggle i');
+    themeIcons.forEach(icon => {
+        icon.className = savedTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+    });
+})();

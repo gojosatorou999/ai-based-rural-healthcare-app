@@ -205,13 +205,13 @@
         <!-- Auth Card -->
         <div class="auth-card">
             <div class="auth-header">
-                <h1 class="auth-title">Create Account</h1>
-                <p class="auth-subtitle">Join us to access AI-powered healthcare</p>
+                <h1 class="auth-title">{{ 'Create Account' | translate }}</h1>
+                <p class="auth-subtitle">{{ 'Join us to access AI-powered healthcare' | translate }}</p>
             </div>
 
             <form action="{{ url_for('register') }}" method="POST">
                 <div class="form-group">
-                    <label class="form-label">Full Name</label>
+                    <label class="form-label">{{ 'Full Name' | translate }}</label>
                     <div class="input-wrapper">
                         <i class="fas fa-user input-icon"></i>
                         <input type="text" name="username" class="form-control" placeholder="John Doe" required
@@ -220,7 +220,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Email Address</label>
+                    <label class="form-label">{{ 'Email Address' | translate }}</label>
                     <div class="input-wrapper">
                         <i class="fas fa-envelope input-icon"></i>
                         <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
@@ -228,7 +228,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Phone Number (Optional)</label>
+                    <label class="form-label">{{ 'Phone Number (Optional)' | translate }}</label>
                     <div class="input-wrapper">
                         <i class="fas fa-phone input-icon"></i>
                         <input type="tel" name="phone" class="form-control" placeholder="+91 98765 43210">
@@ -237,7 +237,7 @@
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Age (Optional)</label>
+                        <label class="form-label">{{ 'Age (Optional)' | translate }}</label>
                         <div class="input-wrapper">
                             <i class="fas fa-calendar input-icon"></i>
                             <input type="number" name="age" class="form-control" placeholder="25" min="1" max="120">
@@ -245,53 +245,53 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Gender (Optional)</label>
+                        <label class="form-label">{{ 'Gender (Optional)' | translate }}</label>
                         <div class="input-wrapper">
                             <i class="fas fa-venus-mars input-icon"></i>
                             <select name="gender" class="form-control">
-                                <option value="">Select</option>
-                                <option value="male">Male</option>
-                                <option value="female">Female</option>
-                                <option value="other">Other</option>
+                                <option value="">{{ 'Select' | translate }}</option>
+                                <option value="male">{{ 'Male' | translate }}</option>
+                                <option value="female">{{ 'Female' | translate }}</option>
+                                <option value="other">{{ 'Other' | translate }}</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">I am a...</label>
+                    <label class="form-label">{{ 'I am a...' | translate }}</label>
                     <div class="input-wrapper">
                         <i class="fas fa-user-tag input-icon"></i>
                         <select name="role" class="form-control">
-                            <option value="patient">Patient</option>
-                            <option value="doctor">Doctor</option>
-                            <option value="chw">Community Health Worker</option>
+                            <option value="patient">{{ 'Patient' | translate }}</option>
+                            <option value="doctor">{{ 'Doctor' | translate }}</option>
+                            <option value="chw">{{ 'Community Health Worker' | translate }}</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Password</label>
+                    <label class="form-label">{{ 'Password' | translate }}</label>
                     <div class="input-wrapper">
                         <i class="fas fa-lock input-icon"></i>
                         <input type="password" id="password" name="password" class="form-control"
-                            placeholder="Create a strong password" required>
+                            placeholder="{{ 'Create a strong password' | translate }}" required>
                         <button type="button" class="password-toggle" onclick="togglePassword()">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
-                    <div class="form-help">At least 8 characters recommended</div>
+                    <div class="form-help">{{ 'At least 8 characters recommended' | translate }}</div>
                 </div>
 
                 <button type="submit" class="btn btn-primary submit-btn">
                     <i class="fas fa-user-plus"></i>
-                    Create Account
+                    {{ 'Create Account' | translate }}
                 </button>
             </form>
 
             <div class="auth-footer">
-                <span class="auth-footer-text">Already have an account?</span>
-                <a href="{{ url_for('login') }}" class="auth-footer-link">Login</a>
+                <span class="auth-footer-text">{{ 'Already have an account?' | translate }}</span>
+                <a href="{{ url_for('login') }}" class="auth-footer-link">{{ 'Login' | translate }}</a>
             </div>
         </div>
     </div>

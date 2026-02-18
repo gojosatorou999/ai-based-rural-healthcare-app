@@ -1,0 +1,31 @@
+text,label
+"I have a high fever and headache",Flu
+"My body aches and I feel very tired",Flu
+"I am coughing and have a sore throat",Common Cold
+"My nose is runny and I keep sneezing",Common Cold
+"I feel very thirsty and urinate often",Diabetes
+"I have lost a lot of weight unexpectedly",Diabetes
+"I have chills and keep sweating at night",Malaria
+"I feel nauseous and have a headache",Malaria
+"I have a skin rash that is very itchy",Allergy
+"My eyes are watery and my nose is blocked",Allergy
+"I have severe chest pain and difficulty breathing",Heart Attack
+"My left arm hurts and I feel heavy in the chest",Heart Attack
+"I have severe stomach pain and diarrhea",Food Poisoning
+"I vomited after eating and feel weak",Food Poisoning
+"I have a persistent cough for weeks",Tuberculosis
+"I cough up blood sometimes",Tuberculosis
+"My joints depend and are swollen",Arthritis
+"It hurts to walk or move my knees",Arthritis
+"I have a severe headache on one side of my head",Migraine
+"Light hurts my eyes and I feel sick",Migraine
+"I feel dizzy and lightheaded often",Anemia
+"My skin looks pale and I am always tired",Anemia
+"I have trouble sleeping and feel sad",Depression
+"I verify lose interest in things I used to enjoy",Depression
+"I feel anxious and my heart beats fast",Anxiety
+"I worry too much about everything",Anxiety
+"My throat is sore and it hurts to swallow",Strep Throat
+"I have white patches in my throat",Strep Throat
+"I have a fever and a stiff neck",Meningitis
+"I am sensitive to light and have a headache",Meningitis

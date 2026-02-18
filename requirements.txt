@@ -19,11 +19,14 @@ plotly
 python-dateutil
 
 # AI/ML & NLP
-tensorflow
-transformers
-google-generativeai
-requests
+# tensorflow (Incompatible with Py3.14)
+# transformers (Incompatible with Py3.14 likely)
+scikit-learn
+joblib
+pandas
 python-dotenv
+pandas
+scikit-learn
 
 # Remote access
 pyngrok
