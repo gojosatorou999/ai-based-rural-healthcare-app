@@ -16,7 +16,8 @@ LANGUAGES = {
     'te': 'Telugu',
     'ta': 'Tamil',
     'bn': 'Bengali',
-    'mr': 'Marathi'
+    'mr': 'Marathi',
+    'kn': 'Kannada'
 }
 
 # Static Translations for Common UI Elements (fallback/speed)
@@ -50,14 +51,24 @@ _KEYS = [
     'No image data provided','Healthy Appearance','Skin tone is uniform','Maintain routine',
     'Facial scan indicators are within normal ranges.','New Facial Scan Analysis',
     'Result','Note','Date','Failed to process facial image',
-    'Malaria','Dengue','Flu','Common Cold','Diabetes','Hypertension','Anemia','Jaundice'
+    'Malaria','Dengue','Flu','Common Cold','Diabetes','Hypertension','Anemia','Jaundice',
+    'Language changed to',
+    'Menu','Your AI health assistant is ready.','Start Health Scan','More Tools',
+    'Medical Reports','View history','Get AI diagnosis','Track metrics','Talk to a doctor',
+    'Manage members','Welcome Back','Report Symptoms','Log Vitals','Video Consult',
+    'AI Face Scan','Analyze your health','Find Pharmacy','Locate pharmacies',
+    'Book Call','Schedule a consultation','Start Chat','Ask me anything about your health.',
+    'No recent activity','Search reports, doctors...','Processed',
+    'Hello! How can I help you today?','Type a message...',
+    'AI Meal Analysis', 'Nutritional insights', 'Meal Analysis', 'Analyze your food',
+    'Home', 'Consult', 'Reports'
 ]
 
 UI_TRANSLATIONS = {
     # -------- HINDI --------
     'hi': {
         'Dashboard': 'डैशबोर्ड', 'Profile': 'प्रोफाइल', 'Logout': 'लॉग आउट',
-        'Symptoms': 'लक्षण', 'Vitals': 'वाइटल', 'Prescriptions': 'नुस्खे',
+        'Symptoms': 'लक्षण', 'Vitals': 'वाइटल', 'Prescriptions': 'नुस्खे', 'Home': 'होम', 'Consult': 'परामर्श', 'Reports': 'रिपोर्ट',
         'Overview': 'अवलोकन', 'Family': 'परिवार', 'Pharmacy': 'फार्मेसी',
         'Settings': 'सेटिंग्स', 'Language': 'भाषा', 'Submit': 'जमा करें',
         'Cancel': 'रद्द करें', 'Edit': 'संपादित करें', 'Delete': 'हटाएं',
@@ -148,6 +159,24 @@ UI_TRANSLATIONS = {
         'Talk to a doctor': 'डॉक्टर से बात करें',
         'Find Medicine': 'दवा खोजें',
         'Locate pharmacies': 'फार्मेसी खोजें',
+        'Maximum Intelligence,': 'अधिकतम बुद्धिमत्ता,',
+        'Maximum Safety': 'अधिकतम सुरक्षा',
+        'AI-Powered Rural Healthcare': 'एआई-संचालित ग्रामीण स्वास्थ्य सेवा',
+        'Maximum Alert AI': 'अधिकतम अलर्ट एआई',
+        'Maximum Intelligence, Maximum Safety': 'अधिकतम बुद्धिमत्ता, अधिकतम सुरक्षा',
+        'Advanced diagnostic AI bridging the gap for rural communities. Symptom analysis, facial scanning, and doctor consultations—offline first.': 'ग्रामीण समुदायों के बीच की दूरी को कम करने वाला उन्नत नैदानिक एआई। लक्षण विश्लेषण, चेहरे का स्कैन, और डॉक्टर परामर्श—ऑफलाइन पहले।',
+        'Login': 'लॉगिन', 'Register': 'रजिस्टर', 'Email Address': 'ईमेल पता', 'Password': 'पासवर्ड',
+        'Sign In': 'साइन इन', 'Full Name': 'पूरा नाम', 'Create Account': 'खाता बनाएं',
+        'Already have an account?': 'पहले से ही खाता है?',
+        'Create a password': 'एक पासवर्ड बनाएं',
+        'Identify symptoms instantly with our advanced machine learning models.': 'हमारे उन्नत मशीन लर्निंग मॉडल के साथ तुरंत लक्षणों की पहचान करें।',
+        'Connect with specialists via high-quality video calls anytime.': 'किसी भी समय उच्च गुणवत्ता वाले वीडियो कॉल के माध्यम से विशेषज्ञों से जुड़ें।',
+        'No internet? No problem. Use core features without connectivity.': 'इंटरनेट नहीं? कोई बात नहीं। बिना कनेक्टिविटी के मुख्य सुविधाओं का उपयोग करें।',
+        'Pristin AI': 'प्रिस्टिन एआई', 'About': 'के बारे में', 'Features': 'विशेषताएं',
+        'Run Health Scan': 'स्वास्थ्य स्कैन शुरू करें',
+        'Experience AI in your language': 'अपनी भाषा में एआई का अनुभव करें',
+        'Language changed to': 'भाषा बदलकर कर दी गई है',
+
         'View All': 'सभी देखें',
         'Ask me anything about your health.': 'मुझसे अपने स्वास्थ्य के बारे में कुछ भी पूछें।',
         'Start Chat': 'चैट शुरू करें',
@@ -251,7 +280,7 @@ UI_TRANSLATIONS = {
     # -------- TELUGU --------
     'te': {
         'Dashboard': 'డాష్‌బోర్డ్', 'Profile': 'ప్రొఫైల్', 'Logout': 'లాగ్ అవుట్',
-        'Symptoms': 'లక్షణాలు', 'Vitals': 'వైటల్స్', 'Prescriptions': 'మందుల చీటీలు',
+        'Symptoms': 'లక్షణాలు', 'Vitals': 'వైటల్స్', 'Prescriptions': 'మందుల చీటీలు', 'Home': 'హోమ్', 'Consult': 'సంప్రదింపు', 'Reports': 'నివేదికలు',
         'Overview': 'అవలోకనం', 'Family': 'కుటుంబం', 'Pharmacy': 'ఫార్మసీ',
         'Settings': 'సెట్టింగ్‌లు', 'Language': 'భాష', 'Submit': 'సమర్పించండి',
         'Cancel': 'రద్దు చేయండి', 'Edit': 'సవరించండి', 'Delete': 'తొలగించండి',
@@ -1283,10 +1312,202 @@ _SUBPAGE = {
         'Wait for the confirmation message from Twilio': 'ट्विलिओकडून पुष्टीकरण संदेशाची प्रतीक्षा करा',
         'Then click the "Test" button below': 'नंतर खालील "Test" बटणावर क्लिक करा',
     },
+    'bn': {
+        'Back': 'ফিরে যান', 'Back to Dashboard': 'ড্যাশবোর্ডে ফিরে যান',
+        'Report Symptoms': 'লক্ষণ রিপোর্ট করুন', 'Describe Your Symptoms': 'আপনার লক্ষণ বর্ণনা করুন',
+        'Provide details for accurate AI recommendations': 'সঠিক এআই সুপারিশের জন্য বিবরণ দিন',
+        'What symptoms are you experiencing?': 'আপনি কি কি লক্ষণের সম্মুখীন হচ্ছেন?',
+        'Describe your symptoms in detail...': 'আপনার লক্ষণগুলি বিস্তারিতভাবে বর্ণনা করুন...',
+        'Affected Body Area': 'আক্রান্ত শরীরের অংশ', 'Select affected area': 'আক্রান্ত অংশ নির্বাচন করুন',
+        'Head / Face': 'মাথা / মুখ', 'Chest': 'বুক', 'Abdomen / Stomach': 'পেট',
+        'Arms / Hands': 'হাত', 'Legs / Feet': 'পা', 'Skin': 'ত্বক',
+        'General / Whole Body': 'সাধারণ / পুরো শরীর', 'Severity': 'তীব্রতা',
+        'Mild': 'হালকা', 'Moderate': 'মাঝারি', 'Severe': 'মারাত্মক',
+        'How long have you had these symptoms?': 'আপনার এই লক্ষণগুলো কতদিন ধরে আছে?',
+        'e.g., 2 days, 1 week': 'উদাঃ, ২ দিন, ১ সপ্তাহ',
+        'Upload Photo (Optional)': 'ছবি আপলোড করুন (ঐচ্ছিক)',
+        'Submit & Get Recommendations': 'জমা দিন এবং সুপারিশ পান',
+        'Voice': 'কণ্ঠস্বর', 'Speak in your language': 'আপনার ভাষায় কথা বলুন',
+        'Log Vitals': 'ভাইটাল রেকর্ড করুন', 'Blood Pressure': 'রক্তচাপ',
+        'Glucose': 'গ্লুকোজ', 'Temperature': 'তাপমাত্রা', 'Heart Rate': 'হৃদস্পন্দন',
+        'Oxygen (SpO2)': 'অক্সিজেন (SpO2)', 'Weight': 'ওজন', 'Notes': 'নোট',
+        'Optional': 'ঐচ্ছিক', 'Save Vital Signs': 'ভাইটাল সাইন সংরক্ষণ করুন',
+        'Normal Ranges': 'স্বাভাবিক সীমা', 'Fasting Glucose': 'ফাস্টিং গ্লুকোজ',
+        'Scan Prescription': 'প্রেসক্রিপশন স্ক্যান করুন', 'Scan Your Prescription': 'আপনার প্রেসক্রিপশন স্ক্যান করুন',
+        'Upload': 'আপলোড', 'Camera': 'ক্যামেরা', 'Tap to Upload': 'আপলোড করতে ট্যাপ করুন',
+        'Select Prescription Language': 'প্রেসক্রিপশনের ভাষা নির্বাচন করুন',
+        'Extract Medicine Details': 'ওষুধের বিবরণ সংগ্রহ করুন',
+        'Family Access': 'পরিবার অ্যাক্সেস', 'Family Members I Manage': 'আমি যে পরিবারের সদস্যদের পরিচালনা করি',
+        'Add Family Member': 'পরিবারের সদস্য যোগ করুন', 'Add Member': 'সদস্য যোগ করুন',
+        'Relationship': 'সম্পর্ক', 'Spouse': 'স্ত্রী/স্বামী', 'Child': 'সন্তান',
+        'Parent': 'পিতা-মাতা', 'Sibling': 'ভাই-বোন', 'Other': 'অন্যান্য',
+        'Nearby Pharmacies': 'কাছাকাছি ফার্মেসি', 'My Location': 'আমার অবস্থান',
+        'Video Consultation': 'ভিডিও পরামর্শ',
+        'AI Health Analysis': 'এআই স্বাস্থ্য বিশ্লেষণ',
+        'Possible Causes': 'সম্ভাব্য কারণ', 'Suggested Treatment': 'প্রস্তাবিত চিকিৎসা',
+        'Recommended Specialist': 'প্রস্তাবিত বিশেষজ্ঞ',
+        'IoT Vital Sync': 'IoT ভাইটাল সিঙ্ক',
+        'Scan for Devices': 'ডিভাইস খুঁজুন',
+        'WhatsApp Integration': 'হোয়াটসঅ্যাপ ইন্টিগ্রেশন',
+        'Your WhatsApp Number': 'আপনার হোয়াটসঅ্যাপ নম্বর',
+        'Save Settings': 'সেটিংস সংরক্ষণ করুন', 'Test': 'পরীক্ষা',
+        'Not specified': 'নির্দিষ্ট করা হয়নি', 'Approved': 'অনুমোদিত',
+        'Tap to upload a photo': 'ছবি আপলোড করতে ট্যাপ করুন', 'Supports JPG, PNG (max 5MB)': 'JPG, PNG সমর্থন করে (সর্বোচ্চ 5MB)',
+        'Your symptoms will be analyzed by our AI system. Always consult a doctor for serious conditions.': 'আপনার লক্ষণগুলি আমাদের এআই সিস্টেম দ্বারা বিশ্লেষণ করা হবে। গুরুতর অবস্থার জন্য সর্বদা একজন ডাক্তারের সাথে পরামর্শ করুন।',
+        'Medical Officer': 'মেডিকেল অফিসার', 'Review Report': 'রিপোর্ট পর্যালোচনা করুন',
+        'Connect external medical devices for automatic recording': 'স্বয়ংক্রিয় রেকর্ডিংয়ের জন্য বাহ্যিক চিকিৎসা ডিভাইস সংযুক্ত করুন',
+        'No device connected': 'কোনো ডিভাইস সংযুক্ত নেই', 'Any additional notes...': 'যেকোনো অতিরিক্ত নোট...',
+        'Connect your WhatsApp for health alerts': 'স্বাস্থ্য সতর্কতার জন্য আপনার হোয়াটসঅ্যাপ সংযুক্ত করুন',
+        'Why connect WhatsApp?': 'কেন হোয়াটসঅ্যাপ সংযুক্ত করবেন?',
+        'Receive critical health alerts instantly': 'তাত্ক্ষণিকভাবে গুরুত্বপূর্ণ স্বাস্থ্য সতর্কতা গ্রহণ করুন',
+        'Family members get emergency notifications': 'পরিবারের সদস্যরা জরুরি বিজ্ঞপ্তি পাবেন',
+        'Medication reminders and schedules': 'ওষুধের অনুস্মারক এবং সময়সূচী',
+        'Doctor can send reports directly': 'ডাক্তার সরাসরি রিপোর্ট পাঠাতে পারেন',
+        'Include country code (e.g., +91 for India)': 'কান্ট্রি কোড অন্তর্ভুক্ত করুন (যেমন, ভারতের জন্য +৯১)',
+        'Emergency Contact WhatsApp': 'জরুরি যোগাযোগের হোয়াটসঅ্যাপ',
+        'Family member who will receive critical health alerts': 'পরিবারের সদস্য যিনি গুরুত্বপূর্ণ স্বাস্থ্য সতর্কতা পাবেন',
+        'Connection Status': 'সংযোগের অবস্থা', 'Connected': 'সংযুক্ত', 'Not Set': 'সেট করা হয়নি',
+        'How to Set Up': 'কিভাবে সেট আপ করবেন', 'Requirement: Join Twilio Sandbox': 'প্রয়োজনীয়তা: টুইলিও স্যান্ডবক্সে যোগ দিন',
+        'To receive messages during development, you MUST join the Twilio WhatsApp sandbox from your phone:': 'বিকাশের সময় বার্তা গ্রহণ করতে, আপনাকে অবশ্যই আপনার ফোন থেকে টুইলিও হোয়াটসঅ্যাপ স্যান্ডবক্সে যোগ দিতে হবে:',
+        'Wait for the confirmation message from Twilio': 'টুইলিও থেকে নিশ্চিতকরণ বার্তার জন্য অপেক্ষা করুন',
+        'Then click the "Test" button below': 'তারপর নিচের "Test" বোতামে ক্লিক করুন',
+        'Language changed to': 'ভাষা পরিবর্তন করে করা হয়েছে'
+    },
+}
+
+# -------- KANNADA --------
+UI_TRANSLATIONS['kn'] = {
+    'Dashboard': 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್', 'Profile': 'ಪ್ರೊಫೈಲ್', 'Logout': 'ಲಾಗ್ ಔಟ್',
+    'Symptoms': 'ರೋಗಲಕ್ಷಣಗಳು', 'Vitals': 'ಜೀವಸಂಕೇತಗಳು', 'Prescriptions': 'ಔಷಧಗಳು',
+    'Overview': 'ಅವಲೋಕನ', 'Family': 'ಕುಟುಂಬ', 'Pharmacy': 'ಮೆಡಿಕಲ್ ಶಾಪ್',
+    'Settings': 'ಸೆಟ್ಟಿಂಗ್‌ಗಳು', 'Language': 'ಭಾಷೆ', 'Submit': 'ಸಲ್ಲಿಸಿ',
+    'Cancel': 'ರದ್ದುಮಾಡಿ', 'Edit': 'ಸಂಪಾದಿಸಿ', 'Delete': 'ಅಳಿಸಿ',
+    'View': 'ನೋಡಿ', 'Doctor': 'ವೈದ್ಯರು', 'Patient': 'ರೋಗಿ',
+    'Welcome': 'ಸ್ವಾಗತ', 'Welcome Back': 'ಮರಳಿ ಸ್ವಾಗತ',
+    'Consultation': 'ಸಂಪರ್ಕ', 'Quick Actions': 'ತ್ವರಿತ ಕ್ರಿಯೆಗಳು',
+    'Report Symptoms': 'ರೋಗಲಕ್ಷಣ ವರದಿ ಮಾಡಿ',
+    'Log Vitals': 'ಜೀವಸಂಕೇತ ದಾಖಲಿಸಿ',
+    'Video Consult': 'ವಿಡಿಯೋ ಸಂಪರ್ಕ',
+    'Medical Reports': 'ವೈದ್ಯಕೀಯ ವರದಿಗಳು',
+    'Menu': 'ಮೆನು',
+    'Symptoms Reports': 'ರೋಗಲಕ್ಷಣ ವರದಿಗಳು',
+    'Vitals Recorded': 'ದಾಖಲಾದ ಜೀವಸಂಕೇತಗಳು',
+    'Start Health Scan': 'ಆರೋಗ್ಯ ಸ್ಕ್ಯಾನ್ ಪ್ರಾರಂಭಿಸಿ',
+    'Your AI health assistant is ready.': 'ನಿಮ್ಮ ಎಐ ಆರೋಗ್ಯ ಸಹಾಯಕ ಸಿದ್ಧವಾಗಿದೆ.',
+    'More Tools': 'ಇನ್ನಷ್ಟು ಉಪಕರಣಗಳು',
+    'Get AI diagnosis': 'ಎಐ ರೋಗನಿರ್ಣಯ ಪಡೆಯಿರಿ',
+    'Track metrics': 'ಮಾಪನಗಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಿ',
+    'Talk to a doctor': 'ವೈದ್ಯರನ್ನು ಮಾತನಾಡಿ',
+    'View history': 'ಇತಿಹಾಸ ನೋಡಿ',
+    'AI Face Scan': 'ಎಐ ಮುಖ ಸ್ಕ್ಯಾನ್',
+    'Analyze your health': 'ನಿಮ್ಮ ಆರೋಗ್ಯವನ್ನು ವಿಶ್ಲೇಷಿಸಿ',
+    'Find Pharmacy': 'ಮೆಡಿಕಲ್ ಶಾಪ್ ಹುಡುಕಿ',
+    'Locate pharmacies': 'ಮೆಡಿಕಲ್ ಅಂಗಡಿಗಳನ್ನು ಹುಡುಕಿ',
+    'Book Call': 'ಕರೆ ಬುಕ್ ಮಾಡಿ', 'Schedule a consultation': 'ಸಂಪರ್ಕವನ್ನು ಶೆಡ್ಯೂಲ್ ಮಾಡಿ',
+    'Manage members': 'ಸದಸ್ಯರನ್ನು ನಿರ್ವಹಿಸಿ',
+    'Start Chat': 'ಚಾಟ್ ಪ್ರಾರಂಭಿಸಿ',
+    'Ask me anything about your health.': 'ನಿಮ್ಮ ಆರೋಗ್ಯದ ಬಗ್ಗೆ ನನ್ನನ್ನು ಕೇಳಿ.',
+    'Recent Activity': 'ಇತ್ತೀಚಿನ ಚಟುವಟಿಕೆ',
+    'No recent activity': 'ಇತ್ತೀಚಿನ ಚಟುವಟಿಕೆ ಇಲ್ಲ',
+    'Search reports, doctors...': 'ವರದಿಗಳು, ವೈದ್ಯರು ಹುಡುಕಿ...',
+    'Hello! How can I help you today?': 'ನಮಸ್ಕಾರ! ನಾನು ಈದಿನ ನಿಮಗೆ ಹೇಗೆ ಸಹಾಯ ಮಾಡಬಹುದು?',
+    'Type a message...': 'ಸಂದೇಶವನ್ನು ಟೈಪ್ ಮಾಡಿ...',
+    'Processed': 'ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲಾಗಿದೆ',
+    'WhatsApp Alerts': 'ವಾಟ್ಸ್‌ಅಪ್ ಎಚ್ಚರಿಕೆಗಳು',
+    'Language changed to': 'ಭಾಷೆಯನ್ನು ಬದಲಾಯಿಸಲಾಗಿದೆ',
+    'Login': 'ಲಾಗಿನ್', 'Register': 'ನೋಂದಣಿ',
 }
 
 # Merge sub-page translations into main dictionary
 for lang, trans in _SUBPAGE.items():
+    if lang in UI_TRANSLATIONS:
+        UI_TRANSLATIONS[lang].update(trans)
+    else:
+        UI_TRANSLATIONS[lang] = trans
+
+# ── Supplementary keys for new dashboard layout ──
+_DASHBOARD_EXTRAS = {
+    'hi': {
+        'Menu': 'मेनू', 'More Tools': 'और उपकरण', 'Medical Reports': 'चिकित्सा रिपोर्ट',
+        'View history': 'इतिहास देखें', 'Report Symptoms': 'लक्षण रिपोर्ट करें',
+        'Log Vitals': 'वाइटल दर्ज करें', 'Manage members': 'सदस्य प्रबंधन',
+        'Start Health Scan': 'स्वास्थ्य स्कैन शुरू करें', 'Home': 'होम', 'Consult': 'परामर्श', 'Reports': 'रिपोर्ट',
+        'Your AI health assistant is ready.': 'आपका एआई स्वास्थ्य सहायक तैयार है।',
+        'AI Face Scan': 'एआई फेस स्कैन', 'Analyze your health': 'अपने स्वास्थ्य का विश्लेषण करें',
+        'Book Call': 'कॉल बुक करें', 'Schedule a consultation': 'परामर्श शेड्यूल करें',
+        'Start Chat': 'चैट शुरू करें', 'Ask me anything about your health.': 'अपने स्वास्थ्य के बारे में कुछ भी पूछें।',
+        'No recent activity': 'कोई हाल की गतिविधि नहीं',
+        'Search reports, doctors...': 'रिपोर्ट, डॉक्टर खोजें...',
+        'Hello! How can I help you today?': 'नमस्ते! आज मैं आपकी कैसे मदद कर सकता हूँ?',
+        'AI Meal Analysis': 'एआई भोजन विश्लेषण', 'Nutritional insights': 'पोषण संबंधी अंतर्दृष्टि', 'Meal Analysis': 'भोजन विश्लेषण', 'Analyze your food': 'अपने भोजन का विश्लेषण करें',
+        'AI Eye Scan': 'एआई आई स्कैन', 'Check vision health': 'दृष्टि स्वास्थ्य की जांच करें',
+        'Processed': 'प्रसंस्कृत', 'WhatsApp Alerts': 'व्हाट्सएप अलर्ट',
+    },
+    'te': {
+        'Menu': 'మెనూ', 'More Tools': 'మరిన్ని సాధనాలు', 'Medical Reports': 'వైద్య నివేదికలు',
+        'View history': 'చరిత్ర చూడండి', 'Report Symptoms': 'లక్షణాలు నివేదించండి',
+        'Log Vitals': 'జీవసంకేతాలు నమోదు చేయండి', 'Manage members': 'సభ్యులను నిర్వహించండి',
+        'Start Health Scan': 'ఆరోగ్య స్కాన్ ప్రారంభించండి',
+        'Your AI health assistant is ready.': 'మీ AI ఆరోగ్య సహాయకం సిద్ధంగా ఉంది.',
+        'AI Face Scan': 'AI ముఖ స్కాన్', 'Analyze your health': 'మీ ఆరోగ్యాన్ని విశ్లేషించండి',
+        'Book Call': 'కాల్ బుక్ చేయండి', 'Schedule a consultation': 'సంప్రదింపు షెడ్యూల్ చేయండి',
+        'Start Chat': 'చాట్ ప్రారంభించండి', 'Ask me anything about your health.': 'మీ ఆరోగ్యం గురించి ఏదైనా అడగండి.',
+        'No recent activity': 'ఇటీవలి కార్యకలాపం లేదు',
+        'Search reports, doctors...': 'నివేదికలు, వైద్యులు వెతకండి...',
+        'Hello! How can I help you today?': 'హలో! ఈ రోజు నేను మీకు ఎలా సహాయం చేయగలను?',
+        'AI Meal Analysis': 'AI భోజన విశ్లేషణ', 'Nutritional insights': 'పోషకాహార అంతర్దృష్టులు', 'Meal Analysis': 'భోజన విశ్లేషణ', 'Analyze your food': 'మీ ఆహారాన్ని విశ్లేషించండి',
+        'AI Eye Scan': 'AI కంటి స్కాన్', 'Check vision health': 'దృష్టి ఆరోగ్యాన్ని తనిఖీ చేయండి',
+        'Processed': 'ప్రాసెస్ చేయబడింది', 'WhatsApp Alerts': 'వాట్సాప్ అలర్ట్‌లు',
+    },
+    'ta': {
+        'Menu': 'மெனு', 'More Tools': 'மேலும் கருவிகள்', 'Medical Reports': 'மருத்துவ அறிக்கைகள்',
+        'View history': 'வரலாற்றைக் காண்க', 'Report Symptoms': 'அறிகுறிகளை புகாரளிக்கவும்',
+        'Log Vitals': 'உயிர்க்குறிகளை பதிவு செய்', 'Manage members': 'உறுப்பினர்களை நிர்வகி',
+        'Start Health Scan': 'ஆரோக்கிய ஸ்கேன் தொடங்கு', 'Home': 'முகப்பு', 'Consult': 'ஆலோசனை', 'Reports': 'அறிக்கைகள்',
+        'Your AI health assistant is ready.': 'உங்கள் AI சுகாதார உதவியாளர் தயாராக உள்ளது.',
+        'AI Face Scan': 'AI முக ஸ்கேன்', 'Analyze your health': 'உங்கள் ஆரோக்கியத்தை பகுப்பாய்வு செய்',
+        'Book Call': 'அழைப்பு முன்பதிவு', 'Schedule a consultation': 'ஆலோசனை திட்டமிடு',
+        'Start Chat': 'அரட்டை தொடங்கு', 'Ask me anything about your health.': 'உங்கள் ஆரோக்கியம் பற்றி எதையும் கேளுங்கள்.',
+        'No recent activity': 'சமீபத்திய செயல்பாடு இல்லை',
+        'Search reports, doctors...': 'அறிக்கைகள், மருத்துவர்கள் தேடு...',
+        'Hello! How can I help you today?': 'வணக்கம்! இன்று நான் உங்களுக்கு எவ்வாறு உதவ முடியும்?',
+        'AI Meal Analysis': 'AI உணவு பகுப்பாய்வு', 'Nutritional insights': 'ஊட்டச்சத்து நுண்ணறிவு', 'Meal Analysis': 'உணவு பகுப்பாய்வு', 'Analyze your food': 'உங்கள் உணவை பகுப்பாய்வு செய்யவும்',
+        'AI Eye Scan': 'AI கண் ஸ்கேன்', 'Check vision health': 'பார்வை ஆரோக்கியத்தை சரிபார்க்கவும்',
+        'Processed': 'செயலாக்கப்பட்டது', 'WhatsApp Alerts': 'வாட்ஸ்அப் அலர்ட்கள்',
+    },
+    'bn': {
+        'Menu': 'মেনু', 'More Tools': 'আরও সরঞ্জাম', 'Medical Reports': 'চিকিৎসা প্রতিবেদন',
+        'View history': 'ইতিহাস দেখুন', 'Report Symptoms': 'লক্ষণ জানান',
+        'Log Vitals': 'গুরুত্বপূর্ণ সংকেত লিখুন', 'Manage members': 'সদস্য পরিচালনা',
+        'Start Health Scan': 'স্বাস্থ্য স্ক্যান শুরু করুন', 'Home': 'হোম', 'Consult': 'পরামর্শ', 'Reports': 'রিপোর্ট',
+        'Your AI health assistant is ready.': 'আপনার AI স্বাস্থ্য সহকারী প্রস্তুত।।',
+        'AI Face Scan': 'AI মুখ স্ক্যান', 'Analyze your health': 'আপনার স্বাস্থ্য বিশ্লেষণ করুন',
+        'Book Call': 'কল বুক করুন', 'Schedule a consultation': 'পরামর্শ নির্ধারণ করুন',
+        'Start Chat': 'চ্যাট শুরু করুন', 'Ask me anything about your health.': 'আপনার স্বাস্থ্য সম্পর্কে যেকোনো কিছু জিজ্ঞাসা করুন।',
+        'No recent activity': 'সাম্প্রতিক কোনো কার্যকলাপ নেই',
+        'Search reports, doctors...': 'প্রতিবেদন, ডাক্তার খোঁজ...',
+        'Hello! How can I help you today?': 'হ্যালো! আজ আমি আপনাকে কিভাবে সাহায্য করতে পারি?',
+        'AI Meal Analysis': 'এআই খাবার বিশ্লেষণ', 'Nutritional insights': 'পুষ্টিগত অন্তর্দৃষ্টি', 'Meal Analysis': 'খাবার বিশ্লেষণ', 'Analyze your food': 'আপনার খাবার বিশ্লেষণ করুন',
+        'AI Eye Scan': 'এআই চক্ষু স্ক্যান', 'Check vision health': 'দৃষ্টি স্বাস্থ্য পরীক্ষা করুন',
+        'Processed': 'প্রক্রিয়াকৃত', 'WhatsApp Alerts': 'হোয়াটসঅ্যাপ সতর্কতা',
+    },
+    'mr': {
+        'Menu': 'मेनू', 'More Tools': 'अधिक साधने', 'Medical Reports': 'वैद्यकीय अहवाल',
+        'View history': 'इतिहास पहा', 'Report Symptoms': 'लक्षणे नोंदवा',
+        'Log Vitals': 'जीवनसंकेत नोंदवा', 'Manage members': 'सदस्य व्यवस्थापन',
+        'Start Health Scan': 'आरोग्य स्कॅन सुरू करा', 'Home': 'होम', 'Consult': 'सल्लामसलत', 'Reports': 'अहवाल',
+        'Your AI health assistant is ready.': 'तुमचा AI आरोग्य सहाय्यक तयार आहे।',
+        'AI Face Scan': 'AI चेहरा स्कॅन', 'Analyze your health': 'तुमच्या आरोग्याचे विश्लेषण करा',
+        'Book Call': 'कॉल बुक करा', 'Schedule a consultation': 'सल्लामसलत वेळापत्रक करा',
+        'Start Chat': 'चॅट सुरू करा', 'Ask me anything about your health.': 'तुमच्या आरोग्याबद्दल काहीही विचारा.',
+        'No recent activity': 'अलीकडील क्रिया नाही',
+        'Search reports, doctors...': 'अहवाल, डॉक्टर शोधा...',
+        'Hello! How can I help you today?': 'नमस्कार! आज मी तुम्हाला कशी मदत करू शकतो?',
+        'Processed': 'प्रक्रिया केली', 'WhatsApp Alerts': 'व्हाट्सअॅप सूचना',
+    },
+}
+
+for lang, trans in _DASHBOARD_EXTRAS.items():
     if lang in UI_TRANSLATIONS:
         UI_TRANSLATIONS[lang].update(trans)
     else:
@@ -1298,9 +1519,17 @@ def get_ui_translation(text, target_lang):
         return text
         
     # Check main translation dictionary
-    if target_lang in UI_TRANSLATIONS and text in UI_TRANSLATIONS[target_lang]:
-        return UI_TRANSLATIONS[target_lang][text]
-        
+    if target_lang in UI_TRANSLATIONS:
+        # Try direct match
+        if text in UI_TRANSLATIONS[target_lang]:
+            return UI_TRANSLATIONS[target_lang][text]
+            
+        # Try lowercase match
+        text_lower = text.lower()
+        for k, v in UI_TRANSLATIONS[target_lang].items():
+            if k.lower() == text_lower:
+                return v
+                
     return text
 
 def translate_text(text, target_lang):

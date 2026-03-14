@@ -1,137 +1,236 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prescription History - Pristin Healthcare</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-</head>
+{% block title %}Medical Reports | Pristin Healthcare{% endblock %}
 
-<body>
-    <!-- Header -->
-    <header class="page-header">
-        <div class="container">
-            <div class="header-content">
-                <a href="{{ url_for('dashboard') }}" class="back-btn">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>Back</span>
-                </a>
-                <span class="page-title">Prescription History</span>
-                <a href="{{ url_for('prescription_upload') }}" class="btn btn-sm btn-ghost">
-                    <i class="fas fa-plus"></i>
-                </a>
-            </div>
-        </div>
-    </header>
+{% block extra_css %}
+<style>
+    .reports-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2.5rem;
+    }
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="container">
-            {% if prescriptions %}
-            <div class="prescriptions-list">
-                {% for prescription in prescriptions %}
-                <div class="prescription-card">
-                    <div class="prescription-date">{{ prescription.created_at }}</div>
-                    <div class="prescription-content">
-                        <img src="{{ prescription.image_url }}" alt="Prescription" class="prescription-thumb">
-                        <div class="prescription-info">
-                            <div class="prescription-medicines">{{ prescription.medicine_count }} medicines</div>
-                            <div class="prescription-language">{{ prescription.language|title }}</div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+    .report-card {
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        transition: transform 0.2s, background 0.2s;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .report-card:hover {
+        transform: translateY(-4px);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .report-thumb {
+        width: 100px;
+        height: 100px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+    }
+
+    .report-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .report-thumb i {
+        font-size: 2rem;
+        color: var(--text-muted);
+    }
+
+    .report-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .report-meta {
+        display: flex;
+        gap: 1.25rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .empty-reports {
+        text-align: center;
+        padding: 5rem 2rem;
+    }
+
+    .empty-reports i {
+        font-size: 4rem;
+        color: var(--text-muted);
+        opacity: 0.2;
+        margin-bottom: 1.5rem;
+    }
+
+    .medicine-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--primary);
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reports-header animate">
+    <div>
+        <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin: 0;" data-i18n="Medical Reports">
+            Medical Reports</h1>
+        <p style="color: var(--text-secondary); font-weight: 500;"
+            data-i18n="Your digital health history and prescriptions.">Your digital health history and prescriptions.
+        </p>
+    </div>
+    <a href="{{ url_for('prescription_upload') }}" class="btn-primary" style="padding: 12px 24px; border-radius: 14px;">
+        <i class="fas fa-plus"></i> <span data-i18n="Upload New">Upload New</span>
+    </a>
+</div>
+
+<div class="reports-list" id="reportsList">
+    <!-- Restoration: External Call Reports Container -->
+    <div id="externalReportsSection" style="margin-bottom: 3rem; display: none;">
+        <h2
+            style="font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; font-size: 1.25rem;">
+            <i class="fas fa-phone-alt" style="color: var(--primary);"></i> <span data-i18n="Voice Call Reports">Voice
+                Call Reports</span>
+        </h2>
+        <div id="externalReportsContainer"></div>
+    </div>
+
+    {% if prescriptions %}
+    {% for report in prescriptions %}
+    <a href="#" class="glass-card report-card animate">
+        <div class="report-thumb">
+            {% if report.image_path %}
+            <img src="{{ url_for('static', filename=report.image_path) }}" alt="Prescription">
             {% else %}
-            <div class="empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-prescription-bottle-alt"></i>
+            <i class="fas fa-file-prescription"></i>
+            {% endif %}
+        </div>
+        <div class="report-info">
+            <h3 style="margin: 0; font-weight: 800; font-size: 1.2rem;">
+                {% if report.doctor_name %}
+                Dr. {{ report.doctor_name }}
+                {% else %}
+                <span data-i18n="Medical Report">Medical Report</span> #{{ report.id }}
+                {% endif %}
+            </h3>
+
+            <div class="report-meta">
+                <div class="meta-item">
+                    <i class="far fa-calendar-alt" style="color: var(--primary);"></i>
+                    <span>{{ report.created_at.strftime('%b %d, %Y') }}</span>
                 </div>
-                <h2>No Prescriptions Yet</h2>
-                <p>Start by scanning your first prescription to keep track of your medications.</p>
-                <a href="{{ url_for('prescription_upload') }}" class="btn btn-primary">
-                    <i class="fas fa-camera"></i>
-                    Scan Prescription
-                </a>
+                <div class="meta-item">
+                    <i class="fas fa-globe" style="color: var(--success);"></i>
+                    <span>{{ report.language|upper }}</span>
+                </div>
+            </div>
+
+            {% if report.medicines %}
+            <div class="flex flex-wrap gap-2">
+                <div class="medicine-tag">
+                    <i class="fas fa-pills" style="margin-right: 6px;"></i>
+                    {{ report.medicines|length }} <span data-i18n="Medicines Identified"
+                        style="margin-left: 4px;">Medicines Identified</span>
+                </div>
             </div>
             {% endif %}
         </div>
-    </main>
+        <div style="flex-shrink: 0;">
+            <button class="glass-card"
+                style="width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.03);">
+                <i class="fas fa-chevron-right" style="font-size: 0.9rem; color: var(--text-secondary);"></i>
+            </button>
+        </div>
+    </a>
+    {% endfor %}
+    {% else %}
+    <div class="glass-card empty-reports animate" id="emptyReports">
+        <i class="fas fa-file-medical"></i>
+        <h2 data-i18n="No Reports Found">No Reports Found</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;"
+            data-i18n="You haven't uploaded any prescriptions yet.">You haven't uploaded any prescriptions yet.</p>
+        <a href="{{ url_for('prescription_upload') }}" class="btn-primary" style="padding: 12px 32px;">
+            <i class="fas fa-camera"></i> <span data-i18n="Scan Your First Report">Scan Your First Report</span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
 
-    <style>
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1.5rem;
+{% block extra_js %}
+<script>
+    window.addEventListener('externalReportsUpdated', (e) => {
+        const reports = e.detail;
+        const section = document.getElementById('externalReportsSection');
+        const container = document.getElementById('externalReportsContainer');
+        const empty = document.getElementById('emptyReports');
+
+        if (reports && reports.length > 0 && container) {
+            section.style.display = 'block';
+            if (empty) empty.style.display = 'none';
+
+            container.innerHTML = '';
+            reports.forEach(report => {
+                const card = document.createElement('div');
+                card.className = 'glass-card report-card animate';
+                card.style.borderLeft = `4px solid ${report.risk === 'High' ? 'var(--error)' : 'var(--warning)'}`;
+                card.innerHTML = `
+                    <div class="report-thumb" style="background:${report.risk === 'High' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.05)'}">
+                        <i class="fas fa-phone-volume" style="color:${report.risk === 'High' ? 'var(--error)' : 'var(--primary)'}"></i>
+                    </div>
+                    <div class="report-info">
+                        <div class="flex justify-between items-start">
+                            <h3 style="margin: 0; font-weight: 800; font-size: 1.2rem;">${report.name}</h3>
+                            <span class="u-badge" style="background:${report.risk === 'High' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)'}; color:${report.risk === 'High' ? 'var(--error)' : 'var(--warning)'}">${report.risk} RISK</span>
+                        </div>
+                        <div class="report-meta">
+                            <div class="meta-item"><i class="fas fa-phone"></i><span>${report.phone}</span></div>
+                            <div class="meta-item"><i class="far fa-clock"></i><span>${new Date(report.time).toLocaleString()}</span></div>
+                        </div>
+                        <p style="margin-top: 10px; font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5;">${report.symptoms}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
         }
+    });
 
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--bg-secondary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2rem;
-            color: var(--text-tertiary);
-        }
+    document.addEventListener('DOMContentLoaded', () => {
 
-        .empty-state h2 {
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state p {
-            color: var(--text-secondary);
-            margin-bottom: 1.5rem;
-        }
-
-        .prescriptions-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .prescription-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1rem;
-        }
-
-        .prescription-date {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            margin-bottom: 0.75rem;
-        }
-
-        .prescription-content {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .prescription-thumb {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: var(--radius-md);
-        }
-
-        .prescription-medicines {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .prescription-language {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-    </style>
-
-    <script src="/static/js/app.js"></script>
-</body>
-
-</html>
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

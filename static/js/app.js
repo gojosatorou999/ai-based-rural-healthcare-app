@@ -56,7 +56,7 @@ class TelemedicineApp {
 
     async initDB() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open('TelemedicineDB', 1);
+            const request = indexedDB.open('PristinHealthDB', 1);
 
             request.onerror = () => reject(request.error);
             request.onsuccess = () => {

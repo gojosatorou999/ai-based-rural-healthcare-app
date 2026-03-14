@@ -1,721 +1,336 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0A0A0A">
-    <meta name="description" content="Report your symptoms and get AI-assisted health guidance on Pristin Healthcare.">
-    <title>{{ 'Report Symptoms' | translate }} - Pristin Healthcare</title>
-    <script>
-        // Apply theme early to prevent flash
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
+{% block title %}Report Symptoms | Pristin Healthcare{% endblock %}
 
-    <link rel="manifest" href="/static/manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding-bottom: 4rem;
+    }
 
-    <style>
-        body {
-            background: var(--bg-primary);
-            position: relative;
-        }
+    .form-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        animation: fadeIn 0.6s ease;
+    }
 
-        /* Gradient glow background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 30% 20%, rgba(196, 255, 13, 0.12) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
+    .form-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+        background: rgba(59, 130, 246, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        color: var(--primary);
+        margin: 0 auto 1.5rem auto;
+    }
 
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -30%;
-            right: -30%;
-            width: 80%;
-            height: 80%;
-            background: radial-gradient(circle at 70% 80%, rgba(196, 255, 13, 0.06) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
+    .glass-form {
+        padding: 3rem;
+        animation: fadeIn 0.8s ease;
+    }
 
+    .form-group {
+        margin-bottom: 2rem;
+    }
 
-        .page-header {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+    .form-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+    }
 
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+    .form-control {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        color: var(--text-primary);
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+        transition: all 0.2s;
+    }
 
-        .back-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 0.9375rem;
-        }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: rgba(255, 255, 255, 0.05);
+    }
 
-        .back-btn:hover {
-            color: var(--primary);
-        }
+    /* Severity Radio Styling */
+    .severity-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
 
-        .page-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
+    .severity-card {
+        cursor: pointer;
+        padding: 1.5rem;
+        border-radius: 16px;
+        text-align: center;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+        transition: 0.3s;
+    }
 
-        .main-content {
-            padding: 2rem 0;
-        }
+    .severity-card input {
+        display: none;
+    }
 
-        .form-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            max-width: 640px;
-            margin: 0 auto;
-        }
+    .severity-card:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
 
-        .form-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+    .severity-card.active {
+        border-color: var(--primary);
+        background: rgba(59, 130, 246, 0.1);
+        transform: translateY(-2px);
+    }
 
-        .form-icon {
-            width: 64px;
-            height: 64px;
-            background: rgba(196, 255, 13, 0.1);
-            border-radius: var(--radius-lg);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
+    .s-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
 
-        .form-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
+    .s-label {
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
 
-        .form-subtitle {
-            color: var(--text-secondary);
-            font-size: 0.9375rem;
-        }
+    /* Media sections */
+    .media-section {
+        margin-top: 2rem;
+        border-top: 1px solid var(--border);
+        padding-top: 2rem;
+    }
 
-        .severity-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-        }
+    .upload-area {
+        border: 2px dashed var(--border);
+        border-radius: 20px;
+        padding: 3rem;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.3s;
+    }
 
-        .severity-option {
-            padding: 1rem;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-md);
-            text-align: center;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
+    .upload-area:hover {
+        border-color: var(--primary);
+        background: rgba(59, 130, 246, 0.02);
+    }
 
-        .severity-option:hover {
-            border-color: var(--text-tertiary);
-        }
+    .camera-box {
+        aspect-ratio: 16/9;
+        background: #000;
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+    }
 
-        .severity-option input {
-            display: none;
-        }
+    video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    }
+</style>
+{% endblock %}
 
-        .severity-option input:checked+.severity-content {
-            color: var(--primary);
-        }
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <div class="form-icon"><i class="fas fa-notes-medical"></i></div>
+        <h1 data-i18n="Describe Symptoms" style="font-weight: 900; font-size: 2.5rem; letter-spacing: -1px;">Describe
+            Your Symptoms</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;"
+            data-i18n="Provide details for accurate AI recommendations">Provide details for accurate AI recommendations
+        </p>
+    </div>
 
-        .severity-option:has(input:checked) {
-            border-color: var(--primary);
-            background: rgba(196, 255, 13, 0.05);
-        }
-
-        .severity-icon {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .severity-label {
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .severity-mild .severity-icon {
-            color: var(--success);
-        }
-
-        .severity-moderate .severity-icon {
-            color: var(--warning);
-        }
-
-        .severity-severe .severity-icon {
-            color: var(--error);
-        }
-
-        .image-upload {
-            border: 2px dashed var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-
-        .image-upload:hover {
-            border-color: var(--primary);
-            background: rgba(196, 255, 13, 0.02);
-        }
-
-        .image-upload.has-file {
-            border-color: var(--success);
-            background: rgba(0, 255, 136, 0.05);
-        }
-
-        .upload-icon {
-            font-size: 3rem;
-            color: var(--text-muted);
-            margin-bottom: 1rem;
-        }
-
-        .upload-text {
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-
-        .upload-hint {
-            font-size: 0.8125rem;
-            color: var(--text-tertiary);
-        }
-
-        .image-preview {
-            max-width: 200px;
-            border-radius: var(--radius-md);
-            margin-top: 1rem;
-            display: none;
-        }
-
-        .submit-section {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1rem;
-            font-weight: 700;
-        }
-
-        .note-box {
-            background: rgba(196, 255, 13, 0.05);
-            border: 1px solid rgba(196, 255, 13, 0.2);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .note-box i {
-            color: var(--primary);
-            margin-right: 0.5rem;
-        }
-
-        .note-box p {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin: 0;
-        }
-    </style>
-</head>
-
-<body>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
-        style="position: fixed; top: 1rem; right: 1rem; z-index: 2000;">
-        <i class="fas fa-moon"></i>
-    </button>
-    <!-- Header -->
-    <header class="page-header">
-        <div class="container">
-            <div class="header-content">
-                <a href="{{ url_for('dashboard') }}" class="back-btn">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>{{ 'Back' | translate }}</span>
-                </a>
-                <span class="page-title">{{ 'Report Symptoms' | translate }}</span>
-                <div style="width: 60px;"></div>
+    <form action="{{ url_for('new_symptom_report') }}" method="POST" enctype="multipart/form-data"
+        class="glass-card glass-form">
+        <div class="form-group">
+            <label class="form-label">
+                <span data-i18n="What symptoms are you experiencing?">Symptoms Description</span>
+                <button type="button" class="btn-primary" id="micBtn"
+                    style="padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">
+                    <i class="fas fa-microphone"></i> <span data-i18n="Voice">Voice</span>
+                </button>
+            </label>
+            <textarea name="symptom_description" id="symptomDescription" class="form-control" rows="5"
+                placeholder="Describe how you feel..." required></textarea>
+            <div id="micStatus"
+                style="font-size: 0.8rem; color: var(--primary); margin-top: 10px; display: none; font-weight: 600;">
+                <i class="fas fa-circle-notch fa-spin"></i> <span id="micStatusText">Listening...</span>
             </div>
         </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="container">
-            <div class="form-card">
-                <div class="form-header">
-                    <div class="form-icon">
-                        <i class="fas fa-notes-medical"></i>
-                    </div>
-                    <h1 class="form-title">{{ 'Describe Your Symptoms' | translate }}</h1>
-                    <p class="form-subtitle">{{ 'Provide details for accurate AI recommendations' | translate }}</p>
+        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="form-group" style="margin: 0;">
+                <label class="form-label" data-i18n="Affected Body Area">Affected Area</label>
+                <select name="affected_area" class="form-control">
+                    <option value="head">Head / Face</option>
+                    <option value="chest">Chest</option>
+                    <option value="abdomen">Abdomen</option>
+                    <option value="back">Back</option>
+                    <option value="skin">Skin</option>
+                    <option value="general">Whole Body</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+                <label class="form-label" data-i18n="Duration">Duration</label>
+                <input type="text" name="duration" class="form-control" placeholder="e.g. 2 days">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" data-i18n="Severity">Severity</label>
+            <div class="severity-options">
+                <label class="severity-card" onclick="updateSeverity(this)">
+                    <input type="radio" name="severity" value="mild">
+                    <span class="s-icon"><i class="fas fa-smile" style="color: var(--success);"></i></span>
+                    <span class="s-label" data-i18n="Mild">Mild</span>
+                </label>
+                <label class="severity-card active" onclick="updateSeverity(this)">
+                    <input type="radio" name="severity" value="moderate" checked>
+                    <span class="s-icon"><i class="fas fa-meh" style="color: var(--warning);"></i></span>
+                    <span class="s-label" data-i18n="Moderate">Moderate</span>
+                </label>
+                <label class="severity-card" onclick="updateSeverity(this)">
+                    <input type="radio" name="severity" value="severe">
+                    <span class="s-icon"><i class="fas fa-frown" style="color: var(--error);"></i></span>
+                    <span class="s-label" data-i18n="Severe">Severe</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="media-section">
+            <div class="flex justify-between items-center mb-4">
+                <label class="form-label" data-i18n="Upload Photo (Optional)" style="margin: 0;">Related Photo</label>
+                <div class="flex gap-2">
+                    <button type="button" class="btn-primary" id="useUpload"
+                        style="padding: 6px 14px; font-size: 0.8rem; background: var(--bg-glass);">Upload</button>
+                    <button type="button" class="btn-primary" id="useCamera"
+                        style="padding: 6px 14px; font-size: 0.8rem; background: var(--bg-glass);">Camera</button>
                 </div>
+            </div>
 
-                <form action="{{ url_for('new_symptom_report') }}" method="POST" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label class="form-label"
-                            style="display: flex; justify-content: space-between; align-items: center;">
-                            {{ 'What symptoms are you experiencing?' | translate }}
-                            <button type="button" class="btn btn-sm btn-ghost" id="micBtn"
-                                style="padding: 0.25rem 0.5rem; color: var(--primary);"
-                                title="{{ 'Speak in your language' | translate }}">
-                                <i class="fas fa-microphone"></i> {{ 'Voice' | translate }}
-                            </button>
-                        </label>
-                        <textarea name="symptom_description" id="symptomDescription" class="form-control" rows="4"
-                            placeholder="{{ 'Describe your symptoms in detail...' | translate }}" required></textarea>
-                        <div id="micStatus"
-                            style="font-size: 0.75rem; color: var(--primary); margin-top: 0.25rem; display: none;">
-                            <i class="fas fa-circle-notch fa-spin"></i> <span id="micStatusText">Listening...</span>
-                        </div>
-                    </div>
+            <div id="uploadContainer">
+                <label class="upload-area" id="dropArea">
+                    <input type="file" name="symptom_image" id="fileInput" hidden accept="image/*">
+                    <i class="fas fa-cloud-upload-alt"
+                        style="font-size: 2.5rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+                    <p style="color: var(--text-secondary); font-weight: 600;">Tap to upload or drag & drop</p>
+                    <img id="previewImg" style="display: none; max-width: 100%; border-radius: 12px; margin-top: 1rem;">
+                </label>
+            </div>
 
-                    <div class="form-group">
-                        <label class="form-label">{{ 'Affected Body Area' | translate }}</label>
-                        <select name="affected_area" class="form-control">
-                            <option value="">{{ 'Select affected area' | translate }}</option>
-                            <option value="head">{{ 'Head / Face' | translate }}</option>
-                            <option value="chest">{{ 'Chest' | translate }}</option>
-                            <option value="abdomen">{{ 'Abdomen / Stomach' | translate }}</option>
-                            <option value="back">{{ 'Back' | translate }}</option>
-                            <option value="arms">{{ 'Arms / Hands' | translate }}</option>
-                            <option value="legs">{{ 'Legs / Feet' | translate }}</option>
-                            <option value="skin">{{ 'Skin' | translate }}</option>
-                            <option value="general">{{ 'General / Whole Body' | translate }}</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">{{ 'Severity' | translate }}</label>
-                        <div class="severity-options">
-                            <label class="severity-option severity-mild">
-                                <input type="radio" name="severity" value="mild">
-                                <div class="severity-content">
-                                    <div class="severity-icon">
-                                        <i class="fas fa-smile"></i>
-                                    </div>
-                                    <div class="severity-label">{{ 'Mild' | translate }}</div>
-                                </div>
-                            </label>
-                            <label class="severity-option severity-moderate">
-                                <input type="radio" name="severity" value="moderate" checked>
-                                <div class="severity-content">
-                                    <div class="severity-icon">
-                                        <i class="fas fa-meh"></i>
-                                    </div>
-                                    <div class="severity-label">{{ 'Moderate' | translate }}</div>
-                                </div>
-                            </label>
-                            <label class="severity-option severity-severe">
-                                <input type="radio" name="severity" value="severe">
-                                <div class="severity-content">
-                                    <div class="severity-icon">
-                                        <i class="fas fa-frown"></i>
-                                    </div>
-                                    <div class="severity-label">{{ 'Severe' | translate }}</div>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">{{ 'How long have you had these symptoms?' | translate }}</label>
-                        <input type="text" name="duration" class="form-control"
-                            placeholder="{{ 'e.g., 2 days, 1 week' | translate }}">
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">{{ 'Upload Photo (Optional)' | translate }}</label>
-
-                        <!-- Upload/Camera Toggle -->
-                        <div class="upload-toggle">
-                            <button type="button" class="toggle-btn active" id="uploadToggle">
-                                <i class="fas fa-upload"></i> {{ 'Upload' | translate }}
-                            </button>
-                            <button type="button" class="toggle-btn" id="cameraToggle">
-                                <i class="fas fa-camera"></i> {{ 'Camera' | translate }}
-                            </button>
-                        </div>
-
-                        <!-- File Upload Area -->
-                        <label class="image-upload" id="imageUpload">
-                            <input type="file" name="symptom_image" accept="image/*" hidden id="imageInput">
-                            <div class="upload-icon">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                            </div>
-                            <div class="upload-text">{{ 'Tap to upload a photo' | translate }}</div>
-                            <div class="upload-hint">{{ 'Supports JPG, PNG (max 5MB)' | translate }}</div>
-                            <img class="image-preview" id="imagePreview" alt="Preview">
-                        </label>
-
-                        <!-- Camera Area (hidden by default) -->
-                        <div class="camera-area" id="cameraArea" style="display: none;">
-                            <div class="camera-container">
-                                <video id="cameraVideo" autoplay playsinline></video>
-                                <canvas id="cameraCanvas" style="display: none;"></canvas>
-                                <img class="camera-preview-img" id="cameraPreview" alt="Captured"
-                                    style="display: none;">
-                            </div>
-                            <div class="camera-controls">
-                                <button type="button" class="camera-btn switch-btn" id="switchCamera"
-                                    title="Switch Camera">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                                <button type="button" class="camera-btn capture-btn" id="captureBtn" title="Capture">
-                                    <i class="fas fa-circle"></i>
-                                </button>
-                                <button type="button" class="camera-btn retake-btn" id="retakeBtn"
-                                    style="display: none;" title="Retake">
-                                    <i class="fas fa-redo"></i>
-                                </button>
-                            </div>
-                            <input type="hidden" name="camera_image" id="cameraImageData">
-                        </div>
-                    </div>
-
-                    <div class="submit-section">
-                        <button type="submit" class="btn btn-primary submit-btn">
-                            <i class="fas fa-paper-plane"></i>
-                            {{ 'Submit & Get Recommendations' | translate }}
-                        </button>
-
-                        <div class="note-box">
-                            <p><i class="fas fa-info-circle"></i>{{ 'Your symptoms will be analyzed by our AI system.
-                                Always consult a doctor for serious conditions.' | translate }}</p>
-                        </div>
-                    </div>
-                </form>
+            <div id="cameraContainer" style="display: none;">
+                <div class="camera-box">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    <img id="capturedImg" style="display: none; width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div class="flex justify-center gap-4 mt-4">
+                    <button type="button" class="btn-primary" id="captureBtn"><i class="fas fa-camera"></i>
+                        Capture</button>
+                    <button type="button" class="btn-primary" id="retakeBtn" style="display: none;"><i
+                            class="fas fa-redo"></i> Retake</button>
+                </div>
+                <input type="hidden" name="camera_image" id="cameraData">
             </div>
         </div>
-    </main>
 
-    <style>
-        .upload-toggle {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
+        <button type="submit" class="btn-primary w-full"
+            style="justify-content: center; width: 100%; padding: 1.25rem; font-size: 1.1rem; margin-top: 3rem;">
+            <span data-i18n="Submit & Get Recommendations">Analyze Symptoms</span> <i class="fas fa-magic"
+                style="margin-left: 10px;"></i>
+        </button>
+    </form>
+</div>
+{% endblock %}
 
-        .toggle-btn {
-            flex: 1;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-md);
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
+{% block extra_js %}
+<script>
+    function updateSeverity(el) {
+        document.querySelectorAll('.severity-card').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+    }
 
-        .toggle-btn:hover {
-            border-color: var(--text-tertiary);
-        }
+    // Camera & Upload Logic
+    const useUpload = document.getElementById('useUpload');
+    const useCamera = document.getElementById('useCamera');
+    const uploadCont = document.getElementById('uploadContainer');
+    const cameraCont = document.getElementById('cameraContainer');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('captureBtn');
+    const retakeBtn = document.getElementById('retakeBtn');
+    const capturedImg = document.getElementById('capturedImg');
+    const cameraData = document.getElementById('cameraData');
 
-        .toggle-btn.active {
-            border-color: var(--primary);
-            background: rgba(196, 255, 13, 0.05);
-            color: var(--primary);
-        }
+    let stream = null;
 
-        .camera-area {
-            margin-top: 1rem;
-        }
+    useUpload.onclick = () => {
+        uploadCont.style.display = 'block';
+        cameraCont.style.display = 'none';
+        stopCamera();
+    };
 
-        .camera-container {
-            position: relative;
-            background: #000;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            aspect-ratio: 4/3;
-        }
+    useCamera.onclick = async () => {
+        uploadCont.style.display = 'none';
+        cameraCont.style.display = 'block';
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            video.srcObject = stream;
+        } catch (e) { alert("Camera access denied"); }
+    };
 
-        .camera-container video,
-        .camera-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    function stopCamera() {
+        if (stream) stream.getTracks().forEach(t => t.stop());
+    }
 
-        .camera-preview-img {
-            position: absolute;
-            top: 0;
-            left: 0;
-        }
+    captureBtn.onclick = () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const data = canvas.toDataURL('image/jpeg');
+        cameraData.value = data;
+        capturedImg.src = data;
+        capturedImg.style.display = 'block';
+        video.style.display = 'none';
+        captureBtn.style.display = 'none';
+        retakeBtn.style.display = 'inline-flex';
+    };
 
-        .camera-controls {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 0.75rem;
-        }
+    retakeBtn.onclick = () => {
+        capturedImg.style.display = 'none';
+        video.style.display = 'block';
+        captureBtn.style.display = 'inline-flex';
+        retakeBtn.style.display = 'none';
+        cameraData.value = '';
+    };
 
-        .camera-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-fast);
-        }
+    // Speech Recognition
+    const micBtn = document.getElementById('micBtn');
+    const status = document.getElementById('micStatus');
+    const desc = document.getElementById('symptomDescription');
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-        .switch-btn {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            font-size: 1rem;
-        }
-
-        .capture-btn {
-            background: var(--primary);
-            color: var(--bg-primary);
-            font-size: 1.5rem;
-            width: 60px;
-            height: 60px;
-        }
-
-        .retake-btn {
-            background: var(--warning);
-            color: var(--bg-primary);
-            font-size: 1rem;
-        }
-    </style>
-
-    <script>
-        // Element references
-        const imageInput = document.getElementById('imageInput');
-        const imageUpload = document.getElementById('imageUpload');
-        const imagePreview = document.getElementById('imagePreview');
-        const cameraArea = document.getElementById('cameraArea');
-        const uploadToggle = document.getElementById('uploadToggle');
-        const cameraToggle = document.getElementById('cameraToggle');
-        const cameraVideo = document.getElementById('cameraVideo');
-        const cameraCanvas = document.getElementById('cameraCanvas');
-        const cameraPreview = document.getElementById('cameraPreview');
-        const captureBtn = document.getElementById('captureBtn');
-        const retakeBtn = document.getElementById('retakeBtn');
-        const switchCamera = document.getElementById('switchCamera');
-        const cameraImageData = document.getElementById('cameraImageData');
-
-        let currentStream = null;
-        let facingMode = 'environment';
-
-        // Image upload preview
-        imageInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    imagePreview.src = e.target.result;
-                    imagePreview.style.display = 'block';
-                    imageUpload.classList.add('has-file');
-                    cameraImageData.value = '';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Toggle between upload and camera
-        uploadToggle.addEventListener('click', () => {
-            uploadToggle.classList.add('active');
-            cameraToggle.classList.remove('active');
-            imageUpload.style.display = 'flex';
-            cameraArea.style.display = 'none';
-            stopCamera();
-        });
-
-        cameraToggle.addEventListener('click', async () => {
-            cameraToggle.classList.add('active');
-            uploadToggle.classList.remove('active');
-            imageUpload.style.display = 'none';
-            cameraArea.style.display = 'block';
-            await startCamera();
-        });
-
-        async function startCamera() {
-            try {
-                if (currentStream) stopCamera();
-
-                const constraints = {
-                    video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 960 } }
-                };
-
-                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                cameraVideo.srcObject = currentStream;
-                cameraVideo.style.display = 'block';
-                cameraPreview.style.display = 'none';
-                captureBtn.style.display = 'flex';
-                retakeBtn.style.display = 'none';
-            } catch (err) {
-                console.error('Camera error:', err);
-                alert('Could not access camera. Please use file upload.');
-                uploadToggle.click();
-            }
-        }
-
-        function stopCamera() {
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-                currentStream = null;
-            }
-        }
-
-        switchCamera.addEventListener('click', async () => {
-            facingMode = facingMode === 'environment' ? 'user' : 'environment';
-            await startCamera();
-        });
-
-        captureBtn.addEventListener('click', () => {
-            const context = cameraCanvas.getContext('2d');
-            cameraCanvas.width = cameraVideo.videoWidth;
-            cameraCanvas.height = cameraVideo.videoHeight;
-            context.drawImage(cameraVideo, 0, 0);
-
-            const imageData = cameraCanvas.toDataURL('image/jpeg', 0.85);
-            cameraPreview.src = imageData;
-            cameraImageData.value = imageData;
-
-            cameraVideo.style.display = 'none';
-            cameraPreview.style.display = 'block';
-            captureBtn.style.display = 'none';
-            retakeBtn.style.display = 'flex';
-
-            imageInput.value = '';
-            imagePreview.style.display = 'none';
-            imageUpload.classList.remove('has-file');
-        });
-
-        retakeBtn.addEventListener('click', async () => {
-            cameraImageData.value = '';
-            await startCamera();
-        });
-
-        // Speech to Text Logic
-        const micBtn = document.getElementById('micBtn');
-        const micStatus = document.getElementById('micStatus');
-        const micStatusText = document.getElementById('micStatusText');
-        const symptomDescription = document.getElementById('symptomDescription');
-        const userPreferredLang = "{{ current_user.preferred_language }}".toLowerCase();
-
-        const langMap = {
-            'english': 'en-US',
-            'hindi': 'hi-IN',
-            'telugu': 'te-IN',
-            'tamil': 'ta-IN',
-            'bengali': 'bn-IN',
-            'marathi': 'mr-IN'
-        };
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = langMap[userPreferredLang] || 'en-US';
-
-            micBtn.addEventListener('click', () => {
-                try {
-                    recognition.start();
-                    micBtn.style.color = '#ff4d4d'; // Red while listening
-                    micStatus.style.display = 'block';
-                    micStatusText.innerText = 'Listening (speak in ' + userPreferredLang + ')...';
-                } catch (e) {
-                    console.error('Speech recognition error:', e);
-                }
-            });
-
-            recognition.onresult = async (event) => {
-                const transcript = event.results[0][0].transcript;
-                micBtn.style.color = '';
-                micStatusText.innerText = 'Translating...';
-
-                // If not English, translate to English
-                if (userPreferredLang !== 'english') {
-                    try {
-                        const response = await fetch('/api/translate', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ text: transcript, target_lang: 'en' })
-                        });
-                        const data = await response.json();
-                        symptomDescription.value += (symptomDescription.value ? '\n' : '') + data.translated_text;
-                    } catch (err) {
-                        console.error('Translation error:', err);
-                        symptomDescription.value += (symptomDescription.value ? '\n' : '') + transcript;
-                    }
-                } else {
-                    symptomDescription.value += (symptomDescription.value ? '\n' : '') + transcript;
-                }
-
-                micStatus.style.display = 'none';
-            };
-
-            recognition.onerror = (event) => {
-                micBtn.style.color = '';
-                micStatus.style.display = 'none';
-                console.error('Recognition error:', event.error);
-            };
-
-            recognition.onend = () => {
-                micBtn.style.color = '';
-                if (micStatusText.innerText === 'Listening...') {
-                    micStatus.style.display = 'none';
-                }
-            };
-        } else {
-            micBtn.style.display = 'none';
-        }
-
-        window.addEventListener('beforeunload', () => stopCamera());
-    </script>
-
-    <script src="/static/js/app.js"></script>
-</body>
-
-</html>
+    if (SpeechRec) {
+        const rec = new SpeechRec();
+        rec.onstart = () => { status.style.display = 'block'; micBtn.style.background = 'var(--error)'; };
+        rec.onend = () => { status.style.display = 'none'; micBtn.style.background = ''; };
+        rec.onresult = (e) => { desc.value += (desc.value ? ' ' : '') + e.results[0][0].transcript; };
+        micBtn.onclick = () => rec.start();
+    } else { micBtn.style.display = 'none'; }
+</script>
+{% endblock %}

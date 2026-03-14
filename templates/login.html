@@ -1,376 +1,227 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0A0A0A">
-    <meta name="description" content="Login to Pristin Healthcare - AI-powered rural telemedicine platform.">
-    <title>Login - Pristin Healthcare</title>
-    <script>
-        // Apply theme early to prevent flash
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
+{% block title %}Sign In | Pristin Healthcare{% endblock %}
 
-    <link rel="manifest" href="/static/manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+{% block extra_css %}
+<style>
+    .auth-stage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        padding: 4rem 0;
+    }
 
-    <style>
-        body {
-            background: var(--bg-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 1rem;
-            position: relative;
-            overflow: hidden;
-        }
+    .auth-box {
+        width: 100%;
+        max-width: 440px;
+        padding: 3.5rem;
+    }
 
-        /* Animated background elements */
-        .bg-glow {
-            position: fixed;
-            width: 100vw;
-            height: 100vh;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            background: radial-gradient(circle at 10% 20%, rgba(196, 255, 13, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(196, 255, 13, 0.05) 0%, transparent 40%);
-            animation: pulse 10s ease-in-out infinite alternate;
-        }
+    .auth-lead {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
 
-        @keyframes pulse {
-            0% {
-                opacity: 0.5;
-            }
+    .auth-lead h1 {
+        font-size: 2.25rem;
+        font-weight: 900;
+        letter-spacing: -1.5px;
+        margin-bottom: 8px;
+    }
 
-            100% {
-                opacity: 1;
-            }
-        }
+    .auth-lead p {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
 
-        .auth-container {
-            width: 100%;
-            max-width: 440px;
-            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+    .inp-group {
+        margin-bottom: 1.5rem;
+    }
 
-        @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
+    .inp-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        letter-spacing: 1px;
+    }
 
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
+    .inp-wrap {
+        position: relative;
+    }
 
-        .auth-card {
-            background: rgba(26, 26, 26, 0.8);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 2rem;
-            padding: 3rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
+    .inp-field {
+        width: 100%;
+        height: 56px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 0 1.5rem 0 3rem;
+        color: var(--text-primary);
+        font-size: 1rem;
+        transition: all 0.2s;
+        outline: none;
+    }
 
-        .logo-icon {
-            width: 70px;
-            height: 70px;
-            background: var(--primary-gradient);
-            border-radius: 1.25rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: var(--bg-primary);
-            margin-bottom: 1.5rem;
-            box-shadow: var(--glow-green);
-        }
+    .inp-field:focus {
+        border-color: var(--primary);
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
 
-        .app-name {
-            font-size: 1.75rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            background: linear-gradient(to right, #fff, #888);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .inp-icon {
+        position: absolute;
+        left: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
 
-        .form-label {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: var(--text-tertiary);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+    .pass-eye {
+        position: absolute;
+        right: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 5px;
+        background: none;
+        border: none;
+        transition: color 0.2s;
+    }
 
-        .input-wrapper {
-            position: relative;
-            margin-bottom: 1.5rem;
-        }
+    .pass-eye:hover {
+        color: var(--primary);
+    }
 
-        .input-icon {
-            position: absolute;
-            left: 1.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-tertiary);
-            transition: color 0.3s ease;
-        }
+    .auth-nav {
+        margin-top: 2.5rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+    }
 
-        .form-control {
-            height: 3.5rem;
-            padding: 0 1.25rem 0 3.25rem;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
+    .auth-nav a {
+        color: var(--primary);
+        font-weight: 800;
+        text-decoration: none;
+    }
 
-        .form-control:focus {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(196, 255, 13, 0.1);
-        }
+    .auth-nav a:hover {
+        text-decoration: underline;
+    }
 
-        .form-control:focus+.input-icon {
-            color: var(--primary);
-        }
+    .toast-rack {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3000;
+        width: 90%;
+        max-width: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+</style>
+{% endblock %}
 
-        .submit-btn {
-            height: 3.5rem;
-            border-radius: 1rem;
-            font-weight: 700;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 1rem;
-        }
-
-        .auth-footer {
-            margin-top: 2rem;
-            text-align: center;
-            font-size: 0.875rem;
-            color: var(--text-tertiary);
-        }
-
-        .auth-footer-link {
-            color: var(--primary);
-            font-weight: 700;
-            text-decoration: none;
-            margin-left: 0.5rem;
-        }
-
-
-        @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-                align-items: flex-start;
-                /* Better for mobile scrolling */
-                padding-top: 2rem;
-            }
-
-            .auth-container {
-                max-width: 100%;
-                padding: 0 0.5rem;
-            }
-
-            .auth-card {
-                padding: 1.5rem;
-                /* Reduce padding on mobile */
-            }
-
-            .logo-icon {
-                width: 60px;
-                /* Smaller logo */
-                height: 60px;
-                font-size: 1.75rem;
-                margin-bottom: 0.75rem;
-            }
-
-            .app-name {
-                font-size: 1.5rem;
-                /* Smaller title */
-            }
-
-            .auth-title {
-                font-size: 1.5rem;
-            }
-        }
-
-        /* Missing styles for login elements */
-        .password-toggle {
-            position: absolute;
-            right: 1.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-tertiary);
-            cursor: pointer;
-            font-size: 1rem;
-            transition: color 0.3s;
-            padding: 0;
-            display: flex;
-            /* Ensure alignment */
-            align-items: center;
-        }
-
-        .password-toggle:hover {
-            color: var(--primary);
-        }
-
-        .form-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            font-size: 0.875rem;
-        }
-
-        .remember-me {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-        }
-
-        .remember-me input {
-            cursor: pointer;
-        }
-
-        .forgot-link {
-            color: var(--primary);
-            font-weight: 600;
-            text-decoration: none;
-            transition: opacity 0.2s;
-        }
-
-        .forgot-link:hover {
-            opacity: 0.8;
-            text-decoration: underline;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="bg-glow"></div>
-    <div class="auth-container">
-        <!-- App Logo -->
-        <div class="app-logo" style="margin-bottom: 2.5rem;">
-            <a href="{{ url_for('home') }}"
-                style="text-decoration: none; display: flex; flex-direction: column; align-items: center;">
-                <div class="logo-icon">
-                    <i class="fas fa-heartbeat"></i>
-                </div>
-                <div class="app-name">Pristin Healthcare</div>
-                <div style="font-size: 0.875rem; color: var(--text-tertiary); margin-top: 0.5rem; font-weight: 500;">{{
-                    'AI-Powered Rural Telemedicine' | translate }}</div>
-            </a>
+{% block content %}
+<div class="auth-stage animate">
+    <div class="glass-card auth-box">
+        <div class="auth-lead">
+            <h1 data-i18n="Sign In">Sign In</h1>
+            <p data-i18n="Access your personal health portal.">Access your personal health portal.</p>
         </div>
 
-        <!-- Auth Card -->
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1 class="auth-title">Welcome Back</h1>
-                <p class="auth-subtitle">Login to access your health dashboard</p>
+        <form action="{{ url_for('login') }}" method="POST">
+            <div class="inp-group">
+                <label class="inp-label" data-i18n="Email Address">Email Address</label>
+                <div class="inp-wrap">
+                    <i class="fas fa-at inp-icon"></i>
+                    <input type="email" name="email" class="inp-field" placeholder="yourname@email.com" required
+                        autofocus>
+                </div>
             </div>
 
-            <form action="{{ url_for('login') }}" method="POST">
-                <div class="form-group">
-                    <label class="form-label">Email Address</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <input type="email" name="email" class="form-control" placeholder="your@email.com" required
-                            autofocus>
-                    </div>
+            <div class="inp-group">
+                <label class="inp-label" data-i18n="Password">Password</label>
+                <div class="inp-wrap">
+                    <i class="fas fa-lock inp-icon"></i>
+                    <input type="password" id="password" name="password" class="inp-field" placeholder="••••••••"
+                        required>
+                    <button type="button" class="pass-eye" onclick="togglePass()">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" id="password" name="password" class="form-control"
-                            placeholder="Enter your password" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword()">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-footer">
-                    <label class="remember-me">
-                        <input type="checkbox" name="remember">
-                        <span>Remember me</span>
-                    </label>
-                    <a href="#" class="forgot-link">Forgot password?</a>
-                </div>
-
-                <button type="submit" class="btn btn-primary submit-btn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Login to Dashboard
-                </button>
-            </form>
-
-            <div class="auth-footer">
-                <span class="auth-footer-text">Don't have an account?</span>
-                <a href="{{ url_for('register') }}" class="auth-footer-link">Create Account</a>
             </div>
+
+            <button type="submit" class="btn-primary"
+                style="width: 100%; height: 56px; border-radius: 16px; justify-content: center; font-size: 1rem; margin-top: 1rem;">
+                <span data-i18n="Sign In">Sign In</span> <i class="fas fa-arrow-right"
+                    style="margin-left: 10px;"></i>
+            </button>
+        </form>
+
+        <div class="auth-nav">
+            <span data-i18n="New to Pristin?">New to Pristin?</span>
+            <a href="{{ url_for('register') }}" data-i18n="Create Account">Create Account</a>
         </div>
     </div>
+</div>
 
-    <!-- Flash Messages -->
+<div class="toast-rack">
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div id="notification-container" style="position: fixed; top: 2rem; right: 2rem; z-index: 1000; max-width: 400px;">
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} slide-down">
-            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
-            <div>{{ message }}</div>
-        </div>
-        {% endfor %}
+    {% for category, message in messages %}
+    <div class="glass-card toast-item animate"
+        style="padding: 1.25rem; display: flex; align-items: center; gap: 12px; border-left: 4px solid {{ 'var(--success)' if category == 'success' else 'var(--error)' }};">
+        <i class="fas fa-{{ 'circle-check' if category == 'success' else 'triangle-exclamation' }}"
+            style="color: {{ 'var(--success)' if category == 'success' else 'var(--error)' }};"></i>
+        <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-primary);">{{ message }}</span>
     </div>
+    {% endfor %}
     {% endif %}
     {% endwith %}
+</div>
+{% endblock %}
 
-    <script>
-        function togglePassword() {
-            const input = document.getElementById('password');
-            const icon = input.nextElementSibling.querySelector('i');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
+{% block extra_js %}
+<script>
+    function togglePass() {
+        const p = document.getElementById('password');
+        const i = document.getElementById('eyeIcon');
+        if (p.type === 'password') {
+            p.type = 'text';
+            i.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            p.type = 'password';
+            i.classList.replace('fa-eye-slash', 'fa-eye');
         }
+    }
 
-        // Auto-hide flash messages
-        setTimeout(() => {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                alert.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => alert.remove(), 300);
-            });
-        }, 5000);
-    </script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 60);
+        });
 
-    <script src="/static/js/app.js"></script>
-</body>
-
-</html>
+        const toasts = document.querySelectorAll('.toast-item');
+        toasts.forEach(t => {
+            setTimeout(() => {
+                t.classList.add('fade-out');
+                setTimeout(() => t.remove(), 500);
+            }, 4000);
+        });
+    });
+</script>
+{% endblock %}

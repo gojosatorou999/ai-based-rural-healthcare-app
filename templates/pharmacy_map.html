@@ -1,318 +1,239 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Nearby Pharmacies' | translate }} - Pristin Healthcare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% block title %}Pharmacy Network | Pristin Healthcare{% endblock %}
 
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map-view-container {
+        position: relative;
+        height: 75vh;
+        width: 100%;
+        border-radius: 30px;
+        overflow: hidden;
+        margin-top: 1rem;
+        border: 1px solid var(--border);
+    }
 
-    <link rel="stylesheet" href="/static/css/style.css">
+    #map {
+        height: 100%;
+        width: 100%;
+        z-index: 1;
+    }
 
-    <style>
-        body {
-            background: var(--bg-primary);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+    .map-controls {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 500px;
+        z-index: 1000;
+        display: flex;
+        gap: 10px;
+        background: var(--glass);
+        backdrop-filter: blur(20px);
+        padding: 8px;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+    }
 
-        .map-header {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 0;
-            z-index: 1000;
-        }
+    .pharmacy-rack {
+        display: flex;
+        gap: 1.5rem;
+        overflow-x: auto;
+        padding: 1rem 5px 2rem 5px;
+        margin-top: 2rem;
+        scrollbar-width: none;
+    }
 
-        #map {
-            flex: 1;
-            width: 100%;
-            z-index: 1;
-        }
+    .pharmacy-rack::-webkit-scrollbar {
+        display: none;
+    }
 
-        .pharmacy-list {
-            position: absolute;
-            bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 600px;
-            display: flex;
-            gap: 1rem;
-            overflow-x: auto;
-            padding-bottom: 1rem;
-            z-index: 1000;
-            pointer-events: none;
-        }
+    .p-nav-card {
+        min-width: 300px;
+        padding: 1.5rem;
+        cursor: pointer;
+        transition: transform 0.2s, border-color 0.2s;
+    }
 
-        .pharmacy-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1rem;
-            min-width: 280px;
-            pointer-events: auto;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            transition: transform 0.2s ease;
-        }
+    .p-nav-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+    }
 
-        .pharmacy-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-        }
+    .stock-pills {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
 
-        .pharmacy-name {
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.25rem;
-        }
+    .stock-pill {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--primary);
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
 
-        .pharmacy-info {
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
+    .locate-btn-float {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--glass);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border);
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
 
-        .pharmacy-stock {
-            display: flex;
-            gap: 0.25rem;
-            flex-wrap: wrap;
-        }
+    .locate-btn-float:hover {
+        background: var(--primary);
+        color: white;
+    }
+</style>
+{% endblock %}
 
-        .stock-badge {
-            background: rgba(196, 255, 13, 0.1);
-            color: var(--primary);
-            font-size: 0.7rem;
-            padding: 0.125rem 0.375rem;
-            border-radius: var(--radius-sm);
-        }
-
-        .locate-btn {
-            position: absolute;
-            bottom: 240px;
-            right: 20px;
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            cursor: pointer;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        .locate-btn:hover {
-            background: var(--primary);
-            color: var(--bg-primary);
-        }
-
-        @media (max-width: 600px) {
-            .pharmacy-list {
-                bottom: 1rem;
-                justify-content: flex-start;
-                left: 1rem;
-                transform: none;
-                width: calc(100% - 2rem);
-            }
-
-            .locate-btn {
-                bottom: 200px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <header class="map-header">
-        <div class="container">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">
-                    <i class="fas fa-arrow-left"></i> {{ 'Back to Dashboard' | translate }}
-                </a>
-                <h1 style="font-size: 1.125rem; font-weight: 700;">
-                    <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i> {{ 'Nearby Pharmacies' |
-                    translate }}
-                </h1>
-                <div style="width: 100px;"></div>
-            </div>
+{% block content %}
+<div class="animate">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+        <div>
+            <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin: 0;"
+                data-i18n="Clinical Supply Map">Clinical Supply Map</h1>
+            <p style="color: var(--text-secondary); font-weight: 500;"
+                data-i18n="Real-time inventory mapping for rural pharmacy networks.">Real-time inventory mapping for
+                rural pharmacy networks.</p>
         </div>
-    </header>
+    </div>
 
-    <div id="map"></div>
+    <div id="map-view-container" class="animate">
+        <div id="map"></div>
 
-    <!-- Search Controls -->
-    <div
-        style="position: absolute; top: 80px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; z-index: 1000; display: flex; gap: 0.5rem; background: var(--bg-card); padding: 0.5rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-        <input type="text" id="locationSearch" placeholder="{{ 'Search for a location' | translate }}"
-            style="flex: 1; background: transparent; border: none; color: var(--text-primary); outline: none; padding: 0.5rem;">
-        <button onclick="searchLocation()" class="btn btn-primary" style="padding: 0.5rem 1rem;">
-            <i class="fas fa-search"></i>
+        <div class="map-controls">
+            <input type="text" id="locationSearch" placeholder="Search operational areas..."
+                style="flex:1; background:none; border:none; color:white; padding: 10px 15px; outline:none;"
+                data-i18n-placeholder="Search operational areas...">
+            <button onclick="searchLocation()" class="btn-primary" style="padding: 10px 20px; border-radius: 12px;">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+        <button class="locate-btn-float" onclick="locateUser()" title="Find My Location">
+            <i class="fas fa-crosshairs"></i>
         </button>
     </div>
 
-    <button class="locate-btn" onclick="locateUser()" title="{{ 'My Location' | translate }}">
-        <i class="fas fa-crosshairs"></i>
-    </button>
-
-    <div class="pharmacy-list">
-        {% for pharmacy in pharmacies %}
-        <div class="pharmacy-card" onclick="focusPharmacy({{ pharmacy.id }})">
-            <div class="pharmacy-name">{{ pharmacy.name }}</div>
-            <div class="pharmacy-info">
-                <i class="fas fa-map-pin" style="color: var(--primary); width: 16px;"></i> {{ pharmacy.address }}<br>
-                <i class="fas fa-phone" style="color: var(--primary); width: 16px;"></i> {{ pharmacy.phone }}
+    <div class="pharmacy-rack animate">
+        {% for p in pharmacies %}
+        <div class="glass-card p-nav-card animate" onclick="focusPharmacy({{ p.id }})">
+            <h4 style="font-weight: 900; margin-bottom: 8px; font-size: 1.1rem; color: var(--text-primary);">{{ p.name
+                }}</h4>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+                    <i class="fas fa-location-arrow" style="color: var(--primary); font-size: 0.75rem;"></i> {{
+                    p.address }}
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <i class="fas fa-phone-volume" style="color: var(--primary); font-size: 0.75rem;"></i> {{ p.phone }}
+                </div>
             </div>
-            <div class="pharmacy-stock">
-                {% for item in pharmacy.stock %}
-                <span class="stock-badge">{{ item | translate }}</span>
+            <div class="stock-pills">
+                {% for item in p.stock %}
+                <span class="stock-pill">{{ item | translate }}</span>
                 {% endfor %}
             </div>
         </div>
         {% endfor %}
         {% if not pharmacies %}
-        <div class="pharmacy-card" style="pointer-events: none;">
-            <div class="pharmacy-name">{{ 'No Pharmacies Found' | translate }}</div>
-            <div class="pharmacy-info">{{ 'No pharmacies are mapped to this area yet.' | translate }}</div>
+        <div class="glass-card p-nav-card"
+            style="display: flex; align-items: center; justify-content: center; opacity: 0.5;">
+            <span data-i18n="No pharmacies in radius.">No pharmacies in radius.</span>
         </div>
         {% endif %}
     </div>
+</div>
+{% endblock %}
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const map = L.map('map', { zoomControl: false }).setView([20.5937, 78.9629], 5);
 
-    <script>
-        // Initialize map
-        // Default to a central point in India if nothing else works
-        const map = L.map('map').setView([20.5937, 78.9629], 5);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB'
+    }).addTo(map);
 
-        // Dark Mode Map Tiles (CartoDB Dark Matter)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
+    const pharmacyIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    });
 
-        // Custom Icons
-        const pharmacyIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
+    const userIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+    });
+
+    let markers = {}, userMarker = null;
+    const pharmacies = {{ pharmacies| tojson }};
+
+    function initMap(lat, lng, zoom = 14) {
+        map.flyTo([lat, lng], zoom);
+        if (userMarker) map.removeLayer(userMarker);
+        userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map).bindPopup("<b>Clinical Origin</b>").openPopup();
+
+        Object.values(markers).forEach(m => map.removeLayer(m.marker));
+        markers = {};
+
+        pharmacies.forEach(p => {
+            const mLat = lat + p.lat_offset, mLng = lng + p.lng_offset;
+            const marker = L.marker([mLat, mLng], { icon: pharmacyIcon }).addTo(map).bindPopup(`<b>${p.name}</b><br>${p.address}`);
+            markers[p.id] = { marker, lat: mLat, lng: mLng };
         });
+    }
 
-        const userIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
+    async function searchLocation() {
+        const q = document.getElementById('locationSearch').value;
+        if (!q) return;
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (data[0]) initMap(parseFloat(data[0].lat), parseFloat(data[0].lon));
+    }
 
-        // Store markers
-        let markers = {};
-        let userMarker = null;
+    function locateUser() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(p => initMap(p.coords.latitude, p.coords.longitude), e => initMap(28.6139, 77.2090, 12));
+        } else initMap(28.6139, 77.2090, 12);
+    }
 
-        // Pharmacy Data
-        const pharmacies = {{ pharmacies| tojson }};
+    function focusPharmacy(id) {
+        const d = markers[id];
+        if (d) { map.flyTo([d.lat, d.lng], 16); d.marker.openPopup(); }
+    }
 
-        // Translated messages
-        const MSG_YOU_ARE_HERE = "<b>{{ 'You are here' | translate }}</b>";
-        const MSG_LOC_ERROR = "{{ 'Could not pull location. Using default.' | translate }}";
-        const MSG_NO_GEO = "{{ 'Geolocation is not supported by this browser.' | translate }}";
+    document.getElementById('locationSearch').addEventListener('keypress', e => { if (e.key === 'Enter') searchLocation(); });
 
-        function initMap(lat, lng, zoom = 14) {
-            map.flyTo([lat, lng], zoom);
-
-            // Add User Marker
-            if (userMarker) map.removeLayer(userMarker);
-            userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map)
-                .bindPopup(MSG_YOU_ARE_HERE).openPopup();
-
-            // Clear old pharmacy markers
-            Object.values(markers).forEach(m => map.removeLayer(m.marker));
-            markers = {};
-
-            // Add Pharmacy Markers based on offsets
-            pharmacies.forEach(p => {
-                const pLat = lat + p.lat_offset;
-                const pLng = lng + p.lng_offset;
-                const marker = L.marker([pLat, pLng], { icon: pharmacyIcon }).addTo(map)
-                    .bindPopup(`<b>${p.name}</b><br>${p.address}`);
-                markers[p.id] = { marker, lat: pLat, lng: pLng };
-            });
-        }
-
-        async function searchLocation() {
-            const query = document.getElementById('locationSearch').value;
-            if (!query) return;
-
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                if (data && data.length > 0) {
-                    const { lat, lon } = data[0];
-                    initMap(parseFloat(lat), parseFloat(lon));
-                } else {
-                    alert("Location not found.");
-                }
-            } catch (error) {
-                console.error("Search error:", error);
-                alert("Error searching for location.");
-            }
-        }
-
-        function locateUser() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const { latitude, longitude } = position.coords;
-                        initMap(latitude, longitude);
-                    },
-                    (error) => {
-                        console.error("Geolocation error:", error);
-                        // If user is in India, default to a better fallback if geolocation fails
-                        // New Delhi: 28.6139, 77.2090
-                        initMap(28.6139, 77.2090, 12);
-                        alert(MSG_LOC_ERROR);
-                    },
-                    { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-                );
-            } else {
-                alert(MSG_NO_GEO);
-                initMap(28.6139, 77.2090, 12);
-            }
-        }
-
-        function focusPharmacy(id) {
-            const data = markers[id];
-            if (data) {
-                map.flyTo([data.lat, data.lng], 16);
-                data.marker.openPopup();
-            }
-        }
-
-        // Handle Enter key for search
-        document.getElementById('locationSearch').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') searchLocation();
-        });
-
-        // Start by locating user
+    document.addEventListener('DOMContentLoaded', () => {
         locateUser();
-    </script>
-</body>
-
-</html>
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 80);
+        });
+    });
+</script>
+{% endblock %}

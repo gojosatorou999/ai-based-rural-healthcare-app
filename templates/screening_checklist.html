@@ -1,314 +1,283 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Screening Checklist - Pristin Healthcare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+{% block title %}Screening Checklist | Pristin Healthcare{% endblock %}
 
-    <style>
-        body {
-            background: var(--bg-primary);
-        }
+{% block extra_css %}
+<style>
+    .screening-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
 
-        .checklist-header {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 0;
-        }
+    .checklist-tabs {
+        display: flex;
+        gap: 10px;
+        padding: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border);
+    }
 
-        .checklist-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
+    .tab-trigger {
+        flex: 1;
+        padding: 12px;
+        border-radius: 12px;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
 
-        .tab-btn {
-            flex: 1;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            color: var(--text-tertiary);
-            font-weight: 600;
-            font-size: 0.8125rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
+    .tab-trigger.active {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
 
-        .tab-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: var(--bg-primary);
-        }
+    .progress-panel {
+        padding: 1.25rem;
+        margin-bottom: 2rem;
+    }
 
-        .checklist-section {
-            display: none;
-        }
+    .progress-track {
+        height: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 5px;
+        overflow: hidden;
+        margin: 10px 0;
+    }
 
-        .checklist-section.active {
-            display: block;
-        }
+    .progress-bar {
+        height: 100%;
+        background: var(--primary-gradient);
+        transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-        .checklist-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            margin-bottom: 1rem;
-        }
+    .checklist-section {
+        display: none;
+        animation: fadeIn 0.4s ease-out;
+    }
 
-        .checklist-item {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+    .checklist-section.active {
+        display: block;
+    }
 
-        .checklist-item:last-child {
-            border-bottom: none;
-        }
+    .check-item {
+        padding: 1.25rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+    }
 
-        .checkbox-custom {
-            width: 24px;
-            height: 24px;
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
+    .check-item:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
 
-        .checkbox-custom.checked {
-            background: var(--success);
-            border-color: var(--success);
-        }
+    .custom-cb {
+        width: 28px;
+        height: 28px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
 
-        .checkbox-custom i {
-            color: var(--bg-primary);
-            font-size: 0.75rem;
-            display: none;
-        }
+    .custom-cb.checked {
+        background: var(--success);
+        border-color: var(--success);
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    }
 
-        .checkbox-custom.checked i {
-            display: block;
-        }
+    .custom-cb i {
+        color: white;
+        font-size: 0.85rem;
+        transform: scale(0);
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
 
-        .item-text {
-            color: var(--text-primary);
-            flex: 1;
-        }
+    .custom-cb.checked i {
+        transform: scale(1);
+    }
 
-        .item-text.completed {
-            text-decoration: line-through;
-            color: var(--text-tertiary);
-        }
+    .item-label {
+        flex: 1;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1.05rem;
+    }
 
-        .severity-select {
-            padding: 0.25rem 0.5rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-primary);
-            font-size: 0.75rem;
-        }
+    .item-label.done {
+        text-decoration: line-through;
+        opacity: 0.5;
+    }
 
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-full);
-            overflow: hidden;
-            margin-bottom: 1rem;
-        }
+    .field-select {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text-secondary);
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+    }
 
-        .progress-fill {
-            height: 100%;
-            background: var(--primary);
-            transition: width 0.3s ease;
-        }
+    .submit-block {
+        margin-top: 3rem;
+        padding: 2rem;
+    }
+</style>
+{% endblock %}
 
-        .progress-text {
-            font-size: 0.8125rem;
-            color: var(--text-tertiary);
-            margin-bottom: 0.5rem;
-        }
+{% block content %}
+<div class="screening-container animate">
+    <div style="margin-bottom: 2.5rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin: 0;"
+            data-i18n="Screening Checklist">Screening Checklist</h1>
+        <p style="color: var(--text-secondary); font-weight: 500;"
+            data-i18n="Systematic health screening for rural patient monitoring.">Systematic health screening for rural
+            patient monitoring.</p>
+    </div>
 
-        .submit-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem;
-            margin-top: 1rem;
-        }
+    <div class="checklist-tabs animate">
+        <button class="tab-trigger active" onclick="switchTab('maternal', this)">
+            <i class="fas fa-person-breastfeeding"></i> Maternal
+        </button>
+        <button class="tab-trigger" onclick="switchTab('child', this)">
+            <i class="fas fa-baby"></i> Child
+        </button>
+        <button class="tab-trigger" onclick="switchTab('general', this)">
+            <i class="fas fa-notes-medical"></i> General
+        </button>
+    </div>
 
-        .notes-input {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-family: inherit;
-            margin-bottom: 1rem;
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .notes-input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-    </style>
-</head>
-
-<body>
-    <header class="checklist-header">
-        <div class="container">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <a href="{{ url_for('chw_dashboard') }}" class="btn btn-ghost">
-                    <i class="fas fa-arrow-left"></i>
-                </a>
-                <h1 style="font-size: 1.25rem;">Screening Checklist</h1>
-                <div style="width: 40px;"></div>
-            </div>
+    <div class="glass-card progress-panel animate">
+        <div
+            style="display: flex; justify-content: space-between; font-weight: 800; font-size: 0.85rem; text-transform: uppercase; color: var(--text-secondary);">
+            <span data-i18n="Current Progress">Current Progress</span>
+            <span id="progText">0/0 Completed</span>
         </div>
-    </header>
-
-    <main style="padding: 1.5rem 0;">
-        <div class="container">
-            <!-- Tabs -->
-            <div class="checklist-tabs">
-                <button class="tab-btn active" onclick="showTab('maternal')">
-                    <i class="fas fa-female"></i> Maternal
-                </button>
-                <button class="tab-btn" onclick="showTab('child')">
-                    <i class="fas fa-baby"></i> Child
-                </button>
-                <button class="tab-btn" onclick="showTab('general')">
-                    <i class="fas fa-notes-medical"></i> General
-                </button>
-            </div>
-
-            <!-- Progress -->
-            <div class="progress-text">Progress: <span id="progressCount">0</span> / <span id="totalCount">0</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
-            </div>
-
-            <!-- Maternal Checklist -->
-            <div class="checklist-section active" id="maternal">
-                <div class="checklist-card">
-                    {% for item in checklists.maternal %}
-                    <div class="checklist-item">
-                        <div class="checkbox-custom" onclick="toggleCheck(this)">
-                            <i class="fas fa-check"></i>
-                        </div>
-                        <span class="item-text">{{ item }}</span>
-                        <select class="severity-select">
-                            <option value="">--</option>
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
-                            <option value="unsure">Unsure</option>
-                        </select>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Child Checklist -->
-            <div class="checklist-section" id="child">
-                <div class="checklist-card">
-                    {% for item in checklists.child %}
-                    <div class="checklist-item">
-                        <div class="checkbox-custom" onclick="toggleCheck(this)">
-                            <i class="fas fa-check"></i>
-                        </div>
-                        <span class="item-text">{{ item }}</span>
-                        <select class="severity-select">
-                            <option value="">--</option>
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
-                            <option value="unsure">Unsure</option>
-                        </select>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- General Checklist -->
-            <div class="checklist-section" id="general">
-                <div class="checklist-card">
-                    {% for item in checklists.general %}
-                    <div class="checklist-item">
-                        <div class="checkbox-custom" onclick="toggleCheck(this)">
-                            <i class="fas fa-check"></i>
-                        </div>
-                        <span class="item-text">{{ item }}</span>
-                        <select class="severity-select">
-                            <option value="">--</option>
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
-                            <option value="unsure">Unsure</option>
-                        </select>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- Submit Section -->
-            <div class="submit-section">
-                <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Additional Notes</label>
-                <textarea class="notes-input" placeholder="Add any observations or concerns..."></textarea>
-                <button class="btn btn-primary" style="width: 100%;" onclick="submitChecklist()">
-                    <i class="fas fa-paper-plane"></i> Submit for Doctor Review
-                </button>
-            </div>
+        <div class="progress-track">
+            <div id="progFill" class="progress-bar" style="width: 0%;"></div>
         </div>
-    </main>
+    </div>
 
-    <script>
-        function showTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.checklist-section').forEach(sec => sec.classList.remove('active'));
+    <!-- Sections -->
+    <div id="maternalSection" class="checklist-section active animate">
+        {% for item in checklists.maternal %}
+        <div class="glass-card check-item">
+            <div class="custom-cb" onclick="toggleCheck(this)"><i class="fas fa-check"></i></div>
+            <span class="item-label">{{ item }}</span>
+            <select class="field-select">
+                <option value="">Status</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+                <option value="unsure">Unsure</option>
+            </select>
+        </div>
+        {% endfor %}
+    </div>
 
-            event.target.classList.add('active');
-            document.getElementById(tabId).classList.add('active');
-            updateProgress();
-        }
+    <div id="childSection" class="checklist-section animate">
+        {% for item in checklists.child %}
+        <div class="glass-card check-item">
+            <div class="custom-cb" onclick="toggleCheck(this)"><i class="fas fa-check"></i></div>
+            <span class="item-label">{{ item }}</span>
+            <select class="field-select">
+                <option value="">Status</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+                <option value="unsure">Unsure</option>
+            </select>
+        </div>
+        {% endfor %}
+    </div>
 
-        function toggleCheck(el) {
-            el.classList.toggle('checked');
-            el.nextElementSibling.classList.toggle('completed');
-            updateProgress();
-        }
+    <div id="generalSection" class="checklist-section animate">
+        {% for item in checklists.general %}
+        <div class="glass-card check-item">
+            <div class="custom-cb" onclick="toggleCheck(this)"><i class="fas fa-check"></i></div>
+            <span class="item-label">{{ item }}</span>
+            <select class="field-select">
+                <option value="">Status</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+                <option value="unsure">Unsure</option>
+            </select>
+        </div>
+        {% endfor %}
+    </div>
 
-        function updateProgress() {
-            const activeSection = document.querySelector('.checklist-section.active');
-            const total = activeSection.querySelectorAll('.checkbox-custom').length;
-            const checked = activeSection.querySelectorAll('.checkbox-custom.checked').length;
+    <div class="glass-card submit-block animate">
+        <label style="font-weight: 800; margin-bottom: 12px; display: block;" data-i18n="Field Observations">Field
+            Observations</label>
+        <textarea id="observations"
+            style="width: 100%; min-height: 120px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; padding: 1rem; color: var(--text-primary); margin-bottom: 2rem; outline: none;"
+            placeholder="Enter additional clinical notes..."></textarea>
 
-            document.getElementById('progressCount').textContent = checked;
-            document.getElementById('totalCount').textContent = total;
-            document.getElementById('progressFill').style.width = (checked / total * 100) + '%';
-        }
+        <button onclick="commitScreening()" class="btn-primary"
+            style="width: 100%; padding: 1.25rem; font-size: 1.1rem; border-radius: 18px;">
+            <i class="fas fa-cloud-upload"></i> <span data-i18n="Submit Screening Report">Submit Screening Report</span>
+        </button>
+    </div>
+</div>
+{% endblock %}
 
-        function submitChecklist() {
-            const notes = document.querySelector('.notes-input').value;
-            alert('Checklist submitted for doctor review!');
-            window.location.href = '{{ url_for("chw_dashboard") }}';
-        }
+{% block extra_js %}
+<script>
+    function switchTab(type, btn) {
+        document.querySelectorAll('.tab-trigger').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
 
-        // Initialize
-        updateProgress();
-    </script>
-</body>
+        document.querySelectorAll('.checklist-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(type + 'Section').classList.add('active');
 
-</html>
+        recalcProgress();
+    }
+
+    function toggleCheck(cb) {
+        cb.classList.toggle('checked');
+        cb.nextElementSibling.classList.toggle('done');
+        recalcProgress();
+    }
+
+    function recalcProgress() {
+        const sec = document.querySelector('.checklist-section.active');
+        const total = sec.querySelectorAll('.custom-cb').length;
+        const done = sec.querySelectorAll('.custom-cb.checked').length;
+        const pct = (done / total) * 100;
+
+        document.getElementById('progText').textContent = `${done}/${total} Completed`;
+        document.getElementById('progFill').style.width = pct + '%';
+    }
+
+    function commitScreening() {
+        const notes = document.getElementById('observations').value;
+        alert('Report successfully submitted for medical review.');
+        window.location.href = "{{ url_for('dashboard') }}";
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        recalcProgress();
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 80);
+        });
+    });
+</script>
+{% endblock %}

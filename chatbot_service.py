@@ -17,8 +17,12 @@ if not GEMINI_KEY:
 def get_model():
     """Get configured Gemini model with the dedicated analysis key"""
     try:
+        if not GEMINI_KEY:
+            print("CRITICAL: GEMINI_ANALYSIS_KEY is missing.")
+            return None
         genai.configure(api_key=GEMINI_KEY)
-        return genai.GenerativeModel('gemini-2.5-flash') # Ultra-fast flash model for responsive health insights
+        # Using gemini-2.5-flash as it is the stable production-ready model
+        return genai.GenerativeModel('gemini-2.5-flash')
     except Exception as e:
         print(f"Error configuring Gemini: {e}")
         return None
@@ -176,3 +180,48 @@ def get_ai_summary(report_text, language='english'):
         return response.text.strip()
     except:
         return report_text[:50] + "..."
+
+def get_meal_analysis(image_path, age=None, weight=None, height=None, language='english'):
+    """
+    Generate nutritional analysis from a meal photo using Gemini Vision.
+    """
+    prompt = f"""
+    Analyze this meal photo for a patient in a rural setting.
+    Patient Info: Age: {age}, Weight: {weight}kg, Height: {height}cm.
+    Language: {language}
+    
+    Tasks:
+    1. Identify the food items.
+    2. Estimate total calories.
+    3. Estimate Macronutrients (Protein, Carbs, Fats) in grams.
+    4. Provide 2-3 specific nutritional advices based on the patient's info (if provided).
+    
+    Return a JSON object with:
+    - calories: (Integer) Total estimated calories
+    - nutrients: (Object) {{ "Protein": int, "Carbs": int, "Fats": int }}
+    - advice: (String) Unified nutritional advice string.
+    
+    IMPORTANT: Be helpful and encouraging.
+    Return ONLY the JSON.
+    """
+    
+    try:
+        model = get_model()
+        if not model: return None
+        
+        if image_path and os.path.exists(image_path):
+             from PIL import Image
+             img = Image.open(image_path)
+             response = model.generate_content([prompt, img])
+             
+             text = response.text.strip()
+             if "```json" in text:
+                 text = text.split("```json")[1].split("```")[0].strip()
+             elif "```" in text:
+                 text = text.split("```")[1].split("```")[0].strip()
+                 
+             return json.loads(text)
+        return None
+    except Exception as e:
+        print(f"Meal Analysis Error: {e}")
+        return None

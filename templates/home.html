@@ -1,232 +1,216 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pristin Healthcare | MaxAlert AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <meta name="theme-color" content="#020617">
-</head>
+{% block title %}Pristin Healthcare | AI-Powered Rural Telemedicine{% endblock %}
 
-<body
-    style="background: radial-gradient(circle at top center, #0f172a 0%, #020617 100%); min-height: 100vh; display: flex; flex-direction: column;">
+{% block extra_css %}
+<style>
+    .home-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 85vh;
+        padding: 4rem 0;
+        gap: 4rem;
+    }
 
-    <!-- Navbar -->
-    <nav class="container mx-auto flex justify-between items-center py-4 px-6">
-        <div class="flex items-center gap-2">
-            <div class="btn-icon bg-primary text-white p-2 rounded-lg">
-                <i class="fas fa-shield-virus"></i>
-            </div>
-            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400"
-                style="color: white;">{{ 'Pristin AI' | translate }}</span>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="relative group">
-                <button class="text-secondary hover:text-white flex items-center gap-1">
-                    <i class="fas fa-language"></i> {{ 'Language' | translate }}
-                </button>
-                <div
-                    class="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                    <a href="{{ url_for('set_language', lang_code='en') }}"
-                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white rounded-t-lg">English</a>
-                    <a href="{{ url_for('set_language', lang_code='hi') }}"
-                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white">हिन्दी
-                        (Hindi)</a>
-                    <a href="{{ url_for('set_language', lang_code='bn') }}"
-                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white">বাংলা
-                        (Bengali)</a>
-                    <a href="{{ url_for('set_language', lang_code='te') }}"
-                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white">తెలుగు
-                        (Telugu)</a>
-                    <a href="{{ url_for('set_language', lang_code='ta') }}"
-                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white">தமிழ்
-                        (Tamil)</a>
-                    <a href="{{ url_for('set_language', lang_code='mr') }}"
-                        class="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-600 hover:text-white rounded-b-lg">मराठी
-                        (Marathi)</a>
-                </div>
-            </div>
-            <a href="#about" class="text-secondary hover:text-white">{{ 'About' | translate }}</a>
-            <a href="#features" class="text-secondary hover:text-white">{{ 'Features' | translate }}</a>
-        </div>
-    </nav>
+    .hero-text {
+        flex: 1;
+        max-width: 650px;
+    }
 
-    <!-- Hero Section -->
-    <main class="container mx-auto flex-1 flex flex-col justify-center items-center text-center mt-10 px-6">
+    .hero-visual {
+        flex: 1;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-        <div class="mb-4">
-            <span
-                class="px-3 py-1 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 text-sm font-medium">
-                <i class="fas fa-bolt mr-1"></i> {{ 'AI-Powered Rural Healthcare' | translate }}
-            </span>
-        </div>
+    .hero-visual img {
+        width: 110%;
+        max-width: 700px;
+        filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.5));
+        animation: floatImg 6s ease-in-out infinite;
+    }
 
-        <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">
-            {{ 'Maximum Intelligence,' | translate }}<br>
-            <span
-                style="background: linear-gradient(to right, #3b82f6, #06b6d4); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">{{
-                'Maximum Safety' | translate }}</span>
-        </h1>
+    @keyframes floatImg {
 
-        <p class="text-xl text-secondary max-w-2xl mb-12">
-            {{ 'Advanced diagnostic AI bridging the gap for rural communities. Symptom analysis, facial scanning, and
-            doctor consultations—offline first.' | translate }}
-        </p>
-
-        <!-- Auth Card -->
-        <div class="card max-w-md w-full p-8 mx-auto"
-            style="background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(59, 130, 246, 0.2);">
-
-            <!-- Tabs -->
-            <div class="flex border-b border-gray-700 mb-6">
-                <button class="flex-1 pb-2 text-primary border-b-2 border-primary font-bold" id="tab-login"
-                    onclick="switchTab('login')">{{ 'Login' | translate }}</button>
-                <button class="flex-1 pb-2 text-secondary hover:text-white" id="tab-register"
-                    onclick="switchTab('register')">{{ 'Register' | translate }}</button>
-            </div>
-
-            <!-- Login Form -->
-            <form id="login-form" action="{{ url_for('login') }}" method="POST" class="flex flex-col gap-4">
-                <div class="text-left">
-                    <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Email Address' | translate
-                        }}</label>
-                    <div class="relative">
-                        <i class="fas fa-envelope absolute left-3 top-3 text-gray-500"></i>
-                        <input type="email" name="email" class="form-control pl-10" placeholder="doctor@example.com"
-                            required style="padding-left: 2.5rem;">
-                    </div>
-                </div>
-
-                <div class="text-left">
-                    <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Password' | translate }}</label>
-                    <div class="relative">
-                        <i class="fas fa-lock absolute left-3 top-3 text-gray-500"></i>
-                        <input type="password" name="password" class="form-control pl-10" placeholder="••••••••"
-                            required style="padding-left: 2.5rem;">
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-full mt-2">
-                    {{ 'Sign In' | translate }} <i class="fas fa-arrow-right ml-2"></i>
-                </button>
-            </form>
-
-            <!-- Register Form (Hidden) -->
-            <form id="register-form" action="{{ url_for('register') }}" method="POST" class="flex flex-col gap-4 hidden"
-                style="display: none;">
-                <div class="text-left">
-                    <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Full Name' | translate }}</label>
-                    <div class="relative">
-                        <i class="fas fa-user absolute left-3 top-3 text-gray-500"></i>
-                        <input type="text" name="username" class="form-control pl-10" placeholder="John Doe" required
-                            style="padding-left: 2.5rem;">
-                    </div>
-                </div>
-
-                <div class="text-left">
-                    <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Email Address' | translate
-                        }}</label>
-                    <div class="relative">
-                        <i class="fas fa-envelope absolute left-3 top-3 text-gray-500"></i>
-                        <input type="email" name="email" class="form-control pl-10" placeholder="john@example.com"
-                            required style="padding-left: 2.5rem;">
-                    </div>
-                </div>
-
-                <div class="text-left">
-                    <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Password' | translate }}</label>
-                    <div class="relative">
-                        <i class="fas fa-lock absolute left-3 top-3 text-gray-500"></i>
-                        <input type="password" name="password" class="form-control pl-10"
-                            placeholder="{{ 'Create a password' | translate }}" required style="padding-left: 2.5rem;">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="text-left">
-                        <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Age' | translate }}</label>
-                        <input type="number" name="age" class="form-control" placeholder="25">
-                    </div>
-                    <div class="text-left">
-                        <label class="text-sm font-medium text-secondary mb-1 block">{{ 'Gender' | translate }}</label>
-                        <select name="gender" class="form-control">
-                            <option value="Male">{{ 'Male' | translate }}</option>
-                            <option value="Female">{{ 'Female' | translate }}</option>
-                            <option value="Other">{{ 'Other' | translate }}</option>
-                        </select>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-full mt-2">
-                    {{ 'Create Account' | translate }} <i class="fas fa-user-plus ml-2"></i>
-                </button>
-            </form>
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <div class="mt-4 p-3 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                {% for category, message in messages %}
-                {{ message | translate }}
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% endwith %}
-
-        </div>
-
-        <!-- Features Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl w-full mx-auto pb-10">
-            <div class="card p-6 text-left hover:scale-105 transition-transform duration-300">
-                <div class="text-3xl text-blue-400 mb-3"><i class="fas fa-stethoscope"></i></div>
-                <h3 class="text-lg font-bold text-white mb-2">{{ 'AI Diagnosis' | translate }}</h3>
-                <p class="text-sm text-gray-400">{{ 'Identify symptoms instantly with our advanced machine learning
-                    models.' | translate }}
-                </p>
-            </div>
-            <div class="card p-6 text-left hover:scale-105 transition-transform duration-300">
-                <div class="text-3xl text-cyan-400 mb-3"><i class="fas fa-video"></i></div>
-                <h3 class="text-lg font-bold text-white mb-2">{{ 'Doctor Consults' | translate }}</h3>
-                <p class="text-sm text-gray-400">{{ 'Connect with specialists via high-quality video calls anytime.' |
-                    translate }}</p>
-            </div>
-            <div class="card p-6 text-left hover:scale-105 transition-transform duration-300">
-                <div class="text-3xl text-emerald-400 mb-3"><i class="fas fa-wifi"></i></div>
-                <h3 class="text-lg font-bold text-white mb-2">{{ 'Offline First' | translate }}</h3>
-                <p class="text-sm text-gray-400">{{ 'No internet? No problem. Use core features without connectivity.' |
-                    translate }}</p>
-            </div>
-        </div>
-
-    </main>
-
-    <script>
-        function switchTab(tab) {
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            const loginTab = document.getElementById('tab-login');
-            const registerTab = document.getElementById('tab-register');
-
-            if (tab === 'login') {
-                loginForm.style.display = 'flex';
-                registerForm.style.display = 'none';
-                loginTab.classList.add('text-primary', 'border-b-2', 'border-primary', 'font-bold');
-                loginTab.classList.remove('text-secondary');
-                registerTab.classList.remove('text-primary', 'border-b-2', 'border-primary', 'font-bold');
-                registerTab.classList.add('text-secondary');
-            } else {
-                loginForm.style.display = 'none';
-                registerForm.style.display = 'flex';
-                registerTab.classList.add('text-primary', 'border-b-2', 'border-primary', 'font-bold');
-                registerTab.classList.remove('text-secondary');
-                loginTab.classList.remove('text-primary', 'border-b-2', 'border-primary', 'font-bold');
-                loginTab.classList.add('text-secondary');
-            }
+        0%,
+        100% {
+            transform: translateY(0);
         }
-    </script>
-</body>
 
-</html>
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 16px;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 30px;
+        color: var(--primary);
+        font-size: 0.85rem;
+        font-weight: 800;
+        margin-bottom: 2rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .hero-title {
+        font-size: clamp(3rem, 6vw, 5rem);
+        font-weight: 900;
+        letter-spacing: -2px;
+        line-height: 1;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-title span {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+        color: var(--text-secondary);
+        font-size: 1.25rem;
+        line-height: 1.6;
+        margin-bottom: 3rem;
+        font-weight: 500;
+    }
+
+    .cta-group {
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .feat-section {
+        padding: 6rem 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2.5rem;
+    }
+
+    .home-feat-card {
+        padding: 3rem 2.5rem;
+        height: 100%;
+        transition: transform 0.3s;
+    }
+
+    .home-feat-card:hover {
+        transform: translateY(-10px);
+    }
+
+    .feat-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.03);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--primary);
+        margin-bottom: 2rem;
+        border: 1px solid var(--border);
+    }
+
+    @media (max-width: 1024px) {
+        .home-hero {
+            flex-direction: column;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .hero-text {
+            max-width: 100%;
+        }
+
+        .cta-group {
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="home-hero">
+    <div class="hero-text">
+        <div class="hero-badge animate">
+            <i class="fas fa-sparkles"></i> Next-Gen Rural Healthcare
+        </div>
+        <h1 class="hero-title animate">
+            Healthcare Reimagined for<span> Rural India.</span>
+        </h1>
+        <p class="hero-subtitle animate">
+            Bridging the gap with advanced AI-powered diagnostics, multimodal symptom screening, and secure video consultations—built to work anywhere.
+        </p>
+        <div class="cta-group animate">
+            <a href="{{ url_for('register') }}" class="btn-primary"
+                style="padding: 18px 40px; font-size: 1.1rem; border-radius: 18px;">
+                Get Started <i class="fas fa-chevron-right" style="margin-left: 10px;"></i>
+            </a>
+            <a href="#explore" class="glass-card"
+                style="padding: 18px 40px; text-decoration: none; color: var(--text-primary); font-weight: 800; border-radius: 18px;">
+                Explore Features
+            </a>
+        </div>
+    </div>
+    <div class="hero-visual animate">
+        <!-- Mockup of the app -->
+        <img src="/static/healthcare_app_preview.png" alt="App Preview">
+    </div>
+</section>
+
+<section class="feat-section" id="explore">
+    <div class="glass-card home-feat-card animate">
+        <div class="feat-circle">
+            <i class="fas fa-microscope"></i>
+        </div>
+        <h3 style="font-weight: 900; font-size: 1.5rem; margin-bottom: 1rem;" data-i18n="Clinical AI">Clinical AI</h3>
+        <p style="color: var(--text-secondary); line-height: 1.7;"
+            data-i18n="State-of-the-art symptom analysis trained on diverse clinical datasets for precise rural diagnosis.">
+            State-of-the-art symptom analysis trained on diverse clinical datasets for precise rural diagnosis.</p>
+    </div>
+
+    <div class="glass-card home-feat-card animate">
+        <div class="feat-circle" style="color: #a855f7;">
+            <i class="fas fa-satellite-dish"></i>
+        </div>
+        <h3 style="font-weight: 900; font-size: 1.5rem; margin-bottom: 1rem;" data-i18n="Tele-Portal">Tele-Portal</h3>
+        <p style="color: var(--text-secondary); line-height: 1.7;"
+            data-i18n="Lossless video consultation optimized for ultra-low bandwidth environments, keeping you connected anywhere.">
+            Lossless video consultation optimized for ultra-low bandwidth environments, keeping you connected anywhere.
+        </p>
+    </div>
+
+    <div class="glass-card home-feat-card animate">
+        <div class="feat-circle" style="color: #22c55e;">
+            <i class="fas fa-shield-halved"></i>
+        </div>
+        <h3 style="font-weight: 900; font-size: 1.5rem; margin-bottom: 1rem;" data-i18n="Offline Sync">Offline Sync</h3>
+        <p style="color: var(--text-secondary); line-height: 1.7;"
+            data-i18n="First-of-its-kind offline database allowing Community Workers to record and sync data without a live grid.">
+            First-of-its-kind offline database allowing Community Workers to record and sync data without a live grid.
+        </p>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

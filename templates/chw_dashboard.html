@@ -1,327 +1,203 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0A0A0A">
-    <meta name="description"
-        content="CHW Dashboard - Community Health Worker portal for Pristin Healthcare. Manage local patient entries and screening tools.">
+{% block title %}CHW Dashboard | Pristin Healthcare{% endblock %}
 
-    <!-- PWA / iOS Support -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Pristin">
-    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
+{% block extra_css %}
+<style>
+    .chw-hero {
+        margin-bottom: 2.5rem;
+    }
 
-    <title>CHW Dashboard - Pristin Healthcare</title>
-    <script>
-        // Apply theme early to prevent flash
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+    .chw-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.25rem;
+        margin-bottom: 3rem;
+    }
 
-    <style>
-        body {
-            background: var(--bg-primary);
-        }
+    .chw-stat-card {
+        padding: 1.5rem;
+        text-align: center;
+        border-top: 4px solid var(--primary);
+    }
 
-        .chw-header {
-            background: linear-gradient(135deg, var(--bg-card), rgba(0, 217, 255, 0.1));
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.5rem 0;
-        }
+    .tool-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 3rem;
+    }
 
-        .chw-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(0, 217, 255, 0.15);
-            color: var(--info);
-            padding: 0.375rem 0.75rem;
-            border-radius: var(--radius-full);
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
+    .tool-btn {
+        padding: 2rem 1.5rem;
+        text-align: center;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s, border-color 0.2s;
+    }
 
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
+    .tool-btn:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary);
+    }
 
-        .tool-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-        }
+    .tool-icon-box {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        background: rgba(59, 130, 246, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+        color: var(--primary);
+    }
 
-        .tool-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-4px);
-            box-shadow: var(--glow-green);
-        }
+    .task-card {
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
 
-        .tool-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 0.75rem;
-        }
+    .recent-row {
+        padding: 1rem 1.5rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
 
-        .tool-icon i {
-            font-size: 1.5rem;
-            color: var(--primary);
-        }
+    .status-pill {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
 
-        .tool-name {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
+{% block content %}
+<div class="chw-hero animate">
+    <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1.5px; margin: 0;">
+        <span data-i18n="Community Outreach">Community Outreach</span>
+    </h1>
+    <p
+        style="color: var(--info); font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; margin-top: 5px;">
+        <i class="fas fa-hand-holding-heart"></i> <span data-i18n="CHW Portal">CHW Portal</span>
+    </p>
+</div>
 
-        .section-title {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+<div class="chw-stats-grid animate">
+    <div class="glass-card chw-stat-card">
+        <div style="font-size: 2rem; font-weight: 900; color: var(--text-primary);">{{ stats.total_screenings }}</div>
+        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase;"
+            data-i18n="Screenings">Screenings</div>
+    </div>
+    <div class="glass-card chw-stat-card" style="border-top-color: var(--warning);">
+        <div style="font-size: 2rem; font-weight: 900; color: var(--warning);">{{ stats.pending_reviews }}</div>
+        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase;"
+            data-i18n="Pending">Pending</div>
+    </div>
+    <div class="glass-card chw-stat-card" style="border-top-color: var(--error);">
+        <div style="font-size: 2rem; font-weight: 900; color: var(--error);">{{ stats.high_severity }}</div>
+        <div style="font-size: 0.75rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase;"
+            data-i18n="Critical Cases">Critical Cases</div>
+    </div>
+</div>
 
-        .section-title i {
-            color: var(--info);
-        }
+<div class="animate">
+    <h2 style="font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-screwdriver-wrench" style="color: var(--primary);"></i> <span data-i18n="Field Services">Field
+            Services</span>
+    </h2>
+    <div class="tool-grid">
+        {% for tool in tools %}
+        <a href="{{ url_for(tool.url) }}" class="glass-card tool-btn animate">
+            <div class="tool-icon-box">
+                <i class="fas fa-{{ tool.icon }}"></i>
+            </div>
+            <div style="font-weight: 800; color: var(--text-primary);">{{ tool.name | translate }}</div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
 
-        .recent-list {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-        }
-
-        .recent-item {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .recent-item:last-child {
-            border-bottom: none;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .status-pending {
-            background: var(--warning);
-        }
-
-        .status-approved {
-            background: var(--success);
-        }
-
-        .recent-info {
-            flex: 1;
-        }
-
-        .recent-symptoms {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 0.9rem;
-        }
-
-        .recent-meta {
-            color: var(--text-tertiary);
-            font-size: 0.75rem;
-        }
-
-        .quick-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .quick-action-btn {
-            flex: 1;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            text-align: center;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.8125rem;
-            transition: all 0.2s ease;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-tertiary);
-        }
-    </style>
-</head>
-
-<body>
-    <header class="chw-header">
-        <div class="container">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <h1 style="font-size: 1.5rem; margin-bottom: 0.25rem;">{{ 'CHW Dashboard' | translate }}</h1>
-                    <span class="chw-badge">
-                        <i class="fas fa-hands-helping"></i>
-                        {{ 'Community Outreach Worker' | translate }}
-                    </span>
-                    <span class="chw-badge"
-                        style="background: rgba(0, 255, 136, 0.1); color: var(--success); border: 1px solid rgba(0, 255, 136, 0.2);">
-                        <i class="fas fa-cloud-check"></i>
-                        {{ 'Cloud Sync Active' | translate }}
-                    </span>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate">
+    <div>
+        <h2 style="font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-clipboard-list" style="color: var(--info);"></i> <span data-i18n="Outreach Tasks">Outreach
+                Tasks</span>
+        </h2>
+        <div class="glass-card task-card animate">
+            <div
+                style="width: 44px; height: 44px; border-radius: 12px; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                <i class="fas fa-house-chimney"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 800; color: var(--text-primary);">Home Visit: Shanti Devi</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Post-screening follow up - North Block
                 </div>
-                <div style="display: flex; gap: 0.75rem; align-items: center;">
-                    <a href="{{ url_for('dashboard') }}" class="btn btn-ghost" title="Home">
-                        <i class="fas fa-home"></i>
-                    </a>
-                    <a href="{{ url_for('logout') }}" class="btn"
-                        style="background: rgba(255, 77, 77, 0.2); color: var(--error); border: 1px solid rgba(255, 77, 77, 0.3); border-radius: var(--radius-md); padding: 0.5rem 0.75rem; font-weight: 600; text-decoration: none; font-size: 0.8125rem;">
-                        <i class="fas fa-sign-out-alt"></i> {{ 'Logout' | translate }}
-                    </a>
-                </div>
+            </div>
+            <div style="padding: 4px 8px; border-radius: 6px; background: rgba(239, 68, 68, 0.1); color: var(--error); font-size: 0.7rem; font-weight: 800;"
+                data-i18n="HIGH">HIGH</div>
+        </div>
+        <div class="glass-card task-card animate">
+            <div
+                style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: var(--success);">
+                <i class="fas fa-syringe"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 800; color: var(--text-primary);">Immunization Drive</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Community Hall - Starts 10:00 AM</div>
             </div>
         </div>
-    </header>
+    </div>
 
-    <main style="padding: 2rem 0;">
-        <div class="container">
-            <!-- CHW Statistics -->
-            <div class="stats-overview"
-                style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
-                <div class="stat-card"
-                    style="background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center; border-top: 3px solid var(--primary);">
-                    <div
-                        style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">
-                        {{ 'Screenings' | translate }}</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary);">{{
-                        stats.total_screenings }}</div>
-                </div>
-                <div class="stat-card"
-                    style="background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center; border-top: 3px solid var(--warning);">
-                    <div
-                        style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">
-                        {{ 'Pending' | translate }}</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--warning);">{{ stats.pending_reviews }}
-                    </div>
-                </div>
-                <div class="stat-card"
-                    style="background: var(--bg-card); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); text-align: center; border-top: 3px solid var(--error);">
-                    <div
-                        style="font-size: 0.7rem; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.05em;">
-                        {{ 'Critical' | translate }}</div>
-                    <div style="font-size: 1.5rem; font-weight: 800; color: var(--error);">{{ stats.high_severity }}
-                    </div>
+    <div>
+        <h2 style="font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-clock-rotate-left" style="color: var(--primary);"></i> <span
+                data-i18n="Recent Entries">Recent Entries</span>
+        </h2>
+        {% if recent_reports %}
+        {% for report in recent_reports %}
+        <div class="glass-card recent-row animate">
+            <div class="status-pill"
+                style="background: {% if report.doctor_approved %}var(--success){% else %}var(--warning){% endif %};">
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">{{
+                    report.symptoms_text[:40] }}...</div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                    {{ report.created_at.strftime('%b %d, %H:%M') }} •
+                    {% if report.doctor_approved %}<span data-i18n="Verified">Verified</span>{% else %}<span
+                        data-i18n="Pending Review">Pending Review</span>{% endif %}
                 </div>
             </div>
-
-            <!-- Outreach Tools -->
-            <div class="section-title">
-                <i class="fas fa-rocket"></i> {{ 'Community Outreach Tools' | translate }}
-            </div>
-
-            <div class="tools-grid">
-                {% for tool in tools %}
-                <a href="{{ url_for(tool.url) }}" class="tool-card">
-                    <div class="tool-icon"
-                        style="background: linear-gradient(135deg, rgba(196, 255, 13, 0.1), rgba(0, 217, 255, 0.1));">
-                        <i class="fas fa-{{ tool.icon }}"></i>
-                    </div>
-                    <div class="tool-name">{{ tool.name | translate }}</div>
-                </a>
-                {% endfor %}
-            </div>
-
-            <!-- Outreach Tasks -->
-            <div class="section-title">
-                <i class="fas fa-tasks"></i> {{ 'Local Outreach Tasks' | translate }}
-            </div>
-            <div class="recent-list" style="margin-bottom: 2rem;">
-                <div class="recent-item">
-                    <div
-                        style="width: 40px; height: 40px; border-radius: 50%; background: rgba(0,217,255,0.1); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-house-user" style="color: var(--info);"></i>
-                    </div>
-                    <div class="recent-info">
-                        <div class="recent-symptoms">Home Visit: Shanti Devi</div>
-                        <div class="recent-meta">Post-screening follow up - Location: North Block</div>
-                    </div>
-                    <span class="chw-badge"
-                        style="background: rgba(255, 193, 7, 0.1); color: var(--warning); font-size: 0.6rem;">{{ 'High
-                        Priority' | translate }}</span>
-                </div>
-                <div class="recent-item">
-                    <div
-                        style="width: 40px; height: 40px; border-radius: 50%; background: rgba(196, 255, 13, 0.1); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-syringe" style="color: var(--primary);"></i>
-                    </div>
-                    <div class="recent-info">
-                        <div class="recent-symptoms">Polio Vaccination Drive</div>
-                        <div class="recent-meta">Sector 4 Community Center - Starts 10 AM</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Entries -->
-            <div class="section-title">
-                <i class="fas fa-history"></i> {{ 'Recent Patient Entries' | translate }}
-            </div>
-
-            {% if recent_reports %}
-            <div class="recent-list">
-                {% for report in recent_reports %}
-                <div class="recent-item">
-                    <span
-                        class="status-dot {% if report.doctor_approved %}status-approved{% else %}status-pending{% endif %}"></span>
-                    <div class="recent-info">
-                        <div class="recent-symptoms">{{ report.symptoms_text[:50] }}...</div>
-                        <div class="recent-meta">{{ report.created_at.strftime('%b %d, %H:%M') }} - {% if
-                            report.doctor_approved %}{{ 'Doctor Verified' | translate }}{% else %}{{ 'Awaiting Review' |
-                            translate }}{% endif %}</div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-state">
-                <p>No recent screenings found.</p>
-            </div>
-            {% endif %}
+            <a href="{{ url_for('symptom_result', report_id=report.id) }}"
+                style="color: var(--primary); font-size: 0.9rem;"><i class="fas fa-chevron-right"></i></a>
         </div>
-    </main>
+        {% endfor %}
+        {% else %}
+        <div class="glass-card" style="padding: 2rem; text-align: center; color: var(--text-muted);"
+            data-i18n="No recent records found.">No recent records found.</div>
+        {% endif %}
+    </div>
+</div>
 
-    <!-- AI Call Bot -->
-    <a href="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev" class="floating-ai-btn"
-        target="_blank" title="AI Call Bot" style="background: var(--success); bottom: 2rem;">
-        <i class="fas fa-phone"></i>
-    </a>
+{% endblock %}
 
-    <script src="/static/js/app.js"></script>
-</body>
-
-</html>
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 80);
+        });
+    });
+</script>
+{% endblock %}

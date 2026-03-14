@@ -1,59 +1,184 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Eye Scan</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            background: #f4f4f4;
-            padding: 20px;
-            border-radius: 10px;
-        }
-        input[type="file"] {
-            margin: 10px;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            margin-top: 10px;
-        }
-        .result {
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 15px;
-        }
-    </style>
-</head>
-<body>
+{% extends "base.html" %}
 
-    <div class="container">
-        <h2>Upload Eye Image for AI Analysis</h2>
+{% block title %}AI Eye Scan | Pristin Healthcare{% endblock %}
 
-        <form action="/eye_scan" method="POST" enctype="multipart/form-data">
-            <input type="file" name="file" accept="image/*" required>
-            <br>
-            <button type="submit">Upload & Analyze</button>
+{% block extra_css %}
+<style>
+    .eye-scan-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .upload-zone {
+        width: 100%;
+        min-height: 300px;
+        border: 2px dashed var(--border);
+        border-radius: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        margin-bottom: 2rem;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .upload-zone:hover {
+        border-color: var(--primary);
+        background: rgba(59, 130, 246, 0.05);
+        transform: scale(1.01);
+    }
+
+    .upload-zone i {
+        font-size: 4rem;
+        color: var(--primary);
+        margin-bottom: 1.5rem;
+        filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.3));
+    }
+
+    .preview-card {
+        margin-top: 2rem;
+        padding: 1rem;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .preview-card img {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .result-alert {
+        margin-top: 2rem;
+        padding: 2rem;
+        border-radius: 20px;
+        text-align: center;
+        border-left: 6px solid var(--success);
+    }
+
+    .result-title {
+        font-size: 0.9rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--success);
+        margin-bottom: 0.5rem;
+    }
+
+    .result-val {
+        font-size: 2rem;
+        font-weight: 900;
+        color: var(--text-primary);
+    }
+
+    .step-guide {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 3rem;
+    }
+
+    .step-item {
+        text-align: center;
+        padding: 1.5rem;
+    }
+
+    .step-num {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        margin-bottom: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="eye-scan-container animate">
+    <div style="margin-bottom: 3rem;">
+        <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1px; margin: 0;" data-i18n="AI Eye Scan">AI
+            Eye Scan</h1>
+        <p style="color: var(--text-secondary); font-size: 1.1rem; font-weight: 500;"
+            data-i18n="Ocular diagnostic screening for cataracts and other eye diseases.">Ocular diagnostic screening
+            for cataracts and other eye diseases.</p>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="glass-card animate" style="padding: 2.5rem;">
+        <form action="/eye_scan" method="POST" enctype="multipart/form-data" id="eyeForm">
+            <label class="upload-zone" id="dropZone">
+                <input type="file" name="file" accept="image/*" required hidden onchange="this.form.submit()">
+                <i class="fas fa-eye"></i>
+                <h3 style="font-weight: 800; margin-bottom: 8px;" data-i18n="Capture or Upload Image">Capture or Upload
+                    Image</h3>
+                <p style="color: var(--text-secondary); font-size: 0.95rem;"
+                    data-i18n="Clear, front-facing photo of the eye is required.">Clear, front-facing photo of the eye
+                    is required.</p>
+            </label>
         </form>
 
         {% if image_url %}
-            <h3>Uploaded Image:</h3>
-            <img src="{{ image_url }}" alt="Uploaded Image">
+        <div class="glass-card preview-card animate">
+            <div style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;"
+                data-i18n="Analyzed Image">Analyzed Image</div>
+            <img src="{{ image_url }}" alt="Uploaded Eye">
+        </div>
         {% endif %}
 
         {% if result %}
-            <div class="result">
-                <p>Analysis Result: {{ result }}</p>
+        <div class="glass-card result-alert animate">
+            <div class="result-title" data-i18n="Diagnostic Result">Diagnostic Result</div>
+            <div class="result-val">{{ result }}</div>
+            <p style="color: var(--text-secondary); margin-top: 1rem; font-size: 0.9rem;"
+                data-i18n="No significant ocular abnormalities detected by AI.">No significant ocular abnormalities
+                detected by AI.</p>
+            <div
+                style="margin-top: 2rem; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px; font-size: 0.75rem; color: var(--text-muted);">
+                <i class="fas fa-info-circle"></i> <span
+                    data-i18n="Preliminary screening only. Consult an ophthalmologist for a clinical exam.">Preliminary
+                    screening only. Consult an ophthalmologist for a clinical exam.</span>
             </div>
+        </div>
         {% endif %}
     </div>
 
-</body>
-</html>
+    <!-- User Guide -->
+    <div class="step-guide">
+        <div class="glass-card step-item animate">
+            <div class="step-num">1</div>
+            <h4 data-i18n="Proper Lighting" style="font-weight: 800; margin: 8px 0;">Proper Lighting</h4>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Ensure enough natural light.</p>
+        </div>
+        <div class="glass-card step-item animate">
+            <div class="step-num">2</div>
+            <h4 data-i18n="Steady Focus" style="font-weight: 800; margin: 8px 0;">Steady Focus</h4>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Hold camera 10cm away.</p>
+        </div>
+        <div class="glass-card step-item animate">
+            <div class="step-num">3</div>
+            <h4 data-i18n="Clear Capture" style="font-weight: 800; margin: 8px 0;">Clear Capture</h4>
+            <p style="font-size: 0.8rem; color: var(--text-secondary);">Center the eye in the frame.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

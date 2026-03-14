@@ -1,469 +1,318 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - All Patients | Pristin Healthcare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        body {
-            background: var(--bg-primary);
-            padding: 2rem;
-        }
+{% block title %}Patient Database | Pristin Healthcare{% endblock %}
 
-        .admin-header {
-            background: linear-gradient(135deg, var(--bg-card), rgba(196, 255, 13, 0.05));
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
+{% block extra_css %}
+<style>
+    .admin-hero {
+        margin-bottom: 2.5rem;
+    }
 
-        .admin-title {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
+    .search-filter-box {
+        padding: 1.5rem;
+        margin-bottom: 2.5rem;
+    }
 
-        .admin-badge {
-            background: var(--primary);
-            color: var(--bg-primary);
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-full);
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
+    .filter-pills {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+    }
 
-        .search-bar {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1rem 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
+    .pill-btn {
+        padding: 8px 16px;
+        border-radius: 30px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
 
-        .search-bar input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 1rem;
-            outline: none;
-        }
+    .pill-btn.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
 
-        .search-bar input::placeholder {
-            color: var(--text-tertiary);
-        }
+    .patient-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+    }
 
-        .patient-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-        }
+    .p-card {
+        padding: 1.5rem;
+        transition: transform 0.2s;
+    }
 
-        .patient-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
+    .p-card:hover {
+        transform: translateY(-5px);
+    }
 
-        .patient-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(196, 255, 13, 0.15);
-        }
+    .p-header {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin-bottom: 1.25rem;
+    }
 
-        .patient-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
+    .p-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+    }
 
-        .patient-avatar {
-            width: 56px;
-            height: 56px;
-            background: rgba(196, 255, 13, 0.1);
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--primary);
-        }
+    .p-stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin: 1.25rem 0;
+    }
 
-        .patient-name {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
+    .p-mini-stat {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 10px;
+        border-radius: 10px;
+        text-align: center;
+        border: 1px solid var(--border);
+    }
 
-        .patient-role {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-        }
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
 
-        .patient-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.75rem;
-            margin: 1rem 0;
-        }
+    .glass-modal {
+        width: 100%;
+        max-width: 500px;
+        padding: 2.5rem;
+    }
+</style>
+{% endblock %}
 
-        .stat-mini {
-            text-align: center;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-md);
-        }
-
-        .stat-mini-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .stat-mini-label {
-            font-size: 0.6875rem;
-            color: var(--text-tertiary);
-            margin-top: 0.25rem;
-        }
-
-        .patient-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-
-        .btn-action {
-            flex: 1;
-            padding: 0.625rem;
-            border-radius: var(--radius-md);
-            font-size: 0.8125rem;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .btn-view {
-            background: var(--primary);
-            color: var(--bg-primary);
-        }
-
-        .btn-view:hover {
-            box-shadow: var(--glow-green);
-        }
-
-        .btn-message {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-message:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .filter-tabs {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .filter-tab {
-            padding: 0.625rem 1.25rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-full);
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .filter-tab.active {
-            background: var(--primary);
-            color: var(--bg-primary);
-            border-color: var(--primary);
-        }
-
-        .filter-tab:hover:not(.active) {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <!-- Header -->
-        <div class="admin-header">
-            <div class="admin-title">
-                <i class="fas fa-user-shield"></i>
-                {{ 'Admin Dashboard' | translate }}
-                <span class="admin-badge">{{ 'Doctor' | translate }}</span>
-            </div>
-            <p style="color: var(--text-secondary); margin-top: 0.5rem;">
-                {{ 'Manage all patients and their health records' | translate }}
-            </p>
-            <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-                <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-ghost">
-                    <i class="fas fa-arrow-left"></i> {{ 'Back to Reviews' | translate }}
-                </a>
-                <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">
-                    <i class="fas fa-home"></i> {{ 'Home' | translate }}
-                </a>
-            </div>
+{% block content %}
+<div class="admin-hero animate">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+            <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin: 0;"
+                data-i18n="Patient Database">Patient Database</h1>
+            <p style="color: var(--text-secondary); font-weight: 500;"
+                data-i18n="Centralized management for community health records.">Centralized management for community
+                health records.</p>
         </div>
+        <a href="{{ url_for('doctor_dashboard') }}" class="glass-card"
+            style="padding: 10px 20px; font-weight: 800; color: var(--primary); text-decoration: none;">
+            <i class="fas fa-arrow-left"></i> <span data-i18n="Back to Dashboard">Back to Dashboard</span>
+        </a>
+    </div>
+</div>
 
-        <!-- Search Bar -->
-        <div class="search-bar">
-            <i class="fas fa-search" style="color: var(--text-tertiary);"></i>
-            <input type="text" id="searchInput"
-                placeholder="{{ 'Search patients by name, email, or condition...' | translate }}"
-                onkeyup="filterPatients()">
-        </div>
-
-        <!-- Filter Tabs -->
-        <div class="filter-tabs">
-            <button class="filter-tab active" onclick="filterByRole('all')">{{ 'All Patients' | translate }} ({{
-                all_patients|length
-                }})</button>
-            <button class="filter-tab" onclick="filterByRole('patient')">{{ 'Patients Only' | translate }}</button>
-            <button class="filter-tab" onclick="filterByRole('doctor')">{{ 'Doctors' | translate }}</button>
-            <button class="filter-tab" onclick="filterByRole('chw')">{{ 'CHWs' | translate }}</button>
-        </div>
-
-        <!-- Patient Grid -->
-        <div class="patient-grid" id="patientGrid">
-            {% for patient in all_patients %}
-            <div class="patient-card" data-role="{{ patient.role }}" data-name="{{ patient.username.lower() }}"
-                data-email="{{ patient.email.lower() }}">
-                <div class="patient-header">
-                    <div class="patient-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div style="flex: 1;">
-                        <div class="patient-name">{{ patient.username }}</div>
-                        <div class="patient-role">{{ patient.role }}</div>
-                    </div>
-                </div>
-
-                <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
-                    <i class="fas fa-envelope"></i> {{ patient.email }}
-                </div>
-
-                {% if patient.age or patient.gender %}
-                <div style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 1rem;">
-                    {% if patient.age %}<i class="fas fa-birthday-cake"></i> {{ patient.age }} years{% endif %}
-                    {% if patient.gender %} • <i class="fas fa-venus-mars"></i> {{ patient.gender }}{% endif %}
-                </div>
-                {% endif %}
-
-                <div class="patient-stats">
-                    <div class="stat-mini">
-                        <div class="stat-mini-value">{{ patient.symptom_count }}</div>
-                        <div class="stat-mini-label">Symptoms</div>
-                    </div>
-                    <div class="stat-mini">
-                        <div class="stat-mini-value">{{ patient.vital_count }}</div>
-                        <div class="stat-mini-label">Vitals</div>
-                    </div>
-                    <div class="stat-mini">
-                        <div class="stat-mini-value">{{ patient.prescription_count }}</div>
-                        <div class="stat-mini-label">Rx</div>
-                    </div>
-                </div>
-
-                <div class="patient-actions">
-                    <a href="{{ url_for('admin_patient_detail', patient_id=patient.id) }}" class="btn-action btn-view">
-                        <i class="fas fa-eye"></i> {{ 'View Full Profile' | translate }}
-                    </a>
-                    {% if patient.whatsapp_number %}
-                    <button class="btn-action btn-message"
-                        onclick="openWhatsAppModal({{ patient.id }}, '{{ patient.username }}', '{{ patient.whatsapp_number }}')">
-                        <i class="fab fa-whatsapp"></i> {{ 'Message' | translate }}
-                    </button>
-                    {% else %}
-                    <button class="btn-action btn-message"
-                        onclick="alert('{{ 'No WhatsApp number registered for this patient.' | translate }}')">
-                        <i class="fab fa-whatsapp"></i> {{ 'Message' | translate }}
-                    </button>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        {% if not all_patients %}
-        <div style="text-align: center; padding: 4rem; color: var(--text-tertiary);">
-            <i class="fas fa-users" style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-            <p>{{ 'No patients registered yet.' | translate }}</p>
-        </div>
-        {% endif %}
+<div class="glass-card search-filter-box animate">
+    <div style="position: relative; display: flex; align-items: center;">
+        <i class="fas fa-search" style="position: absolute; left: 1.25rem; color: var(--text-muted);"></i>
+        <input type="text" id="searchInput" onkeyup="filterPatients()"
+            style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 14px; padding: 14px 14px 14px 3.5rem; color: var(--text-primary); font-size: 1rem; outline: none;"
+            placeholder="Search by name, ID, or condition...">
     </div>
 
-    <!-- WhatsApp Message Modal -->
-    <div id="whatsappModal"
-        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; padding: 1rem;">
+    <div class="filter-pills">
+        <button class="pill-btn active" onclick="filterByRole('all', this)" data-i18n="All Contacts">All
+            Contacts</button>
+        <button class="pill-btn" onclick="filterByRole('patient', this)" data-i18n="Patients">Patients</button>
+        <button class="pill-btn" onclick="filterByRole('doctor', this)" data-i18n="Medical Team">Medical Team</button>
+        <button class="pill-btn" onclick="filterByRole('chw', this)" data-i18n="Community Agents">Community
+            Agents</button>
+    </div>
+</div>
+
+<div class="patient-grid" id="patientGrid">
+    {% for patient in all_patients %}
+    <div class="glass-card p-card animate" data-role="{{ patient.role }}" data-name="{{ patient.username.lower() }}"
+        data-email="{{ patient.email.lower() }}">
+        <div class="p-header">
+            <div class="p-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-primary);">{{ patient.username }}
+                </div>
+                <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--primary);">{{
+                    patient.role }}</div>
+            </div>
+        </div>
+
         <div
-            style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-xl); width: 100%; max-width: 500px; padding: 2rem; box-shadow: var(--shadow-xl);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin: 0;">
-                    <i class="fab fa-whatsapp" style="color: #25D366; margin-right: 0.5rem;"></i>
-                    {{ 'Send WhatsApp Message' | translate }}
-                </h3>
-                <button onclick="closeWhatsAppModal()"
-                    style="background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 1.5rem;">
-                    <i class="fas fa-times"></i>
-                </button>
+            style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-envelope-open" style="font-size: 0.75rem; opacity: 0.5;"></i> {{ patient.email }}
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-calendar" style="font-size: 0.75rem; opacity: 0.5;"></i> {{ patient.age|default('?', true)
+            }} <span data-i18n="Years">Years</span> • {{ patient.gender|default('?', true) }}
+        </div>
+
+        <div class="p-stats-row">
+            <div class="p-mini-stat">
+                <div style="font-weight: 900; color: var(--text-primary);">{{ patient.symptom_count }}</div>
+                <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase;"
+                    data-i18n="Reports">Reports</div>
             </div>
-
-            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
-                {{ 'Recipient' | translate }}: <strong id="modalPatientName" style="color: var(--primary);"></strong>
-                (<span id="modalPatientPhone" style="font-family: monospace;"></span>)
-            </p>
-
-            <textarea id="whatsappMessage"
-                style="width: 100%; min-height: 150px; padding: 1rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); color: var(--text-primary); font-family: inherit; resize: vertical; margin-bottom: 1.5rem; outline: none;"
-                placeholder="{{ 'Type your message here...' | translate }}"></textarea>
-
-            <div style="display: flex; gap: 1rem;">
-                <button onclick="closeWhatsAppModal()" class="btn btn-ghost" style="flex: 1;">{{ 'Cancel' | translate
-                    }}</button>
-                <button id="sendMessageBtn" onclick="sendWhatsAppMessageFromApp()" class="btn btn-primary"
-                    style="flex: 2;">
-                    <i class="fas fa-paper-plane"></i> {{ 'Send Message' | translate }}
-                </button>
+            <div class="p-mini-stat">
+                <div style="font-weight: 900; color: var(--text-primary);">{{ patient.vital_count }}</div>
+                <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase;"
+                    data-i18n="Vitals">Vitals</div>
             </div>
-
-            <div id="modalStatus" style="margin-top: 1rem; font-size: 0.875rem; text-align: center; display: none;">
+            <div class="p-mini-stat">
+                <div style="font-weight: 900; color: var(--text-primary);">{{ patient.prescription_count }}</div>
+                <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase;"
+                    data-i18n="Scripts">Scripts</div>
             </div>
         </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1.5rem;">
+            <a href="{{ url_for('admin_patient_detail', patient_id=patient.id) }}" class="btn-primary"
+                style="padding: 10px; border-radius: 10px; font-size: 0.8rem;">
+                <span data-i18n="View Full Profile">View Profile</span>
+            </a>
+            {% if patient.whatsapp_number %}
+            <button
+                onclick="openWhatsAppModal({{ patient.id }}, '{{ patient.username }}', '{{ patient.whatsapp_number }}')"
+                class="glass-card"
+                style="padding: 10px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; color: #25D366;">
+                <i class="fab fa-whatsapp"></i> <span data-i18n="Message">Message</span>
+            </button>
+            {% else %}
+            <button disabled class="glass-card"
+                style="padding: 10px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; opacity: 0.4;">
+                <i class="fas fa-phone-slash"></i> <span data-i18n="No Number">No Number</span>
+            </button>
+            {% endif %}
+        </div>
     </div>
+    {% endfor %}
+</div>
 
-    <script>
-        let currentPatientId = null;
+<!-- Modal -->
+<div id="whatsappModal" class="modal-overlay">
+    <div class="glass-card glass-modal animate">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h3 style="font-weight: 900; margin: 0; color: #25D366;"><i class="fab fa-whatsapp"></i> <span
+                    data-i18n="WhatsApp Communication">WhatsApp Communication</span></h3>
+            <button onclick="closeWhatsAppModal()"
+                style="background:none; border:none; color: var(--text-muted); cursor:pointer;"><i
+                    class="fas fa-times"></i></button>
+        </div>
 
-        function openWhatsAppModal(patientId, patientName, patientPhone) {
-            currentPatientId = patientId;
-            document.getElementById('modalPatientName').textContent = patientName;
-            document.getElementById('modalPatientPhone').textContent = patientPhone;
-            document.getElementById('whatsappMessage').value = '';
-            document.getElementById('whatsappModal').style.display = 'flex';
-            document.getElementById('modalStatus').style.display = 'none';
-            document.getElementById('whatsappMessage').focus();
-        }
+        <div style="margin-bottom: 1.5rem;">
+            <div id="modalPatientName" style="font-weight: 800; font-size: 1.1rem;"></div>
+            <div id="modalPatientPhone" style="font-size: 0.85rem; color: var(--text-muted);"></div>
+        </div>
 
-        function closeWhatsAppModal() {
-            document.getElementById('whatsappModal').style.display = 'none';
-        }
+        <textarea id="whatsappMessage"
+            style="width: 100%; min-height: 150px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; padding: 1rem; color: var(--text-primary); margin-bottom: 1.5rem; outline: none;"
+            placeholder="Type medical instruction or message..."></textarea>
 
-        async function sendWhatsAppMessageFromApp() {
-            const message = document.getElementById('whatsappMessage').value;
-            const statusDiv = document.getElementById('modalStatus');
-            const sendBtn = document.getElementById('sendMessageBtn');
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+            <button onclick="closeWhatsAppModal()" class="glass-card" style="padding: 12px; font-weight: 800;"
+                data-i18n="Cancel">Cancel</button>
+            <button id="sendMessageBtn" onclick="sendWhatsAppMessageFromApp()" class="btn-primary"
+                style="padding: 12px; border-radius: 12px;"><i class="fas fa-paper-plane"></i> <span
+                    data-i18n="Dispatch Message">Dispatch Message</span></button>
+        </div>
+        <div id="modalStatus" style="margin-top: 1rem; text-align: center; font-size: 0.85rem; font-weight: 700;"></div>
+    </div>
+</div>
+{% endblock %}
 
-            if (!message.trim()) {
-                statusDiv.textContent = '{{ "Please enter a message." | translate }}';
-                statusDiv.style.color = 'var(--error)';
-                statusDiv.style.display = 'block';
-                return;
-            }
+{% block extra_js %}
+<script>
+    let currentPatientId = null;
 
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ "Sending..." | translate }}';
-            statusDiv.style.display = 'none';
+    function openWhatsAppModal(id, name, phone) {
+        currentPatientId = id;
+        document.getElementById('modalPatientName').textContent = name;
+        document.getElementById('modalPatientPhone').textContent = phone;
+        document.getElementById('whatsappModal').style.display = 'flex';
+        document.getElementById('modalStatus').textContent = '';
+    }
 
-            try {
-                const response = await fetch('/api/whatsapp/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        patient_id: currentPatientId,
-                        message: message
-                    })
-                });
+    function closeWhatsAppModal() {
+        document.getElementById('whatsappModal').style.display = 'none';
+    }
 
-                const data = await response.json();
+    async function sendWhatsAppMessageFromApp() {
+        const msg = document.getElementById('whatsappMessage').value;
+        const btn = document.getElementById('sendMessageBtn');
+        const status = document.getElementById('modalStatus');
 
-                if (response.ok) {
-                    statusDiv.textContent = '{{ "Message sent successfully!" | translate }}';
-                    statusDiv.style.color = 'var(--success)';
-                    statusDiv.style.display = 'block';
-                    setTimeout(closeWhatsAppModal, 2000);
-                } else {
-                    statusDiv.textContent = data.error || '{{ "Failed to send message." | translate }}';
-                    statusDiv.style.color = 'var(--error)';
-                    statusDiv.style.display = 'block';
-                }
-            } catch (err) {
-                statusDiv.textContent = '{{ "Server connection failed." | translate }}';
-                statusDiv.style.color = 'var(--error)';
-                statusDiv.style.display = 'block';
-            } finally {
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> {{ "Send Message" | translate }}';
-            }
-        }
+        if (!msg.trim()) return;
 
-        function filterPatients() {
-            const searchValue = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.patient-card');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-            cards.forEach(card => {
-                const name = card.dataset.name;
-                const email = card.dataset.email;
-                const text = card.textContent.toLowerCase();
-
-                if (name.includes(searchValue) || email.includes(searchValue) || text.includes(searchValue)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
+        try {
+            const resp = await fetch('/api/whatsapp/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ patient_id: currentPatientId, message: msg })
             });
-        }
-
-        function filterByRole(role) {
-            const cards = document.querySelectorAll('.patient-card');
-            const tabs = document.querySelectorAll('.filter-tab');
-
-            // Update active tab
-            tabs.forEach(tab => tab.classList.remove('active'));
-            if (event && event.target) {
-                event.target.classList.add('active');
+            const data = await resp.json();
+            if (resp.ok) {
+                status.textContent = 'Dispatched successfully ✓';
+                status.style.color = 'var(--success)';
+                setTimeout(closeWhatsAppModal, 1500);
+            } else {
+                status.textContent = data.error || 'Failed to dispatch';
+                status.style.color = 'var(--error)';
             }
-
-            // Filter cards
-            cards.forEach(card => {
-                if (role === 'all' || card.dataset.role === role) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+        } catch (e) {
+            status.textContent = 'Server connection failed';
+            status.style.color = 'var(--error)';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Dispatch Message';
         }
-    </script>
-</body>
+    }
 
-</html>
+    function filterPatients() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        document.querySelectorAll('.p-card').forEach(c => {
+            const visible = c.dataset.name.includes(q) || c.dataset.email.includes(q);
+            c.style.display = visible ? 'block' : 'none';
+        });
+    }
+
+    function filterByRole(role, btn) {
+        document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.p-card').forEach(c => {
+            c.style.display = (role === 'all' || c.dataset.role === role) ? 'block' : 'none';
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 60);
+        });
+    });
+</script>
+{% endblock %}

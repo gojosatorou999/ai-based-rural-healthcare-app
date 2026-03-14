@@ -1,465 +1,302 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0A0A0A">
-    <meta name="description" content="Record your vital signs and monitor your health vitals on Pristin Healthcare.">
-    <title>{{ 'Log Vitals' | translate }} - Pristin Healthcare</title>
-    <script>
-        // Apply theme early to prevent flash
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
+{% block title %}Log Vitals | Pristin Healthcare{% endblock %}
 
-    <link rel="manifest" href="/static/manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+{% block extra_css %}
+<style>
+    .vitals-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding-bottom: 4rem;
+    }
 
-    <style>
-        body {
-            background: var(--bg-primary);
-            position: relative;
-        }
+    .form-header {
+        text-align: center;
+        margin-bottom: 3rem;
+        animation: fadeIn 0.6s ease;
+    }
 
-        /* Gradient glow background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 30% 20%, rgba(196, 255, 13, 0.12) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
+    .iot-banner {
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border-radius: 16px;
+    }
 
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -30%;
-            right: -30%;
-            width: 80%;
-            height: 80%;
-            background: radial-gradient(circle at 70% 80%, rgba(196, 255, 13, 0.06) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
+    .vitals-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
 
-
-        .page-header {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .back-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-
-        .back-btn:hover {
-            color: var(--primary);
-        }
-
-        .page-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .main-content {
-            padding: 2rem 0;
-        }
-
-        .form-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            max-width: 640px;
-            margin: 0 auto;
-        }
-
-        .form-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .form-icon {
-            width: 64px;
-            height: 64px;
-            background: rgba(196, 255, 13, 0.1);
-            border-radius: var(--radius-lg);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 1rem;
-        }
-
-        .form-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .form-subtitle {
-            color: var(--text-secondary);
-            font-size: 0.9375rem;
-        }
-
+    @media (max-width: 640px) {
         .vitals-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
+            grid-template-columns: 1fr;
         }
+    }
 
-        .vital-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.25rem;
-        }
+    .vital-input-card {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
 
-        .vital-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-        }
+    .vital-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
 
-        .vital-icon {
-            width: 40px;
-            height: 40px;
-            background: rgba(196, 255, 13, 0.1);
-            border-radius: var(--radius-md);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            color: var(--primary);
-        }
+    .v-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: rgba(59, 130, 246, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: var(--primary);
+    }
 
-        .vital-label {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 0.9375rem;
-        }
+    .v-label-group h4 {
+        margin: 0;
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
 
-        .vital-unit {
-            font-size: 0.8125rem;
-            color: var(--text-tertiary);
-        }
+    .v-label-group span {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
 
-        .bp-inputs {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .form-control {
+        width: 100%;
+        height: 3.5rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        color: var(--text-primary);
+        padding: 0 1.25rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+        text-align: center;
+        transition: 0.2s;
+    }
 
-        .bp-inputs input {
-            flex: 1;
-            text-align: center;
-        }
+    .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: rgba(255, 255, 255, 0.06);
+    }
 
-        .bp-divider {
-            font-size: 1.5rem;
-            color: var(--text-tertiary);
-            font-weight: 600;
-        }
+    .bp-row {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 0.75rem;
+    }
 
-        .full-width {
-            grid-column: span 2;
-        }
+    .bp-sep {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: var(--text-secondary);
+    }
 
-        .submit-section {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border-color);
-        }
+    .full-width {
+        grid-column: 1 / -1;
+    }
 
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1rem;
-            font-weight: 700;
-        }
+    .normal-ranges {
+        border-top: 1px solid var(--border);
+        padding-top: 2rem;
+        margin-top: 3rem;
+    }
 
-        .reference-ranges {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-        }
+    .range-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9rem;
+    }
 
-        .reference-title {
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .range-item:last-child {
+        border: none;
+    }
+</style>
+{% endblock %}
 
-        .reference-title i {
-            color: var(--primary);
-        }
+{% block content %}
+<div class="vitals-container">
+    <div class="form-header">
+        <div class="v-icon" style="width: 72px; height: 72px; font-size: 2rem; margin: 0 auto 1.5rem auto;"><i
+                class="fas fa-heartbeat"></i></div>
+        <h1 data-i18n="Log Vitals" style="font-weight: 900; font-size: 2.5rem; letter-spacing: -1px;">Record Vital Signs
+        </h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;"
+            data-i18n="Monitor your health regularly for AI-driven insights">Monitor your health regularly for AI-driven
+            insights</p>
+    </div>
 
-        .reference-list {
-            display: grid;
-            gap: 0.5rem;
-        }
-
-        .reference-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        .reference-value {
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        @media (max-width: 640px) {
-            .vitals-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .full-width {
-                grid-column: span 1;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
-        style="position: fixed; top: 1rem; right: 1rem; z-index: 2000;">
-        <i class="fas fa-moon"></i>
-    </button>
-    <!-- Header -->
-    <header class="page-header">
-        <div class="container">
-            <div class="header-content">
-                <a href="{{ url_for('dashboard') }}" class="back-btn">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>{{ 'Back' | translate }}</span>
-                </a>
-                <span class="page-title">{{ 'Log Vitals' | translate }}</span>
-                <a href="{{ url_for('vitals_timeline') }}" class="btn btn-sm btn-ghost">
-                    <i class="fas fa-chart-line"></i>
-                </a>
-            </div>
+    <!-- IoT Banner -->
+    <div class="glass-card iot-banner animate">
+        <div class="flex items-center gap-3">
+            <div id="statusDot"
+                style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-secondary);"></div>
+            <span id="statusText" style="font-weight: 700; font-size: 0.9rem;" data-i18n="No device connected">Ready for
+                IoT Sync</span>
         </div>
-    </header>
+        <button class="btn-primary" style="padding: 8px 16px; font-size: 0.8rem;" id="iotConnect">
+            <i class="fas fa-bluetooth"></i> <span data-i18n="Scan for Devices">Sync Device</span>
+        </button>
+    </div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="container">
-            <div class="form-card">
-                <div class="form-header">
-                    <div class="form-icon">
-                        <i class="fas fa-microchip"></i>
-                    </div>
-                    <h1 class="form-title">{{ 'IoT Vital Sync' | translate }}</h1>
-                    <p class="form-subtitle">{{ 'Connect external medical devices for automatic recording' | translate
-                        }}</p>
-
-                    <!-- IoT Device Status Bar -->
-                    <div id="iotStatusBar"
-                        style="margin-top: 1.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <div id="iotStatusPulse"
-                                style="width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted);">
-                            </div>
-                            <span id="iotStatusText"
-                                style="font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary);">
-                                {{ 'No device connected' | translate }}
-                            </span>
-                        </div>
-                        <button type="button" onclick="connectIoTDevice()" id="iotConnectBtn"
-                            class="btn btn-sm btn-ghost" style="color: var(--primary); font-size: 0.75rem;">
-                            <i class="fas fa-bluetooth"></i> {{ 'Scan for Devices' | translate }}
-                        </button>
-                    </div>
-
+    <form action="{{ url_for('new_vital_record') }}" method="POST" class="vitals-grid">
+        <!-- BP -->
+        <div class="glass-card vital-input-card full-width animate">
+            <div class="vital-header">
+                <div class="v-icon" style="color: var(--error); background: rgba(239, 68, 68, 0.1);"><i
+                        class="fas fa-heart"></i></div>
+                <div class="v-label-group">
+                    <h4 data-i18n="Blood Pressure">Blood Pressure</h4>
+                    <span>mmHg</span>
                 </div>
-
-                <form action="{{ url_for('new_vital_record') }}" method="POST" id="vitalsForm">
-                    <div class="vitals-grid">
-                        <!-- Blood Pressure -->
-                        <div class="vital-card full-width">
-                            <div class="vital-header">
-                                <div class="vital-icon">
-                                    <i class="fas fa-heart"></i>
-                                </div>
-                                <div>
-                                    <div class="vital-label">{{ 'Blood Pressure' | translate }}</div>
-                                    <div class="vital-unit">mmHg</div>
-                                </div>
-                            </div>
-                            <div class="bp-inputs">
-                                <input type="number" name="bp_systolic" class="form-control" placeholder="120" min="60"
-                                    max="250">
-                                <span class="bp-divider">/</span>
-                                <input type="number" name="bp_diastolic" class="form-control" placeholder="80" min="40"
-                                    max="150">
-                            </div>
-                        </div>
-
-                        <!-- Glucose -->
-                        <div class="vital-card">
-                            <div class="vital-header">
-                                <div class="vital-icon">
-                                    <i class="fas fa-tint"></i>
-                                </div>
-                                <div>
-                                    <div class="vital-label">{{ 'Glucose' | translate }}</div>
-                                    <div class="vital-unit">mg/dL</div>
-                                </div>
-                            </div>
-                            <input type="number" name="glucose" class="form-control" placeholder="100" min="20"
-                                max="600">
-                        </div>
-
-                        <!-- Temperature -->
-                        <div class="vital-card">
-                            <div class="vital-header">
-                                <div class="vital-icon">
-                                    <i class="fas fa-thermometer-half"></i>
-                                </div>
-                                <div>
-                                    <div class="vital-label">{{ 'Temperature' | translate }}</div>
-                                    <div class="vital-unit">°C</div>
-                                </div>
-                            </div>
-                            <input type="number" name="temperature" class="form-control" placeholder="37.0" min="34"
-                                max="43" step="0.1">
-                        </div>
-
-                        <!-- Heart Rate -->
-                        <div class="vital-card">
-                            <div class="vital-header">
-                                <div class="vital-icon">
-                                    <i class="fas fa-wave-square"></i>
-                                </div>
-                                <div>
-                                    <div class="vital-label">{{ 'Heart Rate' | translate }}</div>
-                                    <div class="vital-unit">BPM</div>
-                                </div>
-                            </div>
-                            <input type="number" name="heart_rate" class="form-control" placeholder="72" min="30"
-                                max="220">
-                        </div>
-
-                        <!-- Oxygen -->
-                        <div class="vital-card">
-                            <div class="vital-header">
-                                <div class="vital-icon">
-                                    <i class="fas fa-lungs"></i>
-                                </div>
-                                <div>
-                                    <div class="vital-label">{{ 'Oxygen (SpO2)' | translate }}</div>
-                                    <div class="vital-unit">%</div>
-                                </div>
-                            </div>
-                            <input type="number" name="oxygen_saturation" class="form-control" placeholder="98" min="70"
-                                max="100">
-                        </div>
-
-                        <!-- Weight -->
-                        <div class="vital-card">
-                            <div class="vital-header">
-                                <div class="vital-icon">
-                                    <i class="fas fa-weight"></i>
-                                </div>
-                                <div>
-                                    <div class="vital-label">{{ 'Weight' | translate }}</div>
-                                    <div class="vital-unit">kg</div>
-                                </div>
-                            </div>
-                            <input type="number" name="weight" class="form-control" placeholder="70" min="20" max="300"
-                                step="0.1">
-                        </div>
-
-                        <!-- Notes -->
-                        <div class="vital-card full-width">
-                            <div class="vital-header">
-                                <div class="vital-icon">
-                                    <i class="fas fa-sticky-note"></i>
-                                </div>
-                                <div>
-                                    <div class="vital-label">{{ 'Notes' | translate }}</div>
-                                    <div class="vital-unit">{{ 'Optional' | translate }}</div>
-                                </div>
-                            </div>
-                            <textarea name="notes" class="form-control" rows="2"
-                                placeholder="{{ 'Any additional notes...' | translate }}"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="reference-ranges">
-                        <div class="reference-title">
-                            <i class="fas fa-info-circle"></i>
-                            {{ 'Normal Ranges' | translate }}
-                        </div>
-                        <div class="reference-list">
-                            <div class="reference-item">
-                                <span>{{ 'Blood Pressure' | translate }}</span>
-                                <span class="reference-value">&lt; 120/80 mmHg</span>
-                            </div>
-                            <div class="reference-item">
-                                <span>{{ 'Fasting Glucose' | translate }}</span>
-                                <span class="reference-value">70-100 mg/dL</span>
-                            </div>
-                            <div class="reference-item">
-                                <span>{{ 'Temperature' | translate }}</span>
-                                <span class="reference-value">36.1-37.2 °C</span>
-                            </div>
-                            <div class="reference-item">
-                                <span>{{ 'Heart Rate' | translate }}</span>
-                                <span class="reference-value">60-100 BPM</span>
-                            </div>
-                            <div class="reference-item">
-                                <span>{{ 'Oxygen (SpO2)' | translate }}</span>
-                                <span class="reference-value">&gt; 95%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="submit-section">
-                        <button type="submit" class="btn btn-primary submit-btn">
-                            <i class="fas fa-save"></i>
-                            {{ 'Save Vital Signs' | translate }}
-                        </button>
-                    </div>
-                </form>
+            </div>
+            <div class="bp-row">
+                <input type="number" name="bp_systolic" class="form-control" placeholder="120">
+                <span class="bp-sep">/</span>
+                <input type="number" name="bp_diastolic" class="form-control" placeholder="80">
             </div>
         </div>
-    </main>
 
-    <script src="/static/js/app.js"></script>
-</body>
+        <!-- Glucose -->
+        <div class="glass-card vital-input-card animate">
+            <div class="vital-header">
+                <div class="v-icon" style="color: var(--warning); background: rgba(245, 158, 11, 0.1);"><i
+                        class="fas fa-tint"></i></div>
+                <div class="v-label-group">
+                    <h4 data-i18n="Glucose">Glucose</h4>
+                    <span>mg/dL</span>
+                </div>
+            </div>
+            <input type="number" name="glucose" class="form-control" placeholder="100">
+        </div>
 
-</html>
+        <!-- Temp -->
+        <div class="glass-card vital-input-card animate">
+            <div class="vital-header">
+                <div class="v-icon" style="color: #06b6d4; background: rgba(6, 182, 212, 0.1);"><i
+                        class="fas fa-thermometer-half"></i></div>
+                <div class="v-label-group">
+                    <h4 data-i18n="Temperature">Temperature</h4>
+                    <span>°C</span>
+                </div>
+            </div>
+            <input type="number" name="temperature" class="form-control" placeholder="37.0" step="0.1">
+        </div>
+
+        <!-- Heart Rate -->
+        <div class="glass-card vital-input-card animate">
+            <div class="vital-header">
+                <div class="v-icon"><i class="fas fa-wave-square"></i></div>
+                <div class="v-label-group">
+                    <h4 data-i18n="Heart Rate">Heart Rate</h4>
+                    <span>BPM</span>
+                </div>
+            </div>
+            <input type="number" name="heart_rate" class="form-control" placeholder="72">
+        </div>
+
+        <!-- Oxygen -->
+        <div class="glass-card vital-input-card animate">
+            <div class="vital-header">
+                <div class="v-icon" style="color: var(--success); background: rgba(16, 185, 129, 0.1);"><i
+                        class="fas fa-lungs"></i></div>
+                <div class="v-label-group">
+                    <h4 data-i18n="Oxygen (SpO2)">Oxygen</h4>
+                    <span>%</span>
+                </div>
+            </div>
+            <input type="number" name="oxygen_saturation" class="form-control" placeholder="98">
+        </div>
+
+        <!-- Notes -->
+        <div class="glass-card vital-input-card full-width animate">
+            <div class="vital-header">
+                <div class="v-icon" style="color: var(--text-secondary);"><i class="fas fa-sticky-note"></i></div>
+                <div class="v-label-group">
+                    <h4 data-i18n="Notes">Observations</h4>
+                    <span data-i18n="Optional">Optional</span>
+                </div>
+            </div>
+            <textarea name="notes" class="form-control" rows="2" placeholder="Any specific symptoms or context..."
+                style="text-align: left; height: auto; padding: 1rem;"></textarea>
+        </div>
+
+        <div class="full-width">
+            <button type="submit" class="btn-primary w-full"
+                style="justify-content: center; width: 100%; padding: 1.25rem; font-size: 1.1rem; margin-top: 1rem;">
+                <span data-i18n="Save Vital Signs">Save Clinical Data</span> <i class="fas fa-save"
+                    style="margin-left: 10px;"></i>
+            </button>
+        </div>
+    </form>
+
+    <div class="normal-ranges animate">
+        <h3 style="font-weight: 800; margin-bottom: 1.5rem;" data-i18n="Normal Ranges">Reference Guidelines</h3>
+        <div class="glass-card" style="padding: 1.5rem;">
+            <div class="range-item">
+                <span data-i18n="Blood Pressure">Blood Pressure</span>
+                <span style="font-weight: 700; color: var(--primary);">&lt; 120/80 mmHg</span>
+            </div>
+            <div class="range-item">
+                <span data-i18n="Fasting Glucose">Fasting Glucose</span>
+                <span style="font-weight: 700; color: var(--primary);">70-100 mg/dL</span>
+            </div>
+            <div class="range-item">
+                <span data-i18n="Heart Rate">Heart Rate</span>
+                <span style="font-weight: 700; color: var(--primary);">60-100 BPM</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const dot = document.getElementById('statusDot');
+    const txt = document.getElementById('statusText');
+    const btn = document.getElementById('iotConnect');
+
+    btn.onclick = () => {
+        txt.innerText = "Scanning for devices...";
+        dot.style.background = 'var(--warning)';
+        dot.style.boxShadow = '0 0 10px var(--warning)';
+
+        setTimeout(() => {
+            txt.innerText = "Syncing data from OMRON-990...";
+            dot.style.background = 'var(--primary)';
+        }, 1500);
+
+        setTimeout(() => {
+            txt.innerText = "Data successfully synced";
+            dot.style.background = 'var(--success)';
+            dot.style.boxShadow = '0 0 10px var(--success)';
+        }, 3000);
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 80);
+        });
+    });
+</script>
+{% endblock %}

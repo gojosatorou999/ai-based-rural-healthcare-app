@@ -1,7 +1,7 @@
 // Service Worker for Pristin Healthcare PWA
 // Provides offline-first functionality for rural telemedicine
 
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v2.0.0';
 const STATIC_CACHE = `pristin-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `pristin-dynamic-${CACHE_VERSION}`;
 const DATA_CACHE = `pristin-data-${CACHE_VERSION}`;
@@ -272,7 +272,7 @@ async function syncPrescriptionsData() {
 // Helper: Open IDB
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('telemedicine-db', 2);
+    const request = indexedDB.open('PristinHealthDB', 1);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
     // On upgrade is handled in app.js, SW assumes DB logic matches

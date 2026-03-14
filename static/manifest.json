@@ -2,11 +2,13 @@
   "name": "Pristin Healthcare",
   "short_name": "Pristin",
   "description": "AI-Powered Rural Telemedicine Platform",
-  "start_url": "/",
+  "start_url": "/dashboard",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0A0A0A",
-  "theme_color": "#0A0A0A",
-  "orientation": "portrait-primary",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "orientation": "any",
+  "id": "/dashboard",
   "icons": [
     {
       "src": "/static/icons/icon-72x72.png",
@@ -57,40 +59,44 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/static/screenshots/dashboard.png",
-      "sizes": "1280x720",
-      "type": "image/png"
-    },
-    {
-      "src": "/static/screenshots/symptoms.png",
-      "sizes": "1280x720",
-      "type": "image/png"
-    }
+  "categories": [
+    "health",
+    "medical",
+    "productivity"
   ],
-  "categories": ["health", "medical", "productivity"],
   "shortcuts": [
     {
       "name": "Report Symptoms",
       "short_name": "Symptoms",
-      "description": "Report new symptoms",
-      "url": "/symptoms/new",
-      "icons": [{ "src": "/static/icons/symptom-icon.png", "sizes": "96x96" }]
+      "url": "/symptom_input",
+      "icons": [
+        {
+          "src": "/static/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
       "name": "Log Vitals",
       "short_name": "Vitals",
-      "description": "Log vital signs",
-      "url": "/vitals/new",
-      "icons": [{ "src": "/static/icons/vital-icon.png", "sizes": "96x96" }]
+      "url": "/vitals_input",
+      "icons": [
+        {
+          "src": "/static/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
-      "name": "Upload Prescription",
-      "short_name": "Prescription",
-      "description": "Upload prescription for OCR",
-      "url": "/prescriptions/new",
-      "icons": [{ "src": "/static/icons/prescription-icon.png", "sizes": "96x96" }]
+      "name": "Video Consult",
+      "short_name": "Consult",
+      "url": "/video_start",
+      "icons": [
+        {
+          "src": "/static/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ],
   "prefer_related_applications": false

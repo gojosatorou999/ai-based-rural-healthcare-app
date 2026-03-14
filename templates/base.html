@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}Pristin Healthcare{% endblock %}</title>
+
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#020617">
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block extra_css %}{% endblock %}
+
+    <style>
+        .profile-header-info {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .u-badge {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--primary);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dropdown-parent {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            margin-top: 12px;
+            right: 0;
+            min-width: 240px;
+            z-index: 99999 !important;
+        }
+
+        .nav-trigger {
+            background: transparent;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s;
+        }
+
+        .nav-trigger:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .voice-lang-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+
+<body class="app-root">
+
+    <div id="offlineBanner" class="offline-banner">
+        <i class="fas fa-wifi-slash"></i> <span data-i18n="Offline Mode Active">Offline Mode Active</span> - <span
+            data-i18n="Accessing Cached Data">Accessing Cached Data</span>
+    </div>
+
+    <div id="modalOverlay" class="modal-overlay" onclick="closeExternalModal()"></div>
+
+    <header class="header-fixed">
+        <div class="app-container header-glass glass-card">
+            <a href="/" class="brand" style="text-decoration: none; color: inherit;">
+                <i class="fas fa-heartbeat"></i> PRISTIN<span>HEALTH</span>
+            </a>
+
+            <div class="flex items-center gap-2" style="margin-left: 2rem; flex: 1;">
+                {% if current_user.is_authenticated %}
+                <div class="dropdown-parent">
+                    <button class="nav-trigger" onclick="toggleDD('navDD')">
+                        <i class="fas fa-compass"></i>
+                        <span data-i18n="Medical Portal">Medical Portal</span>
+                        <i class="fas fa-chevron-down" style="font-size: 0.7rem; color: var(--text-secondary);"></i>
+                    </button>
+                    <div id="navDD" class="dropdown-menu" style="right: auto; left: 0;">
+                        <a href="{{ url_for('dashboard') }}" class="dd-link">
+                            <i class="fas fa-th-large"></i> <span data-i18n="Dashboard">Dashboard</span>
+                        </a>
+                        <a href="{{ url_for('book_appointment') }}" class="dd-link">
+                            <i class="fas fa-calendar-check"></i> <span data-i18n="Appointments">Appointments</span>
+                        </a>
+                        <a href="{{ url_for('prescription_history') }}" class="dd-link">
+                            <i class="fas fa-file-waveform"></i> <span data-i18n="Reports">Reports</span>
+                        </a>
+                        <a href="{{ url_for('whatsapp_settings') }}" class="dd-link">
+                            <i class="fas fa-sliders"></i> <span data-i18n="Settings">Settings</span>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="header-actions">
+                <button class="glass-card flex items-center justify-center" onclick="toggleTheme()" id="themeToggle"
+                    style="width: 44px; height: 44px; background: transparent; color: inherit; cursor: pointer; border-radius: 12px; font-size: 1.1rem; border: 1px solid var(--border);">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+                <!-- Language Switcher -->
+                <div class="dropdown-parent">
+                    <button class="glass-card flex items-center gap-2" onclick="toggleDD('langDD')"
+                        style="padding: 10px 14px; background: transparent; color: inherit; cursor: pointer; border-radius: 12px; border: 1px solid var(--border);">
+                        <i class="fas fa-globe"></i>
+                        <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase;"
+                            id="currentLangDisplay">EN</span>
+                    </button>
+                    <div id="langDD" class="dropdown-menu">
+                        <div class="dd-link" onclick="setLang('en')">English</div>
+                        <div class="dd-link" onclick="setLang('hi')">Hindi</div>
+                        <div class="dd-link" onclick="setLang('te')">Telugu</div>
+                        <div class="dd-link" onclick="setLang('ta')">Tamil</div>
+                    </div>
+                </div>
+
+                {% if current_user.is_authenticated %}
+                <!-- Profile Action -->
+                <div class="dropdown-parent">
+                    <div class="flex items-center gap-3" onclick="toggleDD('profileDD')"
+                        style="cursor: pointer; padding: 4px; border-radius: 14px;">
+                        <div class="avatar"
+                            style="width: 38px; height: 38px; font-size: 0.9rem; border: 2px solid var(--border); box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);">
+                            {{ current_user.username[0].upper() }}</div>
+                        <i class="fas fa-chevron-down" style="font-size: 0.7rem; color: var(--text-secondary);"></i>
+                    </div>
+
+                    <div id="profileDD" class="dropdown-menu">
+                        <div class="profile-header-info flex items-center gap-4">
+                            <div class="avatar" style="width: 52px; height: 52px; font-size: 1.4rem;">{{
+                                current_user.username[0].upper() }}</div>
+                            <div class="flex flex-col">
+                                <span style="font-weight: 800; font-size: 1.1rem; line-height: 1.2;">{{
+                                    current_user.username }}</span>
+                                <span style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 4px;">{{
+                                    current_user.email }}</span>
+                                <span class="u-badge">{{ current_user.role }}</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <a href="{{ url_for('whatsapp_settings') }}" class="dd-link">
+                                <i class="fas fa-user-gear"></i> <span data-i18n="Profile Settings">Settings</span>
+                            </a>
+                            <div style="height: 1px; background: var(--border); margin: 0.5rem 0;"></div>
+                            <a href="{{ url_for('logout') }}" class="dd-link" style="color: var(--error);">
+                                <i class="fas fa-arrow-right-from-bracket"></i> <span data-i18n="Logout">Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% elif request.endpoint not in ['login', 'register'] %}
+                <a href="{{ url_for('login') }}" class="btn-primary" style="padding: 10px 20px; font-size: 0.9rem;">Sign
+                    In</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </header>
+
+    <main class="main-content app-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if current_user.is_authenticated %}
+    <!-- Floating Action Layer -->
+    <div class="floating-layer">
+        <!-- Restoration: NEW External Call Bot Button (Stacked Above) -->
+        <button class="glass-card sfab" onclick="toggleExternalModal()"
+            style="background: linear-gradient(135deg, #06b6d4, #0891b2);" title="Emergency Call Bot">
+            <i class="fas fa-phone-volume"></i>
+        </button>
+        <!-- AI CALL BOT Button -->
+        <button class="glass-card sfab" onclick="toggleCall()"
+            style="background: linear-gradient(135deg, #f59e0b, #ea580c);" title="AI Voice Assistant">
+            <i class="fas fa-headset"></i>
+        </button>
+        <!-- AI CHAT BOT Button -->
+        <button class="glass-card sfab" onclick="toggleChat()" style="background: var(--primary-gradient);"
+            title="AI Chat Assistant">
+            <i class="fas fa-comment-medical"></i>
+        </button>
+    </div>
+
+    <!-- AI CHAT WINDOW -->
+    <div id="chatWindow" class="glass-card">
+        <div class="bot-header">
+            <div class="flex items-center gap-3">
+                <div class="avatar" style="width: 32px; height: 32px; background: var(--primary); font-size: 0.8rem;">AI
+                </div>
+                <span style="font-weight: 800; font-size: 0.95rem;">Pristin Health AI</span>
+            </div>
+            <button onclick="toggleChat()" style="background:none; border:none; color:inherit; cursor:pointer;"><i
+                    class="fas fa-times"></i></button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-bubble ai-bubble">Namaste! How can I assist you with your health today?</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Type health question..."
+                style="flex:1; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:12px; padding:0 1rem; color:white; outline:none;"
+                onkeypress="if(event.key==='Enter') sendMessage()">
+            <button onclick="sendMessage()" class="btn-primary"
+                style="padding:0; width:44px; height:44px; justify-content:center; border-radius:12px;"><i
+                    class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- AI CALL WINDOW (VOICE ASSISTANT) -->
+    <div id="callWindow" class="glass-card" style="height: auto; max-height: 450px; padding: 2rem;">
+        <div class="flex flex-col items-center gap-6 text-center">
+            <div class="pulse"
+                style="width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white;">
+                <i class="fas fa-microphone"></i>
+            </div>
+            <div>
+                <h3 style="font-weight: 800; font-size: 1.1rem;">AI Voice Assistant</h3>
+                <p id="callStatus" style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;">
+                    Listening...</p>
+                <!-- Multi-Language Voice Selector -->
+                <div class="voice-lang-selector">
+                    <button class="lang-btn active" onclick="setVoiceLang('en-IN', this)">English</button>
+                    <button class="lang-btn" onclick="setVoiceLang('hi-IN', this)">हिंदी</button>
+                    <button class="lang-btn" onclick="setVoiceLang('te-IN', this)">తెలుగు</button>
+                </div>
+            </div>
+            <div id="voiceTranscript"
+                style="font-style: italic; color: var(--primary); font-size: 0.85rem; min-height: 1.2em; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; width: 100%;">
+            </div>
+            <button onclick="toggleCall()" class="btn-primary"
+                style="background: var(--error); width: 100%; border-radius: 12px; padding: 10px;">End Voice
+                Session</button>
+        </div>
+    </div>
+
+    <!-- EXTERNAL CALL BOT MODAL -->
+    <div id="externalModal" class="glass-card">
+        <div class="bot-header">
+            <span style="font-weight: 800;">Emergency Call Assistant</span>
+            <button onclick="toggleExternalModal()"
+                style="background:none; border:none; color:inherit; cursor:pointer;"><i
+                    class="fas fa-times"></i></button>
+        </div>
+        <iframe src="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev"
+            style="width: 100%; height: 100%; border: none;"></iframe>
+    </div>
+    {% endif %}
+
+    <script>
+        const translations = {};
+        let currentVoiceLang = 'en-IN';
+        let synth = window.speechSynthesis;
+
+        async function loadTranslations(lang) {
+            if (!translations[lang]) {
+                try {
+                    const resp = await fetch(`/static/locales/${lang}.json`);
+                    translations[lang] = await resp.json();
+                } catch (e) { console.error("Locale load failed:", lang); return; }
+            }
+            applyTranslations(lang);
+            document.getElementById('currentLangDisplay').textContent = lang.toUpperCase();
+        }
+
+        function applyTranslations(lang) {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+            document.documentElement.lang = lang;
+            localStorage.setItem('pref_lang', lang);
+        }
+
+        function setLang(lang) {
+            loadTranslations(lang);
+            document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('active'));
+        }
+
+        function setVoiceLang(code, btn) {
+            currentVoiceLang = code;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (recognition) {
+                recognition.lang = currentVoiceLang;
+            }
+        }
+
+        function toggleDD(id) {
+            const dd = document.getElementById(id);
+            const isActive = dd.classList.contains('active');
+            document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('active'));
+            if (!isActive) dd.classList.add('active');
+        }
+
+        function toggleChat() {
+            const chat = document.getElementById('chatWindow');
+            const call = document.getElementById('callWindow');
+            call.classList.remove('active');
+            chat.classList.toggle('active');
+            if (chat.classList.contains('active')) document.getElementById('chatInput').focus();
+        }
+
+        function toggleCall() {
+            const call = document.getElementById('callWindow');
+            const chat = document.getElementById('chatWindow');
+            chat.classList.remove('active');
+            call.classList.toggle('active');
+            if (call.classList.contains('active')) {
+                startVoiceRecognition();
+            } else {
+                stopVoiceRecognition();
+            }
+        }
+
+        function toggleExternalModal() {
+            const modal = document.getElementById('externalModal');
+            const overlay = document.getElementById('modalOverlay');
+            modal.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        function closeExternalModal() {
+            document.getElementById('externalModal').classList.remove('active');
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        window.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown-parent') && !e.target.closest('.header-actions') && !e.target.closest('.nav-trigger')) {
+                document.querySelectorAll('.dropdown-menu').forEach(el => el.classList.remove('active'));
+            }
+        });
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme') || 'dark';
+            const target = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', target);
+            localStorage.setItem('pref_theme', target);
+            updateThemeIcon(target);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.querySelector('#themeToggle i');
+            if (theme === 'light') icon.className = 'fas fa-sun';
+            else icon.className = 'fas fa-moon';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('pref_lang') || 'en';
+            loadTranslations(savedLang);
+            const savedTheme = localStorage.getItem('pref_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+            updateConnectivity(navigator.onLine);
+
+            // Start External Reports Sync
+            syncExternalReports();
+            setInterval(syncExternalReports, 60000);
+        });
+
+        window.addEventListener('online', () => updateConnectivity(true));
+        window.addEventListener('offline', () => updateConnectivity(false));
+
+        function updateConnectivity(status) {
+            const banner = document.getElementById('offlineBanner');
+            if (!status) {
+                banner.style.display = 'block';
+                document.body.style.paddingTop = '40px';
+            } else {
+                banner.style.display = 'none';
+                document.body.style.paddingTop = '0';
+            }
+
+            const dots = document.querySelectorAll('.status-dot');
+            const texts = document.querySelectorAll('.status-text');
+            const isSimulated = localStorage.getItem('offline_simulated') === 'true';
+
+            dots.forEach(dot => {
+                dot.className = 'status-dot ' + (!status ? 'status-offline' : (isSimulated ? 'status-simulated-offline' : 'status-online'));
+            });
+            texts.forEach(t => t.textContent = !status ? 'Offline' : (isSimulated ? 'Local Only' : 'Connected'));
+        }
+
+        // --- Chat & Voice Logic ---
+        async function fetchWithRetry(url, options, retries = 1, timeout = 15000) {
+            for (let i = 0; i <= retries; i++) {
+                console.log(`SENDING_TO_AI (Attempt ${i + 1})`);
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), timeout);
+                try {
+                    const response = await fetch(url, { ...options, signal: controller.signal });
+                    clearTimeout(id);
+                    if (!response.ok) {
+                        const errBody = await response.text();
+                        throw new Error(`HTTP ${response.status}: ${errBody}`);
+                    }
+                    return await response.json();
+                } catch (err) {
+                    clearTimeout(id);
+                    const isTimeout = err.name === 'AbortError';
+                    console.error(`AI_PIPELINE_STAGE_FAILURE (Attempt ${i + 1}):`, isTimeout ? 'Timeout' : err.message);
+                    if (i === retries) throw err;
+                    console.log("RETRYING_AI_CONNECTION...");
+                }
+            }
+        }
+
+        async function sendMessage(manualText = null) {
+            const input = document.getElementById('chatInput');
+            const text = manualText || input.value.trim();
+            if (!text) return;
+
+            if (!manualText) {
+                appendMsg(text, 'user');
+                input.value = '';
+            } else {
+                console.log("VOICE_TEXT_RESULT:", text);
+            }
+
+            try {
+                const data = await fetchWithRetry('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text, lang: currentVoiceLang })
+                });
+
+                console.log("AI_RESPONSE_RECEIVED");
+                const response = data.response || "No response content received.";
+                appendMsg(response, 'ai');
+
+                if (manualText) {
+                    speakText(response);
+                }
+            } catch (e) {
+                console.error("AI_PIPELINE_FINAL_ERROR:", e);
+                const isTimeout = e.name === 'AbortError';
+                const errorMsg = isTimeout ? "Connection timed out. Retrying failed." : `AI Service Error: ${e.message}`;
+                appendMsg(errorMsg, 'ai');
+            }
+        }
+
+        function appendMsg(text, type) {
+            const container = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = `chat-bubble ${type}-bubble`;
+            div.textContent = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function speakText(text) {
+            if (!synth) {
+                console.warn("SPEECH_SYNTH_UNAVAILABLE");
+                return;
+            }
+            console.log("VOICE_OUTPUT_PLAYING");
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = currentVoiceLang;
+            const voices = synth.getVoices();
+            const targetVoice = voices.find(v => v.lang.replace(/_/g, '-') === currentVoiceLang);
+            if (targetVoice) utterance.voice = targetVoice;
+            utterance.onerror = (e) => console.error("SPEECH_SYNTH_ERROR:", e.error);
+            synth.speak(utterance);
+        }
+
+        let recognition;
+        function startVoiceRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                document.getElementById('callStatus').textContent = "Browser ignored voice API.";
+                setTimeout(() => { toggleCall(); toggleChat(); }, 2000);
+                return;
+            }
+
+            if (!recognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+            }
+
+            recognition.lang = currentVoiceLang;
+            console.log("VOICE_CAPTURE_STARTED");
+
+            recognition.onstart = () => {
+                document.getElementById('callStatus').textContent = "Listening...";
+                document.getElementById('voiceTranscript').textContent = "";
+            };
+
+            recognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                console.log("VOICE_TEXT_RESULT: " + text);
+                document.getElementById('voiceTranscript').textContent = '"' + text + '"';
+                document.getElementById('callStatus').textContent = "Processing...";
+                setTimeout(() => { sendMessage(text); }, 800);
+            };
+
+            recognition.onerror = (e) => {
+                console.error("VOICE_ERROR:", e.error);
+                document.getElementById('callStatus').textContent = "Voice error: " + e.error;
+                if (e.error === 'not-allowed') alert("Please allow microphone access.");
+                setTimeout(() => { toggleCall(); toggleChat(); }, 1500);
+            };
+
+            try {
+                recognition.start();
+            } catch (error) {
+                console.error("RECOGNITION_START_ERROR:", error);
+            }
+        }
+
+        function stopVoiceRecognition() {
+            if (recognition) recognition.stop();
+            if (synth) synth.cancel();
+        }
+
+        // --- External Reports Sync ---
+        async function syncExternalReports() {
+            const url = "https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev/public_reports";
+            const errorBanner = document.getElementById('reportsErrorBanner');
+
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("Sync failed");
+                const csvData = await res.text();
+                const reports = parseCSVReports(csvData);
+
+                window.externalReports = reports;
+                window.dispatchEvent(new CustomEvent('externalReportsUpdated', { detail: reports }));
+
+                if (errorBanner) errorBanner.style.display = 'none';
+            } catch (e) {
+                console.error("EXTERNAL_SYNC_ERROR:", e);
+                if (errorBanner) {
+                    errorBanner.style.opacity = '0.6';
+                    errorBanner.style.fontSize = '0.8rem';
+                }
+                else {
+                    const main = document.querySelector('main');
+                    if (main && !document.getElementById('reportsErrorBanner')) {
+                        const banner = document.createElement('div');
+                        banner.id = 'reportsErrorBanner';
+                        banner.className = 'reports-error-banner';
+                        banner.innerHTML = '<i class="fas fa-circle-info"></i> Connectivity with external reports is currently limited.';
+                        banner.style.display = 'flex';
+                        banner.style.opacity = '0.6';
+                        banner.style.fontSize = '0.8rem';
+                        main.prepend(banner);
+                    }
+                }
+            }
+        }
+
+        function parseCSVReports(csv) {
+            const lines = csv.trim().split('\n');
+            const headers = lines[0].toLowerCase().split(',');
+            const result = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length < headers.length) continue;
+
+                const entry = {};
+                headers.forEach((h, idx) => { entry[h.trim()] = values[idx].trim(); });
+
+                result.push({
+                    name: entry.name || entry.caller || "Unknown Caller",
+                    phone: entry.phone || entry.number || "N/A",
+                    symptoms: entry.symptoms || entry.summary || "Call Report",
+                    risk: entry.risk || entry.level || "Medium",
+                    time: entry.timestamp || entry.time || new Date().toISOString()
+                });
+            }
+            return result.sort((a, b) => new Date(b.time) - new Date(a.time));
+        }
+    </script>
+
+    {% if current_user.is_authenticated and request.endpoint not in ['home', 'login', 'register'] %}
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Failed', err));
+            });
+        }
+    </script>
+    {% endif %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

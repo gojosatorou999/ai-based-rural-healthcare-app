@@ -24,8 +24,18 @@ except ImportError:
     print("Warning: TensorFlow not found. AI image features will be disabled.")
 
 from werkzeug.utils import secure_filename
-from transformers import pipeline
+try:
+    from transformers import pipeline
+    HAS_TRANSFORMERS = True
+except ImportError:
+    HAS_TRANSFORMERS = False
+    print("Warning: Transformers not found. AI text classification features will be disabled.")
+except Exception as e:
+    HAS_TRANSFORMERS = False
+    print(f"Warning: Failed to load transformers: {e}")
+
 from pyngrok import ngrok
+
 #---------------------------------------
 
 #-------------load_model()---------------------
@@ -146,7 +156,8 @@ def translate_filter(text):
         if pref:
             lang_map = {
                 'english': 'en', 'hindi': 'hi', 'telugu': 'te', 
-                'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr'
+                'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr',
+                'kannada': 'kn'
             }
             lang_code = lang_map.get(pref.lower(), 'en')
             session['lang'] = lang_code # Sync session
@@ -170,7 +181,8 @@ def translate_content_filter(text):
         if pref:
             lang_map = {
                 'english': 'en', 'hindi': 'hi', 'telugu': 'te', 
-                'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr'
+                'tamil': 'ta', 'bengali': 'bn', 'marathi': 'mr',
+                'kannada': 'kn'
             }
             lang_code = lang_map.get(pref.lower(), 'en')
             session['lang'] = lang_code
@@ -194,7 +206,10 @@ def set_language(lang_code):
             except Exception as e:
                 db.session.rollback()
                 logging.error(f"Failed to update language in DB: {e}")
-        flash(f'Language changed to {lang_name}', 'success')
+        
+        # Translate the success message
+        msg = get_ui_translation('Language changed to', lang_code) + f" {lang_name}"
+        flash(msg, 'success')
     return redirect(request.referrer or url_for('dashboard'))
 
 @app.template_filter('from_json')
@@ -363,19 +378,31 @@ def register():
         if User.query.filter_by(email=email).first():
             flash('Email already exists. Please log in.', 'warning')
             return redirect(url_for('login'))
+            
+        if User.query.filter_by(username=username).first():
+            flash('Username already taken. Please choose another one.', 'warning')
+            return redirect(url_for('register'))
 
         # Create user with all fields
-        new_user = User(
-            username=username, 
-            email=email, 
-            password=password,
-            age=int(age) if age else None,
-            gender=gender,
-            role=role
-        )
-        
-        db.session.add(new_user)
-        db.session.commit()
+        try:
+            new_user = User(
+                username=username, 
+                email=email, 
+                password=password,
+                age=int(age) if age else None,
+                gender=gender,
+                role=role
+            )
+            
+            db.session.add(new_user)
+            db.session.commit()
+            flash(f'Registration successful! Welcome {role}.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            db.session.rollback()
+            logging.error(f"Registration error: {e}")
+            flash('An error occurred during registration. Please try again.', 'danger')
+            return redirect(url_for('register'))
         flash(f'Registration successful! Welcome {role}.', 'success')
         return redirect(url_for('login'))
 
@@ -579,9 +606,11 @@ def chat():
     if not message:
         return jsonify({"error": "Message cannot be empty."}), 400
 
-    lang = 'english'
-    if current_user.is_authenticated and current_user.preferred_language:
+    lang = data.get('lang', 'english')
+    if not lang and current_user.is_authenticated and current_user.preferred_language:
         lang = current_user.preferred_language
+    if not lang:
+        lang = 'english'
 
     try:
         if HAS_CHATBOT:
@@ -1873,7 +1902,7 @@ def symptom_input():
 @login_required
 def new_symptom_report():
     """Process symptom report with optional image and save to database"""
-    symptoms = request.form.get('symptoms', '')
+    symptoms = request.form.get('symptoms') or request.form.get('symptom_description', '')
     affected_area = request.form.get('affected_area', '')
     severity_raw = request.form.get('severity', '5')
     duration = request.form.get('duration', '')
@@ -2186,13 +2215,19 @@ def upload_meal():
     weight = request.form.get('weight')
     height = request.form.get('height')
     
-    # Analyze meal using mock analysis
-    result = analyze_meal_mock(filepath, age, weight, height)
+    # Analyze meal using Gemini AI
+    from chatbot_service import get_meal_analysis
+    user_lang = current_user.preferred_language or 'english'
+    result = get_meal_analysis(filepath, age, weight, height, user_lang)
+    
+    if not result:
+        # Fallback to mock analysis if AI fails
+        result = analyze_meal_mock(filepath, age, weight, height)
     
     return jsonify({
-        'calories': result['calories'],
-        'nutrients': result['nutrients'],
-        'advice': result['advice'],
+        'calories': result.get('calories', 0),
+        'nutrients': result.get('nutrients', {}),
+        'advice': result.get('advice', 'Scan completed. Please consult a nutritionist for details.'),
         'image_url': url_for('static', filename=f'uploads/{filename}')
     })
 
@@ -2252,6 +2287,39 @@ def analyze_meal_mock(image_path, age=None, weight=None, height=None):
         'nutrients': nutrients,
         'advice': ' '.join(advices)
     }
+
+@app.route('/eye_scan', methods=['GET', 'POST'])
+@login_required
+def eye_scan():
+    """AI Eye Diagnostic interface"""
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file uploaded', 'danger')
+            return redirect(request.url)
+        
+        file = request.files['file']
+        if file.filename == '':
+            flash('No file selected', 'danger')
+            return redirect(request.url)
+            
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            # Mock prediction for now, similar to what was there
+            result = predict_eye_disease(filepath)
+            image_url = url_for('static', filename=f'uploads/{filename}')
+            
+            return render_template('eye_scan.html', result=result, image_url=image_url)
+            
+    return render_template('eye_scan.html')
+
+@app.route('/screening_checklist')
+@login_required
+def patient_screening_checklist():
+    """Health screening checklist for rural areas"""
+    return render_template('screening_checklist.html')
 
 
 @app.route('/doctor/dashboard')

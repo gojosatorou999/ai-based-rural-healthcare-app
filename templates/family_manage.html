@@ -1,263 +1,227 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Manage your family health records under one account on Pristin Healthcare.">
-    <title>Manage Family - Pristin Healthcare</title>
-    <script>
-        // Apply theme early to prevent flash
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+{% block title %}Family Network | Pristin Healthcare{% endblock %}
 
-    <style>
-        body {
-            background: var(--bg-primary);
+{% block extra_css %}
+<style>
+    .network-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .network-hero {
+        margin-bottom: 2.5rem;
+    }
+
+    .net-section {
+        padding: 2rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .section-head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 2rem;
+        font-weight: 800;
+        font-size: 1.25rem;
+    }
+
+    .member-grid {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .m-item {
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: transform 0.2s;
+    }
+
+    .m-item:hover {
+        transform: translateY(-3px);
+    }
+
+    .m-avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+    }
+
+    .m-details {
+        flex: 1;
+    }
+
+    .m-name {
+        font-weight: 800;
+        color: var(--text-primary);
+    }
+
+    .m-meta {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+
+    .form-box {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 1.5rem;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        margin-top: 1.5rem;
+    }
+
+    .inp-flex {
+        display: grid;
+        grid-template-columns: 2fr 1fr auto;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    @media (max-width: 640px) {
+        .inp-flex {
+            grid-template-columns: 1fr;
         }
+    }
+</style>
+{% endblock %}
 
-        .page-header {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 0;
-            margin-bottom: 2rem;
-        }
+{% block content %}
+<div class="network-container animate">
+    <div class="network-hero">
+        <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin: 0;" data-i18n="Family Governance">
+            Family Governance</h1>
+        <p style="color: var(--text-secondary); font-weight: 500;"
+            data-i18n="Manage shared health portfolios and clinical proxy permissions.">Manage shared health portfolios
+            and clinical proxy permissions.</p>
+    </div>
 
-        .section-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .card-title {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .member-list {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .member-item {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .member-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .member-avatar {
-            width: 48px;
-            height: 48px;
-            background: rgba(196, 255, 13, 0.1);
-            color: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-        }
-
-        .member-details h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.25rem;
-        }
-
-        .member-details p {
-            font-size: 0.8125rem;
-            color: var(--text-tertiary);
-        }
-
-        .add-form {
-            display: grid;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .badge-proxy {
-            background: rgba(0, 217, 255, 0.15);
-            color: var(--info);
-            padding: 0.25rem 0.5rem;
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-    </style>
-</head>
-
-<body>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
-        style="position: fixed; top: 1rem; right: 1rem; z-index: 2000;">
-        <i class="fas fa-moon"></i>
-    </button>
-    <header class="page-header">
-        <div class="container">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">
-                    <i class="fas fa-arrow-left"></i> {{ 'Back to Dashboard' | translate }}
+    <!-- Managed Members -->
+    <div class="glass-card net-section animate">
+        <div class="section-head">
+            <i class="fas fa-people-group" style="color: var(--primary);"></i> <span
+                data-i18n="Managed Profiles">Managed Profiles</span>
+        </div>
+        <div class="member-grid">
+            {% for item in family %}
+            <div class="glass-card m-item animate"
+                style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05);">
+                <div class="m-avatar">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="m-details">
+                    <div class="m-name">{{ item.user.username }}</div>
+                    <div class="m-meta">{{ item.relationship }} • {{ item.user.age }} <span data-i18n="yrs">yrs</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('family_view', user_id=item.user.id) }}" class="btn-primary"
+                    style="padding: 10px 18px; border-radius: 10px; font-size: 0.85rem;">
+                    <span data-i18n="Access Profile">Access Profile</span>
                 </a>
-                <h1 style="font-size: 1.25rem; font-weight: 700;">{{ 'Family Access' | translate }}</h1>
-                <div style="width: 100px;"></div>
             </div>
+            {% else %}
+            <div style="text-align: center; padding: 2rem; opacity: 0.5;" data-i18n="No managed profiles.">No managed
+                profiles.</div>
+            {% endfor %}
         </div>
-    </header>
 
-    <main class="container container-sm">
-
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-
-        <!-- My Family (I manage them) -->
-        <div class="section-card">
-            <div class="card-title">
-                <i class="fas fa-users"></i> {{ 'Family Members I Manage' | translate }}
-            </div>
-            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-                {{ 'You can view health records and reports for these family members.' | translate }}
-            </p>
-
-            <div class="member-list">
-                {% for item in family %}
-                <div class="member-item">
-                    <div class="member-info">
-                        <div class="member-avatar">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="member-details">
-                            <h3>{{ item.user.username }}</h3>
-                            <p>{{ item.relationship }} • {{ item.user.age }} yrs</p>
-                        </div>
-                    </div>
-                    <a href="{{ url_for('family_view', user_id=item.user.id) }}" class="btn btn-primary btn-sm">
-                        {{ 'View Dashboard' | translate }}
-                    </a>
-                </div>
-                {% else %}
-                <div style="text-align: center; color: var(--text-tertiary); padding: 1rem;">
-                    {{ 'No family members added yet.' | translate }}
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Add Family Form -->
-            <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 1rem;">{{ 'Add Family Member' |
-                    translate }}</h4>
-                <form action="{{ url_for('family_add') }}" method="POST" class="add-form">
-                    <input type="hidden" name="action" value="add_member">
-                    <div class="form-group">
-                        <label class="form-label">{{ 'Their Email Address' | translate }}</label>
-                        <input type="email" name="email" class="form-control" placeholder="relative@example.com"
-                            required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">{{ 'Relationship to You' | translate }}</label>
-                        <select name="relationship" class="form-control" required>
-                            <option value="Child">{{ 'Child' | translate }}</option>
-                            <option value="Parent">{{ 'Parent' | translate }}</option>
-                            <option value="Spouse">{{ 'Spouse' | translate }}</option>
-                            <option value="Sibling">{{ 'Sibling' | translate }}</option>
-                            <option value="Other">{{ 'Other' | translate }}</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-secondary">
-                        <i class="fas fa-plus"></i> {{ 'Add Member' | translate }}
+        <div class="form-box animate">
+            <h4 style="font-weight: 800; margin-bottom: 1rem; font-size: 0.9rem;" data-i18n="Add Dependant/Family">Add
+                Dependant/Family</h4>
+            <form action="{{ url_for('family_add') }}" method="POST">
+                <input type="hidden" name="action" value="add_member">
+                <div class="inp-flex">
+                    <input type="email" name="email" class="form-control" placeholder="Email contact" required
+                        style="border-radius: 12px; height: 48px; background: rgba(255,255,255,0.03);">
+                    <select name="relationship" class="form-control" required
+                        style="border-radius: 12px; height: 48px; background: rgba(255,255,255,0.03);">
+                        <option value="Child" data-i18n="Child">Child</option>
+                        <option value="Parent" data-i18n="Parent">Parent</option>
+                        <option value="Spouse" data-i18n="Spouse">Spouse</option>
+                        <option value="Sibling" data-i18n="Sibling">Sibling</option>
+                    </select>
+                    <button type="submit" class="btn-primary"
+                        style="padding: 0 20px; border-radius: 12px; height: 48px;">
+                        <i class="fas fa-plus"></i>
                     </button>
-                    <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.5rem;">
-                        {{ 'Note: They must already have a Pristin account.' | translate }}
-                    </p>
-                </form>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Proxies -->
+    <div class="glass-card net-section animate">
+        <div class="section-head">
+            <i class="fas fa-user-shield" style="color: #ec4899;"></i> <span data-i18n="Health Proxies">Health
+                Proxies</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;"
+            data-i18n="The following individuals have clinical oversight of your records.">The following individuals
+            have clinical oversight of your records.</p>
+
+        <div class="member-grid">
+            {% for item in proxies %}
+            <div class="glass-card m-item animate"
+                style="background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.05);">
+                <div class="m-avatar" style="background: linear-gradient(135deg, #ec4899, #f43f5e);">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                <div class="m-details">
+                    <div class="m-name">{{ item.user.username }}</div>
+                    <div class="m-meta">{{ item.relationship }}</div>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 800;"
+                    data-i18n="Authorized">Authorized</div>
             </div>
+            {% else %}
+            <div style="text-align: center; padding: 2rem; opacity: 0.5;" data-i18n="No proxies assigned.">No proxies
+                assigned.</div>
+            {% endfor %}
         </div>
 
-        <!-- Who Manages Me -->
-        <div class="section-card">
-            <div class="card-title">
-                <i class="fas fa-shield-alt"></i> {{ 'Who Can View My Data' | translate }}
-            </div>
-            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
-                {{ 'These people have permission to view your health dashboard.' | translate }}
-            </p>
-
-            <div class="member-list">
-                {% for item in proxies %}
-                <div class="member-item">
-                    <div class="member-info">
-                        <div class="member-avatar" style="background: rgba(0, 217, 255, 0.1); color: var(--info);">
-                            <i class="fas fa-user-shield"></i>
-                        </div>
-                        <div class="member-details">
-                            <h3>{{ item.user.username }}</h3>
-                            <p>{{ item.relationship }}</p>
-                        </div>
-                    </div>
-                    <span class="badge-proxy">{{ 'Has Access' | translate }}</span>
-                </div>
-                {% else %}
-                <div style="text-align: center; color: var(--text-tertiary); padding: 1rem;">
-                    {{ 'You haven\'t granted access to anyone.' | translate }}
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Grant Access Form -->
-            <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                <h4 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 1rem;">{{ 'Grant Access to
-                    Someone' | translate }}
-                </h4>
-                <form action="{{ url_for('family_add') }}" method="POST" class="add-form">
-                    <input type="hidden" name="action" value="add_proxy">
-                    <div class="form-group">
-                        <label class="form-label">{{ 'Their Email Address' | translate }}</label>
-                        <input type="email" name="email" class="form-control" placeholder="parent@example.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">{{ 'Relationship' | translate }}</label>
-                        <select name="relationship" class="form-control" required>
-                            <option value="Parent">{{ 'Parent' | translate }}</option>
-                            <option value="Spouse">{{ 'Spouse' | translate }}</option>
-                            <option value="Child">{{ 'Child' | translate }}</option>
-                            <option value="Caregiver">{{ 'Caregiver' | translate }}</option>
-                            <option value="Doctor">{{ 'Doctor' | translate }}</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-secondary">
-                        <i class="fas fa-key"></i> {{ 'Grant Access' | translate }}
+        <div class="form-box animate">
+            <h4 style="font-weight: 800; margin-bottom: 1rem; font-size: 0.9rem;" data-i18n="Delegate Access">Delegate
+                Access</h4>
+            <form action="{{ url_for('family_add') }}" method="POST">
+                <input type="hidden" name="action" value="add_proxy">
+                <div class="inp-flex">
+                    <input type="email" name="email" class="form-control" placeholder="Identity contact" required
+                        style="border-radius: 12px; height: 48px; background: rgba(255,255,255,0.03);">
+                    <select name="relationship" class="form-control" required
+                        style="border-radius: 12px; height: 48px; background: rgba(255,255,255,0.03);">
+                        <option value="Parent" data-i18n="Parent">Parent</option>
+                        <option value="Spouse" data-i18n="Spouse">Spouse</option>
+                        <option value="Caregiver" data-i18n="Caregiver">Caregiver</option>
+                        <option value="Doctor" data-i18n="Medical Logic">Medical Logic</option>
+                    </select>
+                    <button type="submit" class="btn-primary"
+                        style="padding: 0 20px; border-radius: 12px; height: 48px; background: var(--primary-gradient);">
+                        <i class="fas fa-lock"></i>
                     </button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
-    </main>
+    </div>
+</div>
+{% endblock %}
 
-    <script src="/static/js/app.js"></script>
-</body>
-
-</html>
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 80);
+        });
+    });
+</script>
+{% endblock %}

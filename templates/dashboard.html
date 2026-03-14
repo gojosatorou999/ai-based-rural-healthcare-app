@@ -1,324 +1,266 @@
-<!DOCTYPE html>
-<html lang="{{ current_user.preferred_language if current_user.is_authenticated else 'en' }}">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Dashboard' | translate }} | Pristin Healthcare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#0f172a">
-</head>
+{% block title %}Dashboard | Pristin Healthcare{% endblock %}
 
-<body data-theme="dark">
+{% block extra_css %}
+<style>
+    .welcome-header {
+        margin-bottom: 2.5rem;
+    }
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo-text">
-                <i class="fas fa-shield-virus text-primary"></i> Pristin AI
-            </div>
-            <button class="mobile-nav-toggle" onclick="toggleSidebar()" aria-label="Close Menu">
-                <i class="fas fa-times"></i>
-            </button>
+    .action-card {
+        padding: 2.5rem 1.5rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        text-decoration: none;
+        color: inherit;
+        border-radius: 20px;
+    }
+
+    .action-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+        background: rgba(59, 130, 246, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        color: var(--primary);
+        box-shadow: 0 8px 16px rgba(59, 130, 246, 0.1);
+    }
+
+    .activity-panel {
+        padding: 1.5rem;
+        height: min-content;
+        position: sticky;
+        top: 92px;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .act-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout" style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+    <!-- Main Content Area -->
+    <div class="dashboard-main">
+        <!-- Welcome Header -->
+        <div class="welcome-header animate">
+            <h1 style="font-size: 2.75rem; font-weight: 900; letter-spacing: -1px; margin-bottom: 0.5rem;">
+                <span data-i18n="Welcome Back">Welcome Back</span>, {{ current_user.username }}
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1.15rem; font-weight: 500;"
+                data-i18n="Your AI health assistant is ready.">Your AI health assistant is ready.</p>
         </div>
 
-        <nav class="flex-col gap-2" style="flex: 1;">
-            <a href="{{ url_for('dashboard') }}" class="nav-link active">
-                <i class="fas fa-home"></i> {{ 'Overview' | translate }}
+        <!-- Primary Action Button -->
+        <div class="animate" style="margin-bottom: 3.5rem;">
+            <a href="{{ url_for('facial_scan') }}" class="btn-primary"
+                style="padding: 1.2rem 2.5rem; font-size: 1.15rem; border-radius: 18px; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);">
+                <i class="fas fa-camera-viewfinder"></i> <span data-i18n="Start Health Scan">Start Health Scan</span>
             </a>
-            <a href="{{ url_for('symptom_input') }}" class="nav-link">
-                <i class="fas fa-clipboard-check"></i> {{ 'Symptoms' | translate }}
-            </a>
-            <a href="{{ url_for('vitals_timeline') }}" class="nav-link">
-                <i class="fas fa-heartbeat"></i> {{ 'Vitals' | translate }}
-            </a>
-            <a href="{{ url_for('prescription_history') }}" class="nav-link">
-                <i class="fas fa-file-prescription"></i> {{ 'Prescriptions' | translate }}
-            </a>
-            <a href="{{ url_for('video_start') }}" class="nav-link">
-                <i class="fas fa-video"></i> {{ 'Consultation' | translate }}
-            </a>
-            <a href="{{ url_for('pharmacy_map') }}" class="nav-link">
-                <i class="fas fa-map-marked-alt"></i> {{ 'Pharmacy' | translate }}
-            </a>
-            <a href="{{ url_for('family_manage') }}" class="nav-link">
-                <i class="fas fa-users"></i> {{ 'Family' | translate }}
-            </a>
-            <a href="{{ url_for('whatsapp_settings') }}" class="nav-link">
-                <i class="fab fa-whatsapp"></i> {{ 'WhatsApp Alerts' | translate }}
+        </div>
+
+        <!-- Main 4 Cards -->
+        <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+            <a href="{{ url_for('symptom_input') }}" class="glass-card action-card animate">
+                <div class="action-icon"><i class="fas fa-notes-medical"></i></div>
+                <h3 data-i18n="Report Symptoms" style="font-weight: 800; margin:0;">Report Symptoms</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;"
+                    data-i18n="Describe symptoms and get AI-powered health recommendations.">Describe symptoms and get
+                    health insights.</p>
             </a>
 
-            <div style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                <!-- Language Switcher Removed -->
-                <a href="{{ url_for('logout') }}" class="nav-link mt-2" style="color: var(--error);">
-                    <i class="fas fa-sign-out-alt"></i> {{ 'Logout' | translate }}
-                </a>
+            <a href="{{ url_for('vitals_input') }}" class="glass-card action-card animate">
+                <div class="action-icon" style="color: var(--success); background: rgba(16, 185, 129, 0.1);"><i
+                        class="fas fa-heartbeat"></i></div>
+                <h3 data-i18n="Log Vitals" style="font-weight: 800; margin:0;">Log Vitals</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;"
+                    data-i18n="Track your heart rate, blood pressure, oxygen levels, and more.">Track your vital signs.
+                </p>
+            </a>
+
+            <a href="{{ url_for('video_start') }}" class="glass-card action-card animate">
+                <div class="action-icon" style="color: #a855f7; background: rgba(168, 85, 247, 0.1);"><i
+                        class="fas fa-video"></i></div>
+                <h3 data-i18n="Video Consult" style="font-weight: 800; margin:0;">Video Consult</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;"
+                    data-i18n="Connect with a doctor instantly.">Connect with a doctor.</p>
+            </a>
+
+            <a href="{{ url_for('prescription_history') }}" class="glass-card action-card animate">
+                <div class="action-icon" style="color: var(--warning); background: rgba(245, 158, 11, 0.1);"><i
+                        class="fas fa-file-medical"></i></div>
+                <h3 data-i18n="Medical Reports" style="font-weight: 800; margin:0;">Medical Reports</h3>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.4;"
+                    data-i18n="Access your health history anytime.">Access your history.</p>
+            </a>
+        </div>
+
+        <!-- Restoration: System Controls -->
+        <div class="animate" style="margin-top: 3rem;">
+            <h2
+                style="font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 12px; font-size: 1.25rem;">
+                <i class="fas fa-microchip" style="color: var(--primary);"></i> <span data-i18n="System Controls">System
+                    Controls</span>
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                <!-- Connectivity Toggle Card -->
+                <div class="glass-card"
+                    style="padding: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div class="flex items-center gap-3">
+                        <div class="status-dot status-online"></div>
+                        <div class="flex flex-col">
+                            <span style="font-weight: 800; font-size: 0.9rem;" class="status-text">Connected</span>
+                            <span style="font-size: 0.7rem; color: var(--text-secondary);"
+                                data-i18n="Status">Status</span>
+                        </div>
+                    </div>
+                    <button onclick="toggleSimulatedOffline()" class="glass-card"
+                        style="padding: 6px 12px; border-radius: 8px; cursor: pointer; background: transparent; color: inherit; border: 1px solid var(--border); font-weight: 700; font-size: 0.75rem;">
+                        <span data-i18n="Toggle Offline">Toggle Offline</span>
+                    </button>
+                </div>
+
+                <!-- AI Quick Access Card -->
+                <div class="glass-card"
+                    style="padding: 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div class="flex items-center gap-3">
+                        <div
+                            style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-gradient); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: white;">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <span style="font-weight: 800; font-size: 0.9rem;">Pristin AI</span>
+                            <span style="font-size: 0.7rem; color: var(--text-secondary);"
+                                data-i18n="Assistant">Assistant</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="toggleCall()" class="glass-card"
+                            style="width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ea580c; cursor: pointer;"><i
+                                class="fas fa-headset"></i></button>
+                        <button onclick="toggleChat()" class="glass-card"
+                            style="width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--primary); cursor: pointer;"><i
+                                class="fas fa-message-medical"></i></button>
+                    </div>
+                </div>
             </div>
-        </nav>
+        </div>
+    </div>
+
+    <!-- Right Side Panel -->
+    <aside class="dashboard-side animate">
+        <div class="glass-card activity-panel">
+            <h3 style="font-weight: 800; font-size: 1.25rem; margin-bottom: 1.5rem;" data-i18n="Recent Activity">Recent
+                Activity</h3>
+            <div class="activity-list" id="activityList">
+                {% if recent_activity %}
+                {% for activity in recent_activity %}
+                <div class="activity-item">
+                    <div class="act-icon"><i class="fas fa-{{ activity.icon }}"></i></div>
+                    <div class="flex flex-col" style="flex: 1;">
+                        <span style="font-weight: 700; font-size: 0.95rem;">{{ activity.label }}</span>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">{{ activity.value }}</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">{{ activity.time
+                            }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="empty-state" id="emptyState" style="text-align: center; padding: 2rem 0;">
+                    <i class="fas fa-history"
+                        style="font-size: 2rem; color: var(--text-muted); opacity: 0.3; margin-bottom: 1rem;"></i>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="No recent activity">No activity
+                        yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
     </aside>
+</div>
+{% endblock %}
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Header -->
-        <header class="dashboard-header">
-            <div class="flex items-center gap-4" style="flex: 1;">
-                <button class="mobile-nav-toggle" onclick="toggleSidebar()">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="header-search">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="{{ 'Search reports, doctors...' | translate }}">
-                </div>
-            </div>
+{% block extra_js %}
+<script>
+    window.addEventListener('externalReportsUpdated', (e) => {
+        const reports = e.detail;
+        const list = document.getElementById('activityList');
+        const empty = document.getElementById('emptyState');
 
-            <div class="flex items-center gap-4">
-                <div class="btn-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);"
-                    title="Online">
-                    <i class="fas fa-wifi"></i>
-                </div>
-                <button onclick="toggleTheme()" class="btn btn-icon btn-sm theme-toggle"
-                    title="{{ 'Toggle Theme' | translate }}"
-                    style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color);">
-                    <i class="fas fa-moon"></i>
-                </button>
-                <button id="installBtn" class="btn btn-primary btn-sm" style="display: none; margin-right: 1rem;">
-                    <i class="fas fa-download"></i> {{ 'Install App' | translate }}
-                </button>
-                <div class="user-profile">
-                    <div class="user-avatar text-white">
-                        {{ current_user.username[0].upper() }}
-                    </div>
-                    <div class="user-info">
-                        <div class="user-name">{{ current_user.username }}</div>
-                        <div class="user-role">{{ current_user.role.capitalize() }}</div>
-                    </div>
-                </div>
-                <a href="{{ url_for('logout') }}" class="btn btn-icon btn-sm" title="Logout"
-                    style="color: var(--error); background: rgba(239, 68, 68, 0.1);">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
+        if (reports && reports.length > 0 && list) {
+            if (empty) empty.remove();
 
-                <script>
-                    // PWA Install Prompt
-                    let deferredPrompt;
-                    const installBtn = document.getElementById('pwa-install-btn');
+            // Remove previous external items to avoid duplicates
+            document.querySelectorAll('.external-activity').forEach(el => el.remove());
 
-                    window.addEventListener('beforeinstallprompt', (e) => {
-                        e.preventDefault();
-                        deferredPrompt = e;
-                        installBtn.style.display = 'inline-flex';
-                    });
-
-                    installBtn.addEventListener('click', async () => {
-                        if (deferredPrompt) {
-                            deferredPrompt.prompt();
-                            const { outcome } = await deferredPrompt.userChoice;
-                            console.log(`User response to the install prompt: ${outcome}`);
-                            deferredPrompt = null;
-                            installBtn.style.display = 'none';
-                        }
-                    });
-
-                    // Auto-hide flash messages
-                    setTimeout(() => {
-                        const alerts = document.querySelectorAll('.alert');
-                        alerts.forEach(alert => {
-                            alert.style.opacity = '0';
-                            setTimeout(() => alert.remove(), 300);
-                        });
-                    }, 4000);
-                </script>
-            </div>
-        </header>
-
-        <!-- Welcome Banner -->
-        <div class="card mb-2"
-            style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(6, 182, 212, 0.2)); border-color: rgba(59, 130, 246, 0.4);">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div>
-                    <h1>{{ 'Welcome Back' | translate }}, {{ current_user.username }}!</h1>
-                    <p class="text-secondary" style="margin-bottom: 0;">{{ 'Your health AI is active and monitoring.' |
-                        translate }}</p>
-                </div>
-                <a href="{{ url_for('facial_scan') }}" class="btn btn-primary pulse">
-                    <i class="fas fa-camera"></i> {{ 'Run Health Scan' | translate }}
-                </a>
-            </div>
-        </div>
-
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <div class="card flex flex-col justify-between hover-glow">
-                <div class="text-muted font-medium">{{ 'Heart Rate' | translate }}</div>
-                <div class="flex items-end gap-2 mt-2">
-                    <span class="text-3xl font-bold">72</span>
-                    <span class="text-sm text-success mb-1">bpm</span>
-                </div>
-                <div class="text-xs text-muted mt-2">{{ 'Last updated' | translate }}: 2h {{ 'ago' | translate }}</div>
-            </div>
-            <div class="card flex flex-col justify-between hover-glow">
-                <div class="text-muted font-medium">{{ 'Blood Pressure' | translate }}</div>
-                <div class="flex items-end gap-2 mt-2">
-                    <span class="text-3xl font-bold">120/80</span>
-                    <span class="text-sm text-success mb-1">mmHg</span>
-                </div>
-                <div class="text-xs text-muted mt-2">{{ 'Normal Range' | translate }}</div>
-            </div>
-            <div class="card flex flex-col justify-between hover-glow">
-                <div class="text-muted font-medium">{{ 'Reports' | translate }}</div>
-                <div class="flex items-end gap-2 mt-2">
-                    <span class="text-3xl font-bold">{{ symptom_count }}</span>
-                    <span class="text-sm text-primary mb-1">{{ 'Total' | translate }}</span>
-                </div>
-                <div class="text-xs text-muted mt-2">{{ 'All time' | translate }}</div>
-            </div>
-            <div class="card flex flex-col justify-between hover-glow">
-                <div class="text-muted font-medium">{{ 'Next Consult' | translate }}</div>
-                <div class="flex items-end gap-2 mt-2">
-                    <span class="text-2xl font-bold">{{ 'Tomorrow' | translate }}</span>
-                </div>
-                <div class="text-xs text-warning mt-2">10:00 AM</div>
-            </div>
-        </div>
-
-        <!-- Quick Actions Grid -->
-        <h3 class="mb-4">{{ 'Quick Actions' | translate }}</h3>
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <a href="{{ url_for('symptom_input') }}" class="quick-action-card">
-                <div class="quick-action-icon">
-                    <i class="fas fa-notes-medical"></i>
-                </div>
-                <div class="font-bold mb-1">{{ 'Report Symptoms' | translate }}</div>
-                <div class="text-sm text-muted">{{ 'Get AI diagnosis' | translate }}</div>
-            </a>
-            <a href="{{ url_for('vitals_input') }}" class="quick-action-card">
-                <div class="quick-action-icon">
-                    <i class="fas fa-heartbeat"></i>
-                </div>
-                <div class="font-bold mb-1">{{ 'Log Vitals' | translate }}</div>
-                <div class="text-sm text-muted">{{ 'Track metrics' | translate }}</div>
-            </a>
-            <a href="{{ url_for('video_start') }}" class="quick-action-card">
-                <div class="quick-action-icon">
-                    <i class="fas fa-video"></i>
-                </div>
-                <div class="font-bold mb-1">{{ 'Video Consult' | translate }}</div>
-                <div class="text-sm text-muted">{{ 'Talk to a doctor' | translate }}</div>
-            </a>
-            <a href="{{ url_for('facial_scan') }}" class="quick-action-card">
-                <div class="quick-action-icon">
-                    <i class="fas fa-magnifying-glass-chart"></i>
-                </div>
-                <div class="font-bold mb-1">{{ 'AI Face Scan' | translate }}</div>
-                <div class="text-sm text-muted">{{ 'Analyze your health' | translate }}</div>
-            </a>
-            <a href="{{ url_for('book_appointment') }}" class="quick-action-card">
-                <div class="quick-action-icon">
-                    <i class="fas fa-calendar-plus"></i>
-                </div>
-                <div class="font-bold mb-1">{{ 'Book Call' | translate }}</div>
-                <div class="text-sm text-muted">{{ 'Schedule a consultation' | translate }}</div>
-            </a>
-            <a href="{{ url_for('pharmacy_map') }}" class="quick-action-card">
-                <div class="quick-action-icon">
-                    <i class="fas fa-pills"></i>
-                </div>
-                <div class="font-bold mb-1">{{ 'Find Medicine' | translate }}</div>
-                <div class="text-sm text-muted">{{ 'Locate pharmacies' | translate }}</div>
-            </a>
-        </div>
-
-        <!-- Recent Activity Feed -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="card lg:col-span-2">
-                <div class="card-header">
-                    <div class="card-title">{{ 'Recent Activity' | translate }}</div>
-                    <a href="#" class="btn btn-sm btn-secondary">{{ 'View All' | translate }}</a>
-                </div>
-                <div class="flex flex-col gap-4 mt-2">
-                    {% for activity in recent_activity %}
-                    <div class="flex items-center gap-4 p-4 rounded-xl transition-all hover:bg-white/5 border border-transparent hover:border-white/10"
-                        style="background: rgba(255,255,255,0.02);">
-                        <div class="btn-icon"
-                            style="background: rgba(59, 130, 246, 0.1); color: var(--primary); min-width: 48px;">
-                            <i class="fas fa-{{ activity.icon if activity.icon else 'file-medical-alt' }}"></i>
+            reports.slice(0, 5).forEach(report => {
+                const item = document.createElement('div');
+                item.className = 'activity-item external-activity animate';
+                item.style.borderLeft = `3px solid ${report.risk === 'High' ? 'var(--error)' : 'var(--warning)'}`;
+                item.innerHTML = `
+                    <div class="act-icon" style="color:var(--primary)"><i class="fas fa-phone"></i></div>
+                    <div class="flex flex-col" style="flex: 1;">
+                        <span style="font-weight: 700; font-size: 0.95rem;">${report.name} (${report.phone})</span>
+                        <span style="font-size: 0.85rem; color: var(--text-secondary);">${report.symptoms}</span>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span style="font-size: 0.7rem; color: var(--text-muted);">${new Date(report.time).toLocaleString()}</span>
+                            <span class="u-badge" style="background:${report.risk === 'High' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)'}; color:${report.risk === 'High' ? 'var(--error)' : 'var(--warning)'}">${report.risk} RISK</span>
                         </div>
-                        <div style="flex: 1;">
-                            <div class="font-bold text-sm lg:text-base">{{ activity.value }}</div>
-                            <div class="text-xs text-muted">{{ activity.time }} • {{ activity.label }}</div>
-                        </div>
-                        <span class="badge {{ 'badge-success' if 'Approved' in activity.value else 'badge-info' }}">{{
-                            'Processed' | translate }}</span>
                     </div>
-                    {% else %}
-                    <div class="text-center p-xl text-muted">{{ 'No recent activity' | translate }}</div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <!-- AI Chat Teaser -->
-            <div class="card flex flex-col justify-center items-center text-center p-xl"
-                style="background: linear-gradient(180deg, var(--bg-card) 0%, rgba(6, 182, 212, 0.1) 100%);">
-                <div class="btn-icon mb-2"
-                    style="width: 80px; height: 80px; font-size: 2rem; background: var(--primary); color: white; box-shadow: var(--glow-blue);">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <h3>Pristin AI</h3>
-                <p class="mb-2">{{ 'Ask me anything about your health.' | translate }}</p>
-                <button onclick="toggleChat()" class="btn btn-primary w-full">{{ 'Start Chat' | translate }}</button>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Floating Chat Window -->
-    <div id="chatWindow" class="chat-window">
-        <div class="p-md border-b flex justify-between items-center"
-            style="background: var(--bg-secondary); padding: 1rem;">
-            <div class="font-bold flex items-center gap-2">
-                <i class="fas fa-robot text-primary"></i>
-                Pristin AI Assistant
-            </div>
-            <button onclick="toggleChat()" class="text-muted hover:text-primary"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="chatMessages" class="p-md flex-1 overflow-y-auto flex flex-col gap-2" style="padding: 1rem;">
-            <!-- Messages go here -->
-            <div class="bg-secondary p-3 rounded-lg self-start max-w-[80%] text-sm"
-                style="background: rgba(255,255,255,0.1);">
-                {{ 'Hello! How can I help you today?' | translate }}
-            </div>
-        </div>
-        <div class="p-md border-t flex gap-2" style="padding: 1rem; background: var(--bg-secondary);">
-            <input type="text" id="chatInput" class="form-control text-sm"
-                placeholder="{{ 'Type a message...' | translate }}" onkeypress="handleChatEnter(event)">
-            <button onclick="sendMessage()" class="btn btn-primary btn-icon"><i class="fas fa-paper-plane"></i></button>
-        </div>
-    </div>
-
-    <!-- Floating Action Button -->
-    <div
-        style="position: fixed; bottom: 2rem; right: 2rem; display: flex; flex-direction: column; gap: 1rem; z-index: 1000;">
-        <a href="https://3e104690-bc13-4db0-a952-9622eb6989ce-00-1pqcy0d1sba3w.sisko.replit.dev" target="_blank"
-            class="floating-ai-btn"
-            style="position: static; background: var(--success); text-decoration: none; display: flex; align-items: center; justify-content: center;"
-            title="AI Call Bot">
-            <i class="fas fa-phone"></i>
-        </a>
-        <button onclick="toggleChat()" class="floating-ai-btn" title="Chat with AI" style="position: static;">
-            <i class="fas fa-comment-medical"></i>
-        </button>
-    </div>
-
-    <script src="/static/js/app.js"></script>
-    <script>
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
+                `;
+                list.prepend(item);
+            });
         }
-    </script>
-</body>
+    });
 
-</html>
+    function toggleSimulatedOffline() {
+        const isCurrentlyOffline = localStorage.getItem('offline_simulated') === 'true';
+        localStorage.setItem('offline_simulated', !isCurrentlyOffline);
+        updateConnectivity(navigator.onLine);
+        // Show status message
+        const snackbar = document.createElement('div');
+        snackbar.className = 'glass-card animate';
+        snackbar.style.cssText = 'position:fixed; bottom:2rem; left:50%; transform:translateX(-50%); padding:1rem 2rem; z-index:100000; font-weight:700; border-left:4px solid var(--primary);';
+        snackbar.textContent = !isCurrentlyOffline ? 'Simulating Offline Mode' : 'Back to Real-time Network';
+        document.body.appendChild(snackbar);
+        setTimeout(() => {
+            snackbar.classList.add('fade-out');
+            setTimeout(() => snackbar.remove(), 500);
+        }, 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 80);
+        });
+    });
+</script>
+{% endblock %}

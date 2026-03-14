@@ -1,284 +1,313 @@
-<!DOCTYPE html>
-<html lang="{{ current_user.preferred_language if current_user.is_authenticated else 'en' }}">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'AI Facial Health Scan' | translate }} - Pristin Healthcare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        .scan-container {
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 1rem;
-        }
+{% block title %}AI Health Scan | Pristin Healthcare{% endblock %}
 
-        .camera-box {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 4/3;
-            background: #000;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            border: 2px solid var(--border-color);
-        }
+{% block extra_css %}
+<style>
+    .scan-card {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem;
+        overflow: hidden;
+    }
 
-        #video,
-        #canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    .camera-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 640px;
+        margin: 2rem auto;
+        aspect-ratio: 4/3;
+        background: #000;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
 
-        .scan-overlay {
-            position: absolute;
+    #video,
+    #canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .scan-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .face-guide {
+        width: 260px;
+        height: 340px;
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+        border-radius: 170px / 220px;
+        position: relative;
+    }
+
+    .scanning-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: var(--primary-gradient);
+        box-shadow: 0 0 20px var(--primary);
+        animation: scanMove 3s infinite ease-in-out;
+        display: none;
+    }
+
+    @keyframes scanMove {
+
+        0%,
+        100% {
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            border: 2px solid transparent;
-            display: flex;
-            align-items: center;
-            left: 0;
-            justify-content: center;
+            opacity: 0;
         }
 
-        .face-guide {
-            width: 250px;
-            height: 320px;
-            border: 2px dashed rgba(196, 255, 13, 0.5);
-            border-radius: 50%;
-            position: relative;
+        5%,
+        95% {
+            opacity: 1;
         }
 
-        .scanning-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--primary);
-            box-shadow: 0 0 15px var(--primary);
-            animation: scanMove 3s infinite linear;
-            display: none;
+        50% {
+            top: 100%;
         }
+    }
 
-        @keyframes scanMove {
-            0% {
-                top: 0;
-            }
+    .results-area {
+        margin-top: 3rem;
+        display: none;
+        animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-            50% {
-                top: 100%;
-            }
+    .indicator-card {
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        border-left: 4px solid var(--primary);
+    }
 
-            100% {
-                top: 0;
-            }
-        }
+    .conf-ring {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        border: 4px solid var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
 
-        .results-panel {
-            margin-top: 2rem;
-            display: none;
-        }
+    .summary-box {
+        padding: 2rem;
+        border-radius: 20px;
+        margin-top: 2rem;
+        border: 1px solid var(--border);
+    }
 
-        .condition-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            margin-bottom: 1rem;
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
+    .status-badge {
+        display: inline-flex;
+        padding: 6px 16px;
+        border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
 
-        .confidence-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 4px solid var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 0.8rem;
-        }
-    </style>
-</head>
+{% block content %}
+<div class="animate">
+    <div style="margin-bottom: 2.5rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin: 0;" data-i18n="AI Health Scan">AI
+            Health Scan</h1>
+        <p style="color: var(--text-secondary); font-weight: 500;"
+            data-i18n="Diagnostic facial analysis for jaundice, anemia and vital indices.">Diagnostic facial analysis
+            for jaundice, anemia and vital indices.</p>
+    </div>
 
-<body class="dark-mode">
-    <div class="container scan-container">
-        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
-            <a href="javascript:history.back()" class="btn btn-ghost">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h1>{{ 'Facial Health Index Scan' | translate }}</h1>
+    <div class="glass-card scan-card animate">
+        <div style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
+            <i class="fas fa-circle-info" style="color: var(--primary); margin-top: 4px;"></i>
+            <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;"
+                data-i18n="Position your face inside the guide. Ensure good lighting for accurate color analysis.">
+                Position your face inside the guide. Ensure good lighting for accurate color analysis.
+            </p>
         </div>
 
-        <div class="card" style="margin-bottom: 2rem;">
-            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                <i class="fas fa-info-circle"></i> {{ 'Position your face in the center of the guide. Ensure you are in
-                a brightly lit area for accurate color analysis (Jaundice/Anemia).' | translate }}
-            </p>
-
-            <div class="camera-box">
-                <video id="video" autoplay playsinline></video>
-                <canvas id="canvas" style="display:none;"></canvas>
-                <div class="scan-overlay">
-                    <div class="face-guide">
-                        <div class="scanning-bar" id="scanningBar"></div>
-                    </div>
+        <div class="camera-wrapper">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <div class="scan-overlay">
+                <div class="face-guide">
+                    <div class="scanning-line" id="scanningLine"></div>
                 </div>
             </div>
-
-            <div style="margin-top: 1.5rem; text-align: center;">
-                <button id="captureBtn" class="btn btn-primary btn-lg">
-                    <i class="fas fa-camera"></i> {{ 'Scan Face Now' | translate }}
-                </button>
-                <p id="statusMsg" style="margin-top: 1rem; color: var(--text-tertiary);"></p>
-            </div>
         </div>
 
-        <div id="resultsPanel" class="results-panel">
-            <h2 class="section-title">{{ 'Diagnostic Indicators' | translate }}</h2>
-            <div id="conditionsList"></div>
-
-            <div id="summaryCard" class="card"
-                style="background: rgba(0, 217, 255, 0.05); border-color: rgba(0, 217, 255, 0.2);">
-                <h3 id="summaryTitle" style="color: var(--info); font-size: 1rem; margin-bottom: 0.5rem;">{{ 'AI
-                    Analysis Summary' | translate }}</h3>
-                <p id="analysisSummary"></p>
-                <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 1rem;">
-                    * {{ 'This is an experimental AI screening tool. Results are indices for preliminary assessment and
-                    must be confirmed by a medical professional through blood tests.' | translate }}
-                </p>
-            </div>
+        <div style="text-align: center; margin-top: 2rem;">
+            <button id="captureBtn" class="btn-primary"
+                style="padding: 1.25rem 3rem; font-size: 1.1rem; border-radius: 18px;">
+                <i class="fas fa-camera"></i> <span data-i18n="Scan Face Now">Scan Face Now</span>
+            </button>
+            <p id="statusMsg"
+                style="margin-top: 1.25rem; font-size: 0.9rem; font-weight: 500; color: var(--text-muted);"></p>
         </div>
     </div>
 
-    <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const captureBtn = document.getElementById('captureBtn');
-        const scanningBar = document.getElementById('scanningBar');
-        const resultsPanel = document.getElementById('resultsPanel');
-        const conditionsList = document.getElementById('conditionsList');
-        const summaryCard = document.getElementById('summaryCard');
-        const summaryTitle = document.getElementById('summaryTitle');
-        const analysisSummary = document.getElementById('analysisSummary');
-        const statusMsg = document.getElementById('statusMsg');
+    <div id="resultsArea" class="results-area">
+        <h2 style="font-weight: 800; margin-bottom: 1.5rem;" data-i18n="Diagnostic Indicators">Diagnostic Indicators
+        </h2>
+        <div id="indicatorsList"></div>
 
-        // Access Camera
-        async function startCamera() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-                video.srcObject = stream;
-            } catch (err) {
-                console.error("Error accessing camera: ", err);
-                statusMsg.innerText = "{{ 'Error: Camera access denied or not found.' | translate }}";
-            }
+        <div id="summaryBox" class="glass-card summary-box">
+            <div id="statusBadge" class="status-badge"></div>
+            <h3 id="summaryTitle" style="font-weight: 800; margin-bottom: 0.75rem;"></h3>
+            <p id="analysisText" style="color: var(--text-secondary); line-height: 1.6;"></p>
+
+            <div
+                style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 12px; font-size: 0.8rem; color: var(--text-muted);">
+                <i class="fas fa-exclamation-triangle" style="margin-right: 6px;"></i>
+                <span
+                    data-i18n="DISCLAIMER: This is an experimental AI screening tool. Results must be confirmed by a medical professional.">
+                    DISCLAIMER: This is an experimental AI screening tool. Results must be confirmed by a medical
+                    professional.
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('captureBtn');
+    const scanningLine = document.getElementById('scanningLine');
+    const resultsArea = document.getElementById('resultsArea');
+    const indicatorsList = document.getElementById('indicatorsList');
+    const summaryBox = document.getElementById('summaryBox');
+    const statusBadge = document.getElementById('statusBadge');
+    const summaryTitle = document.getElementById('summaryTitle');
+    const analysisText = document.getElementById('analysisText');
+    const statusMsg = document.getElementById('statusMsg');
+
+    async function initCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: false
+            });
+            video.srcObject = stream;
+        } catch (err) {
+            console.error("Camera access error:", err);
+            statusMsg.textContent = "Camera access denied. Please enable permissions.";
+            statusMsg.style.color = "var(--error)";
         }
+    }
 
-        startCamera();
+    initCamera();
 
-        captureBtn.addEventListener('click', async () => {
-            // Show scanning animation
-            scanningBar.style.display = 'block';
-            captureBtn.disabled = true;
-            captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {{ "Analyzing..." | translate }}';
-            statusMsg.innerText = "{{ 'Capturing facial indices and analyzing color distribution...' | translate }}";
+    captureBtn.addEventListener('click', async () => {
+        scanningLine.style.display = 'block';
+        captureBtn.disabled = true;
+        const originalBtnHtml = captureBtn.innerHTML;
+        captureBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Analyzing...';
+        statusMsg.textContent = "Processing facial topography and pigment levels...";
 
-            // Wait a bit to simulate processing
-            await new Promise(r => setTimeout(r, 1500));
+        // Wait for effect
+        await new Promise(r => setTimeout(r, 2000));
 
-            // Capture Frame
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            const imageData = canvas.toDataURL('image/jpeg');
+        // Capture
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        const imageData = canvas.toDataURL('image/jpeg', 0.8);
 
-            try {
-                const response = await fetch('/api/facial_scan', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ image: imageData })
-                });
+        try {
+            const response = await fetch('/api/facial_scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            });
 
-                const data = await response.json();
+            const data = await response.json();
+            if (data.error) throw new Error(data.error);
+            renderResults(data);
+        } catch (err) {
+            alert("Analysis failed: " + err.message);
+        } finally {
+            scanningLine.style.display = 'none';
+            captureBtn.disabled = false;
+            captureBtn.innerHTML = '<i class="fas fa-redo"></i> Rescan Face';
+            statusMsg.textContent = "";
+        }
+    });
 
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    displayResults(data);
-                }
-            } catch (err) {
-                alert("{{ 'Server connection failed.' | translate }}");
-            } finally {
-                scanningBar.style.display = 'none';
-                captureBtn.disabled = false;
-                captureBtn.innerHTML = '<i class="fas fa-camera"></i> {{ "Rescan Face" | translate }}';
-            }
-        });
+    function renderResults(data) {
+        resultsArea.style.display = 'block';
+        indicatorsList.innerHTML = '';
 
-        function displayResults(data) {
-            // Clear previous results
-            resultsPanel.style.display = 'block';
-            conditionsList.innerHTML = '';
+        const isNormal = data.status === 'Normal' || data.status.toLowerCase().includes('healthy');
 
-            // Update summary text
-            summaryTitle.innerText = data.status === 'Normal' ? '{{ "Healthy Scan" | translate }}' : '{{ "Health Alert" | translate }}';
-            document.getElementById('analysisSummary').innerText = data.analysis;
+        statusBadge.textContent = isNormal ? 'Normal' : 'Attention Required';
+        statusBadge.style.background = isNormal ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)';
+        statusBadge.style.color = isNormal ? 'var(--success)' : 'var(--error)';
 
-            // Style summary box based on status
-            if (data.status === 'Normal') {
-                summaryCard.style.background = 'rgba(0, 255, 136, 0.05)';
-                summaryCard.style.borderColor = 'rgba(0, 255, 136, 0.2)';
-                summaryTitle.style.color = 'var(--success)';
-            } else {
-                summaryCard.style.background = 'rgba(255, 77, 77, 0.05)';
-                summaryCard.style.borderColor = 'rgba(255, 77, 77, 0.2)';
-                summaryTitle.style.color = 'var(--error)';
-            }
+        summaryTitle.textContent = isNormal ? 'Healthy Scan Results' : 'Health Indicators Detected';
+        analysisText.textContent = data.analysis;
 
-            if (!data.conditions || data.conditions.length === 0) {
-                // Fallback if no conditions returned
-                conditionsList.innerHTML = `<div style="text-align: center; color: var(--text-secondary);">No specific indicators found.</div>`;
-            } else {
-                data.conditions.forEach(cond => {
-                    const card = document.createElement('div');
-                    card.className = 'condition-card';
+        if (data.conditions) {
+            data.conditions.forEach(cond => {
+                const card = document.createElement('div');
+                card.className = 'glass-card indicator-card';
 
-                    // Determine color based on condition name
-                    let color = 'var(--info)';
-                    if (cond.name.includes('Jaundice')) color = 'var(--warning)'; // Yellow
-                    else if (cond.name.includes('Anemia')) color = '#ff9f43'; // Orange
-                    else if (cond.name.includes('Fever') || cond.name.includes('Flush')) color = 'var(--error)'; // Red
-                    else if (cond.name.includes('Healthy')) color = 'var(--success)'; // Green
+                let color = 'var(--primary)';
+                if (cond.name.toLowerCase().includes('jaundice')) color = '#f59e0b';
+                else if (cond.name.toLowerCase().includes('anemia')) color = '#fb923c';
+                else if (!isNormal) color = 'var(--error)';
+                else color = 'var(--success)';
 
-                    card.style.borderLeft = `4px solid ${color}`;
+                card.style.borderLeftColor = color;
 
-                    card.innerHTML = `
-                        <div class="confidence-circle" style="border-color: ${color}; color: ${color};">${cond.confidence}%</div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 700; color: var(--text-primary); font-size: 1.1rem;">${cond.name}</div>
-                            <div style="font-size: 0.9rem; color: var(--text-secondary); margin: 0.25rem 0;">${cond.indicator}</div>
-                            <div style="font-size: 0.8rem; font-weight: 600; color: ${color};">
-                                <i class="fas fa-user-md-chat"></i> ${cond.action}
-                            </div>
+                card.innerHTML = `
+                    <div class="conf-ring" style="border-color: ${color}; color: ${color}; font-size: 1rem;">${Math.round(cond.confidence)}%</div>
+                    <div class="flex-1">
+                        <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-primary);">${cond.name}</div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin: 4px 0 8px 0;">${cond.indicator}</div>
+                        <div style="font-size: 0.8rem; font-weight: 700; color: ${color};">
+                            <i class="fas fa-stethoscope" style="margin-right: 6px;"></i> ${cond.action}
                         </div>
-                    `;
-                    conditionsList.appendChild(card);
-                });
-            }
-
-            // Scroll to results
-            resultsPanel.scrollIntoView({ behavior: 'smooth' });
+                    </div>
+                `;
+                indicatorsList.appendChild(card);
+            });
         }
-    </script>
-</body>
 
-</html>
+        resultsArea.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Animation trigger
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

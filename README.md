@@ -1,109 +1,126 @@
-# 🏥 Pristin Healthcare - AI-Based Rural Telemedicine Platform
+# 🏥 Pristin Healthcare - AI-Powered Rural Telemedicine Platform
 
-> **Advanced AI-powered healthcare for rural communities.**
-> *Bridging the gap between patients and medical professionals with offline-first technology.*
+[![PWA Ready](https://img.shields.io/badge/PWA-Ready-brightgreen)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
+[![AI-Powered](https://img.shields.io/badge/AI-Gemini%20Flash-blue)](https://deepmind.google/technologies/gemini/flash/)
+[![Offline First](https://img.shields.io/badge/Offline-First-orange)](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
 
-## 🌟 Overview
-
-Pristin Healthcare is a comprehensive telemedicine application designed specifically for rural India. It addresses connectivity challenges with an **offline-first approach** and uses **Grade A Artificial Intelligence** to provide preliminary diagnostics, ensuring that even remote populations have access to quality healthcare guidance.
+> **Empowering rural communities with Grade-A Medical AI and Offline-First technology.**
+> *Pristin Healthcare bridges the gap between remote patients and medical professionals, ensuring quality care regardless of connectivity.*
 
 ---
+
+## 🌟 Executive Summary
+
+Pristin Healthcare is an advanced, multilingual telemedicine ecosystem designed specifically for the challenges of rural healthcare in India. It combines modern web technologies (PWA) with cutting-edge AI (Google Gemini) to provide a seamless experience that works both online and offline.
 
 ## 🚀 Key Features
 
-### 1. 🔍 AI-Powered Diagnostics 
-*   **Symptom Checker**: Chat with "Pristin AI" to analyze symptoms. It provides potential conditions (e.g., Malaria, Dengue) and severity levels.
-*   **Facial Health Scan**: Uses your camera to scan for visible health indicators like **Anemia** (pallor), **Jaundice** (yellowness), and **Fever** (flush). *Now features a non-scary "Healthy Scan" mode!*
-*   **Prescription OCR**: Upload a photo of a handwritten prescription, and our AI will digitize it into readable text and medicine reminders.
+### 1. 🔍 Advanced AI-Powered Diagnostics
+*   **Multimodal Symptom Checker**: Analyze symptoms using text or voice. Powered by **Gemini 1.5 Flash** for deep medical reasoning and multilingual support.
+*   **AI Eye Scan (Ophthalmology)**: Upload or take a photo of the eyes to scan for indicators of **Jaundice** or **Anemia**.
+*   **AI Facial Health Scan**: Non-invasive scan for visible health indicators (Pallor, Flush, Skin Tone) with a reassuring "Healthy Scan" UI.
+*   **AI Meal Analysis**: Snap a photo of your meal to get instant nutritional insights (Calories, Macros) and personalized dietary advice.
+*   **AI Prescription Reader (OCR)**: Automatically digitize handwritten or printed prescriptions into structured medicine logs and reminders.
 
-### 2. 📡 Offline-First Architecture
-*   **Works Without Internet**: If the internet cuts out, you can still log symptoms, save vitals, and view past records.
-*   **Auto-Sync**: Data saved offline automatically syncs with the server once connectivity is restored.
-*   **PWA Support**: Installable on Android/iOS as a native-like app.
+### 2. 📶 Offline-First Resilience
+*   **Zero-Internet Functionality**: Log vitals, submit symptom reports, and view past records even with no network connection.
+*   **Intelligent Background Sync**: Data saved offline (using **IndexedDB**) automatically syncs to the server the moment connectivity is restored.
+*   **Local AI Fallback**: Uses a local **Scikit-Learn** model for basic symptom classification when cloud AI is unreachable.
 
-### 3. 👨‍⚕️ Doctor & Patient Dashboards
-*   **Patient Dashboard**: Track vitals (BP, Sugar, Heart Rate), view reports, and manage family members.
-*   **Doctor Dashboard**: Review patient cases, approve reports, and conduct video consultations.
-*   **Video Consultations**: Integrated video calling for remote checkups.
+### 3. 👩‍⚕️ Professional Healthcare Tiered Access
+*   **Doctor Dashboard**: Professional interface for physicians to review AI-generated reports, modify diagnoses, and approve treatment plans.
+*   **CHW (Community Health Worker) Suite**: Simplified tools for frontline workers to register patients, perform quick screenings, and manage community health files.
+*   **Integrated Video Consultations**: Direct video link between patients and doctors with camera/mic optimization.
 
-### 4. 🚑 Emergency & Utility Tools
-*   **Pharmacy Finder**: Locate nearby pharmacies on an interactive map.
-*   **Visual Translations**: All icons and text translate to local languages (Hindi, Telugu, Tamil, Bengali, Marathi) for better accessibility.
-*   **WhatsApp Integration**: Receive automated health alerts and reports on WhatsApp.
+### 4. 📊 Personal Health Management
+*   **Smart Health Timeline**: Visual tracking of Blood Pressure, Glucose, SpO2, and Temperature with automated trend alerts.
+*   **Family Proxy Access**: A "Universal Health Account" approach where one family member can manage records for children or elderly relatives.
+*   **Rural Pharmacy Locator**: Interactive map (Leaflet.js) to find nearby medicine supplies with mock inventory status.
 
----
-
-## 🛠️ Technical Stack
-
-*   **Backend**: Python (Flask), SQLAlchemy (Database)
-*   **Frontend**: HTML5, Vanilla CSS (Premium "MaxAlert" Dark UI), JavaScript (ES6+)
-*   **AI/ML**: 
-    *   Google Gemini 2.5 Flash (Symptom Analysis & Chatbot)
-    *   OpenCV & TensorFlow (Image Processing & Facial Scan)
-    *   Tesseract OCR (Prescription Digitization)
-*   **Deployment**: Ngrok (Public Tunneling)
+### 5. 🌍 Accessibility & Engagement
+*   **Multilingual Interface**: Full support for **Hindi, Telugu, Tamil, Bengali, Marathi, and Kannada**.
+*   **WhatsApp Integration**: Automated WhatsApp alerts for critical health changes and doctor-approved reports using Twilio.
+*   **Bandwidth Optimization**: Automatic client-side image compression for fast uploads on 2G/3G networks.
 
 ---
 
-## 📲 How to Run Locally
+## 🛠️ Technical Architecture
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend** | Python 3.14+, Flask, SQLAlchemy, Bcrypt |
+| **Frontend** | HTML5, Vanilla CSS3 (Pristin Premium Design System), JS (ES6+) |
+| **AI / ML** | Google Gemini (Pro/Vision), Scikit-Learn (Local), OpenCV, EasyOCR |
+| **Offline/PWA** | Service Workers, Cache API, IndexedDB, Web App Manifest |
+| **Infrastructure** | SQLite (Instance Database), Twilio (Messaging), Leaflet (Mapping) |
+
+---
+
+## 📂 Project Structure
+
+```text
+├── app.py                  # Core Flask application (Routing & Logic)
+├── chatbot_service.py      # Gemini AI Integration (Chat, Scans, Nutrition)
+├── translation_service.py  # High-performance localization engine
+├── models.py               # Database Schema (Users, Reports, Vitals)
+├── static/
+│   ├── js/                 # PWA Logic (sw.js), Offline DB, UI logic
+│   ├── css/                # Pristin Premium "Liquid Glass" design system
+│   └── uploads/            # Secure storage for clinical images
+├── templates/              # 35+ Responsive UI templates
+└── venv/                   # Python Virtual Environment
+```
+
+---
+
+## 📲 Installation & Setup
 
 ### Prerequisites
-*   Python 3.8+
-*   Git
-*   Tesseract OCR (installed and in PATH)
+- Python 3.8 or higher.
+- Tesseract OCR (Optional, for Prescription OCR).
+- Git.
 
-### Installation Steps
-
-1.  **Clone the Repository**
+### Quick Start
+1.  **Clone the Repo**:
     ```bash
     git clone https://github.com/gojosatorou999/ai-based-rural-healthcare-app.git
     cd ai-based-rural-healthcare-app
     ```
-
-2.  **Install Dependencies**
+2.  **Initialize Environment**:
     ```bash
+    python -m venv venv
+    .\venv\Scripts\activate  # Windows
     pip install -r requirements.txt
     ```
-
-3.  **Setup Environment Variables**
-    Create a `.env` file in the root directory and add your API keys:
+3.  **Configure `.env`**:
+    Create a `.env` file and add:
     ```env
-    FLASK_SECRET_KEY=your_secret_key
-    GEMINI_API_KEY_1=your_gemini_key
-    NGROK_AUTH_TOKEN=your_ngrok_token
+    FLASK_SECRET_KEY=your_secured_key
+    GEMINI_ANALYSIS_KEY=your_google_gemini_key
+    TWILIO_ACCOUNT_SID=your_sid (Optional)
+    TWILIO_AUTH_TOKEN=your_token (Optional)
     ```
-
-4.  **Run the Application**
+4.  **Run the Portal**:
     ```bash
     python app.py
     ```
-
-5.  **Access the App**
-    *   **Local**: `http://localhost:5000`
-    *   **Public (Mobile)**: Check the terminal for the `ngrok` URL (e.g., `https://xxxx.ngrok-free.app`). Use this link on your phone.
+    *The app will automatically initialize the database on first run.*
 
 ---
 
-## 🧩 Troubleshooting
+## 👤 Test Personas
 
-### 📉 App Stops Working / Goes Offline?
-*   **Cause**: The server on your PC might have stopped, or the phone browser put the tab to sleep.
-*   **Fix**: 
-    1. Ensure your PC is **ON** and connected to the internet.
-    2. Check the terminal window running `python app.py`. If it closed, restart it.
-    3. Refresh the page on your mobile device.
-
-### 🔗 Ngrok Connection Failure?
-*   **Fix**: The app automatically tries to restart Ngrok. If it fails, close the terminal and run `python app.py` again. Ensure you aren't running VPNs that block tunneling.
-
-### 📸 Camera/Microphone Issues?
-*   **Permission**: Ensure you have allowed Camera permissions in your browser.
-*   **Secure Context**: Camera ONLY works on `https://` (Ngrok) or `localhost`. It will NOT work on `http://192.168.x.x`.
+- **Patient**: Register a new account to access the personal health dashboard.
+- **Doctor**: Register/Login as a doctor to access `/doctor/dashboard` for report reviews.
+- **CHW**: Register/Login as a Community Health Worker for the screening interface.
 
 ---
 
-## 🛡️ License
-This project is for educational and healthcare development purposes.
+## 🛡️ Security & Privacy
+- **AES Password Hashing**: All user passwords encrypted with Bcrypt.
+- **Data Isolation**: Strict role-based access control (RBAC) ensures patient privacy.
+- **Secure Sessions**: Flask-Login sessions with secure cookie handling.
 
 ---
-**Made with ❤️ for Rural India**
+
+**Made with ❤️ for Rural India | [Project Roadmap](PHASE1_SUMMARY.md)**

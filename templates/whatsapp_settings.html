@@ -1,324 +1,204 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp Settings | Pristin Healthcare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        body {
-            background: var(--bg-primary);
-            padding: 2rem;
-        }
+{% block title %}Comm Settings | Pristin Healthcare{% endblock %}
 
-        .settings-container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
+{% block extra_css %}
+<style>
+    .settings-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
 
-        .settings-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-        }
+    .settings-hero {
+        margin-bottom: 2.5rem;
+    }
 
-        .settings-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
+    .config-card {
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+    }
 
-        .settings-icon {
-            width: 56px;
-            height: 56px;
-            background: rgba(196, 255, 13, 0.1);
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: var(--primary);
-        }
+    .status-well {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
 
-        .settings-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
+    .status-tile {
+        padding: 1.5rem;
+        text-align: center;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.02);
+    }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
+    .instruction-box {
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(37, 211, 102, 0.05), rgba(59, 130, 246, 0.05));
+        border: 1px solid rgba(37, 211, 102, 0.2);
+    }
 
-        .form-label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
+    .why-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+    }
 
-        .form-help {
-            font-size: 0.8125rem;
-            color: var(--text-tertiary);
-            margin-top: 0.25rem;
-        }
+    .btn-group-full {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
 
-        .form-input {
-            width: 100%;
-            padding: 0.875rem 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.2s ease;
-        }
+{% block content %}
+<div class="settings-container animate">
+    <div class="settings-hero">
+        <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin: 0;" data-i18n="Clinical Dispatch">
+            Clinical Dispatch</h1>
+        <p style="color: var(--text-secondary); font-weight: 500;"
+            data-i18n="Configure critical alert channels and family notification protocols.">Configure critical alert
+            channels and family notification protocols.</p>
+    </div>
 
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(196, 255, 13, 0.1);
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .info-box {
-            background: rgba(196, 255, 13, 0.05);
-            border: 1px solid rgba(196, 255, 13, 0.2);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .info-box-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .info-box-text {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
-        }
-
-        .feature-list {
-            list-style: none;
-            padding: 0;
-            margin: 1rem 0;
-        }
-
-        .feature-list li {
-            padding: 0.5rem 0;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 0.875rem;
-        }
-
-        .feature-list li i {
-            color: var(--primary);
-        }
-    </style>
-</head>
-
-<body>
-    <div class="settings-container">
-        <!-- Back Button -->
-        <div style="margin-bottom: 1.5rem;">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">
-                <i class="fas fa-arrow-left"></i> {{ 'Back to Dashboard' | translate }}
-            </a>
-        </div>
-
-        <!-- WhatsApp Settings Card -->
-        <div class="settings-card">
-            <div class="settings-header">
-                <div class="settings-icon">
-                    <i class="fab fa-whatsapp"></i>
-                </div>
-                <div>
-                    <div class="settings-title">{{ 'WhatsApp Integration' | translate }}</div>
-                    <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">
-                        {{ 'Connect your WhatsApp for health alerts' | translate }}
-                    </p>
-                </div>
+    <!-- Main Config -->
+    <div class="glass-card config-card animate">
+        <div class="why-tag"><i class="fab fa-whatsapp"></i> <span data-i18n="Protocol Highlights">Protocol
+                Highlights</span></div>
+        <div
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem;">
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                <i class="fas fa-check-double" style="color: var(--success); margin-right: 6px;"></i> <span
+                    data-i18n="Instant critical vitals alerts">Instant critical vitals alerts</span>
             </div>
-
-            <!-- Info Box -->
-            <div class="info-box">
-                <div class="info-box-title">
-                    <i class="fas fa-info-circle"></i>
-                    {{ 'Why connect WhatsApp?' | translate }}
-                </div>
-                <div class="info-box-text">
-                    <ul class="feature-list">
-                        <li><i class="fas fa-check-circle"></i> {{ 'Receive critical health alerts instantly' |
-                            translate }}</li>
-                        <li><i class="fas fa-check-circle"></i> {{ 'Family members get emergency notifications' |
-                            translate }}</li>
-                        <li><i class="fas fa-check-circle"></i> {{ 'Medication reminders and schedules' | translate }}
-                        </li>
-                        <li><i class="fas fa-check-circle"></i> {{ 'Doctor can send reports directly' | translate }}
-                        </li>
-                    </ul>
-                </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                <i class="fas fa-check-double" style="color: var(--success); margin-right: 6px;"></i> <span
+                    data-i18n="Family emergency broadcast">Family emergency broadcast</span>
             </div>
-
-            <!-- Settings Form -->
-            <form action="{{ url_for('update_whatsapp') }}" method="POST">
-                <div class="form-group">
-                    <label class="form-label" for="whatsapp_number">
-                        <i class="fab fa-whatsapp"></i> {{ 'Your WhatsApp Number' | translate }}
-                    </label>
-                    <input type="tel" class="form-input" id="whatsapp_number" name="whatsapp_number"
-                        value="{{ current_user.whatsapp_number or '' }}" placeholder="+919876543210"
-                        pattern="\+[0-9]{10,15}">
-                    <div class="form-help">
-                        {{ 'Include country code (e.g., +91 for India)' | translate }}
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="family_whatsapp">
-                        <i class="fas fa-users"></i> {{ 'Emergency Contact WhatsApp' | translate }}
-                    </label>
-                    <input type="tel" class="form-input" id="family_whatsapp" name="family_whatsapp"
-                        value="{{ current_user.family_whatsapp or '' }}" placeholder="+919876543210"
-                        pattern="\+[0-9]{10,15}">
-                    <div class="form-help">
-                        {{ 'Family member who will receive critical health alerts' | translate }}
-                    </div>
-                </div>
-
-                <div class="btn-group">
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">
-                        <i class="fas fa-save"></i> {{ 'Save Settings' | translate }}
-                    </button>
-                    {% if current_user.whatsapp_number %}
-                    <button type="button" class="btn btn-secondary" onclick="testWhatsApp(event)">
-                        <i class="fas fa-paper-plane"></i> {{ 'Test' | translate }}
-                    </button>
-                    {% endif %}
-                </div>
-            </form>
-        </div>
-
-        <!-- Current Status -->
-        <div class="settings-card">
-            <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
-                <i class="fas fa-check-circle"></i> {{ 'Connection Status' | translate }}
-            </h3>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md);">
-                    <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.25rem;">{{ 'Your
-                        Number' | translate }}
-                    </div>
-                    <div style="font-weight: 600;">
-                        {% if current_user.whatsapp_number %}
-                        <i class="fas fa-check-circle" style="color: var(--success);"></i> {{ 'Connected' | translate }}
-                        {% else %}
-                        <i class="fas fa-times-circle" style="color: var(--error);"></i> {{ 'Not Set' | translate }}
-                        {% endif %}
-                    </div>
-                </div>
-                <div style="padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md);">
-                    <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-bottom: 0.25rem;">{{ 'Emergency
-                        Contact' | translate }}</div>
-                    <div style="font-weight: 600;">
-                        {% if current_user.family_whatsapp %}
-                        <i class="fas fa-check-circle" style="color: var(--success);"></i> {{ 'Connected' | translate }}
-                        {% else %}
-                        <i class="fas fa-times-circle" style="color: var(--error);"></i> {{ 'Not Set' | translate }}
-                        {% endif %}
-                    </div>
-                </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                <i class="fas fa-check-double" style="color: var(--success); margin-right: 6px;"></i> <span
+                    data-i18n="Secure clinical report delivery">Secure clinical report delivery</span>
             </div>
         </div>
 
-        <!-- Setup Instructions -->
-        <div class="settings-card">
-            <h3 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem;">
-                <i class="fas fa-question-circle"></i> {{ 'How to Set Up' | translate }}
-            </h3>
-            <div class="info-box" style="background: rgba(37, 211, 102, 0.1); border-color: rgba(37, 211, 102, 0.3);">
-                <div class="info-box-title" style="color: #25D366;">
-                    <i class="fab fa-whatsapp"></i> {{ 'Requirement: Join Twilio Sandbox' | translate }}
-                </div>
-                <div class="info-box-text">
-                    {{ 'To receive messages during development, you MUST join the Twilio WhatsApp sandbox from your
-                    phone:' | translate }}
-                    <ol style="margin-top: 0.5rem; padding-left: 1.25rem;">
-                        <li>{{ 'Send "join apple-pie" (or your sandbox keyword) to' | translate }} <strong>+1 415 523
-                                8886</strong></li>
-                        <li>{{ 'Wait for the confirmation message from Twilio' | translate }}</li>
-                        <li>{{ 'Then click the "Test" button below' | translate }}</li>
-                    </ol>
-                </div>
+        <form action="{{ url_for('update_whatsapp') }}" method="POST">
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-weight: 800; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted);"
+                    data-i18n="Your Terminal Number">Your Terminal Number</label>
+                <input type="tel" name="whatsapp_number" class="form-control"
+                    style="width: 100%; height: 52px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px 18px; margin-top: 8px; color: white;"
+                    value="{{ current_user.whatsapp_number or '' }}" placeholder="+91 00000 00000">
             </div>
-            <ol style="padding-left: 1.5rem; color: var(--text-secondary); line-height: 1.8;">
-                <li>{{ 'Enter your WhatsApp number with country code' | translate }}</li>
-                <li>{{ 'Add an emergency contact (family member)' | translate }}</li>
-                <li>{{ 'Click "Save Settings"' | translate }}</li>
-                <li>{{ 'Click "Test" to verify the connection' | translate }}</li>
-                <li>{{ 'You\'ll receive alerts automatically when needed' | translate }}</li>
-            </ol>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="font-weight: 800; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted);"
+                    data-i18n="Proxy / Family Number">Proxy / Family Number</label>
+                <input type="tel" name="family_whatsapp" class="form-control"
+                    style="width: 100%; height: 52px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px 18px; margin-top: 8px; color: white;"
+                    value="{{ current_user.family_whatsapp or '' }}" placeholder="+91 00000 00000">
+            </div>
+
+            <div class="btn-group-full">
+                <button type="submit" class="btn-primary" style="height: 52px; border-radius: 12px; font-weight: 800;">
+                    <i class="fas fa-save"></i> <span data-i18n="Commit Configuration">Commit Configuration</span>
+                </button>
+                {% if current_user.whatsapp_number %}
+                <button type="button" onclick="testWhatsApp(event)" class="glass-card"
+                    style="height: 52px; border-radius: 12px; font-weight: 800; color: var(--primary);">
+                    <i class="fas fa-tower-broadcast"></i> <span data-i18n="Ping">Ping</span>
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Status Tiles -->
+    <div class="status-well animate">
+        <div class="glass-card status-tile animate">
+            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;"
+                data-i18n="Self Channel">Self Channel</div>
+            <div
+                style="margin-top: 10px; font-weight: 900; color: {% if current_user.whatsapp_number %}var(--success){% else %}var(--error){% endif %};">
+                {% if current_user.whatsapp_number %}<i class="fas fa-link"></i> <span
+                    data-i18n="CONNECTED">CONNECTED</span>{% else %}<i class="fas fa-link-slash"></i> <span
+                    data-i18n="OFFLINE">OFFLINE</span>{% endif %}
+            </div>
+        </div>
+        <div class="glass-card status-tile animate">
+            <div style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;"
+                data-i18n="Proxy Channel">Proxy Channel</div>
+            <div
+                style="margin-top: 10px; font-weight: 900; color: {% if current_user.family_whatsapp %}var(--success){% else %}var(--error){% endif %};">
+                {% if current_user.family_whatsapp %}<i class="fas fa-link"></i> <span
+                    data-i18n="CONNECTED">CONNECTED</span>{% else %}<i class="fas fa-link-slash"></i> <span
+                    data-i18n="OFFLINE">OFFLINE</span>{% endif %}
+            </div>
         </div>
     </div>
 
-    <script>
-        async function testWhatsApp(event) {
-            const btn = event.currentTarget || event.target;
-            const originalContent = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+    <!-- Integration Logic -->
+    <div class="glass-card instruction-box animate" style="margin-top: 3rem;">
+        <h4 style="font-weight: 900; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-gears" style="color: #25D366;"></i> <span data-i18n="Developer Sandbox Setup">Developer
+                Sandbox Setup</span>
+        </h4>
+        <div style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.7;">
+            <p data-i18n="During initial deployment, you must manually bridge with our messaging gateway:">During
+                initial deployment, you must manually bridge with our messaging gateway:</p>
+            <ol style="margin-top: 1rem; padding-left: 1.5rem;">
+                <li><span data-i18n="Send 'join apple-pie' via WhatsApp to">Send 'join apple-pie' via WhatsApp to</span>
+                    <strong>+1 415 523 8886</strong></li>
+                <li data-i18n="Wait for the clinical gateway handshake.">Wait for the clinical gateway handshake.</li>
+                <li data-i18n="Initiate 'Ping' to verify encrypted transmission.">Initiate 'Ping' to verify encrypted
+                    transmission.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+{% block extra_js %}
+<script>
+    async function testWhatsApp(event) {
+        const btn = event.currentTarget;
+        const originalContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ping...';
 
-                const response = await fetch('{{ url_for("test_whatsapp") }}', {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-                const data = await response.json();
-
-                if (data.success) {
-                    const modeMsg = data.mode === 'real' ? ' (Sent via Twilio)' : ' (Diagnostic Mock)';
-                    alert('✅ ' + data.message + modeMsg);
-                } else {
-                    alert('❌ ' + (data.error || 'Unknown Error'));
-                }
+        try {
+            const response = await fetch('{{ url_for("test_whatsapp") }}', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert('✓ ' + data.message);
                 location.reload();
-            } catch (err) {
-                console.error('WhatsApp Test Error:', err);
-                if (err.name === 'AbortError') {
-                    alert('❌ Request timed out. The server might be busy or restarting.');
-                } else {
-                    alert('❌ Failed to connect to server. Please check if your internet is working and the app is running.');
-                }
-                btn.disabled = false;
-                btn.innerHTML = originalContent;
+            } else {
+                alert('✗ ' + (data.error || 'Gateway Timeout'));
             }
+        } catch (err) {
+            alert('✗ Server Handshake Failed');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
         }
-    </script>
-</body>
+    }
 
-</html>
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 80);
+        });
+    });
+</script>
+{% endblock %}

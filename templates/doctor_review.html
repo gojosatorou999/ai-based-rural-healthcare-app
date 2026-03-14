@@ -1,368 +1,277 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Report - Pristin Healthcare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+{% block title %}Case Review | Pristin Healthcare{% endblock %}
 
-    <style>
-        body {
-            background: var(--bg-primary);
+{% block extra_css %}
+<style>
+    .review-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .info-section {
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .section-title-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 2rem;
+        color: var(--text-primary);
+        font-weight: 800;
+        font-size: 1.25rem;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .detail-item {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+    }
+
+    .detail-label {
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    .detail-val {
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .ai-showcase {
+        padding: 2rem;
+        margin-bottom: 2rem;
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(168, 85, 247, 0.05));
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .confidence-ring {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--primary);
+        border-radius: 30px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        width: fit-content;
+        margin-bottom: 1.5rem;
+    }
+
+    .action-panel {
+        padding: 2.5rem;
+        margin-top: 3rem;
+    }
+
+    .form-textarea {
+        width: 100%;
+        min-height: 120px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.25rem;
+        color: var(--text-primary);
+        font-size: 1rem;
+        margin-top: 10px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .form-textarea:focus {
+        border-color: var(--primary);
+    }
+
+    .btn-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .modify-inp-box {
+        display: none;
+        margin-bottom: 1.5rem;
+        animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
         }
 
-        .review-header {
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem 0;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
+    }
+</style>
+{% endblock %}
 
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+{% block content %}
+<div class="review-container animate">
+    <div style="margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1px; margin: 0;">
+            <span data-i18n="Case Verification">Case Verification</span> <small
+                style="font-weight: 400; opacity: 0.5;">#{{ report.id }}</small>
+        </h1>
+        <p style="color: var(--text-secondary); font-weight: 500;"
+            data-i18n="Detailed clinical report for medical verification and oversight.">Detailed clinical report for
+            medical verification and oversight.</p>
+    </div>
 
-        .review-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .card-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card-title i {
-            color: var(--primary);
-        }
-
-        .patient-info {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-
-        .info-item {
-            background: var(--bg-secondary);
-            padding: 0.75rem;
-            border-radius: var(--radius-md);
-        }
-
-        .info-label {
-            font-size: 0.75rem;
-            color: var(--text-tertiary);
-            margin-bottom: 0.25rem;
-        }
-
-        .info-value {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .symptoms-text {
-            background: var(--bg-secondary);
-            padding: 1rem;
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-
-        .ai-prediction {
-            background: linear-gradient(135deg, var(--bg-secondary), rgba(196, 255, 13, 0.05));
-            border: 1px solid rgba(196, 255, 13, 0.2);
-            padding: 1rem;
-            border-radius: var(--radius-md);
-            margin-top: 1rem;
-        }
-
-        .ai-disease {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .ai-confidence {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            background: rgba(196, 255, 13, 0.15);
-            color: var(--primary);
-            border-radius: var(--radius-full);
-            font-size: 0.8125rem;
-            font-weight: 600;
-        }
-
-        .approval-form {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: 1.5rem;
-        }
-
-        .form-title {
-            font-size: 1.125rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-        }
-
-        textarea {
-            width: 100%;
-            min-height: 100px;
-            padding: 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-family: inherit;
-            resize: vertical;
-            margin-bottom: 1rem;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-
-        .btn-approve {
-            background: var(--success);
-            color: var(--bg-primary);
-        }
-
-        .btn-reject {
-            background: var(--error);
-            color: white;
-        }
-
-        .btn-modify {
-            background: var(--warning);
-            color: var(--bg-primary);
-        }
-
-        .modify-section {
-            background: var(--bg-secondary);
-            padding: 1rem;
-            border-radius: var(--radius-md);
-            margin-bottom: 1rem;
-            display: none;
-        }
-
-        .modify-section.show {
-            display: block;
-        }
-
-        .symptom-image {
-            margin-top: 1rem;
-            border-radius: var(--radius-md);
-            overflow: hidden;
-        }
-
-        .symptom-image img {
-            width: 100%;
-            max-height: 300px;
-            object-fit: cover;
-        }
-
-        .warnings-list {
-            background: rgba(255, 77, 77, 0.1);
-            border: 1px solid rgba(255, 77, 77, 0.3);
-            border-radius: var(--radius-md);
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        .warnings-list li {
-            color: var(--error);
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-    </style>
-</head>
-
-<body>
-    <header class="review-header">
-        <div class="container">
-            <div class="header-content">
-                <a href="{{ url_for('doctor_dashboard') }}" class="btn btn-ghost">
-                    <i class="fas fa-arrow-left"></i> {{ 'Back to Dashboard' | translate }}
-                </a>
-                <span style="font-weight: 600;">Report #{{ report.id }}</span>
-                <div style="width: 100px;"></div>
+    <!-- Patient Profile -->
+    <div class="glass-card info-section animate">
+        <div class="section-title-box">
+            <i class="fas fa-id-card-clip" style="color: var(--primary);"></i> <span data-i18n="Patient Profile">Patient
+                Profile</span>
+        </div>
+        <div class="details-grid">
+            <div class="detail-item">
+                <div class="detail-label" data-i18n="Full Name">Full Name</div>
+                <div class="detail-val">{{ patient.username }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label" data-i18n="Age / Gender">Age / Gender</div>
+                <div class="detail-val">{{ patient.age or '?' }} / {{ patient.gender or '?' }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label" data-i18n="Medical History">Medical History</div>
+                <div class="detail-val">{{ patient.existing_conditions or 'None Declared' | translate }}</div>
             </div>
         </div>
-    </header>
+    </div>
 
-    <main style="padding: 2rem 0;">
-        <div class="container container-sm">
-            <!-- Patient Info -->
-            <div class="review-card">
-                <div class="card-title">
-                    <i class="fas fa-user"></i> {{ 'Patient Information' | translate }}
-                </div>
-                <div class="patient-info">
-                    <div class="info-item">
-                        <div class="info-label">{{ 'Name' | translate }}</div>
-                        <div class="info-value">{{ patient.username }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">{{ 'Age' | translate }}</div>
-                        <div class="info-value">{{ patient.age or 'Not specified' | translate }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">{{ 'Gender' | translate }}</div>
-                        <div class="info-value">{{ patient.gender or 'Not specified' | translate }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">{{ 'Conditions' | translate }}</div>
-                        <div class="info-value">{{ patient.existing_conditions or 'None' | translate }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Symptom Details -->
-            <div class="review-card">
-                <div class="card-title">
-                    <i class="fas fa-stethoscope"></i> {{ 'Symptom Report' | translate }}
-                </div>
-                <div class="patient-info" style="margin-bottom: 1rem;">
-                    <div class="info-item">
-                        <div class="info-label">{{ 'Affected Area' | translate }}</div>
-                        <div class="info-value">{{ report.affected_area or 'Not specified' | translate }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">{{ 'Severity' | translate }}</div>
-                        <div class="info-value">{{ report.severity }}/10</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">{{ 'Duration' | translate }}</div>
-                        <div class="info-value">{{ report.duration or 'Not specified' | translate }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">{{ 'Reported' | translate }}</div>
-                        <div class="info-value">{{ report.created_at.strftime('%b %d, %Y %H:%M') }}</div>
-                    </div>
-                </div>
-                <div class="symptoms-text">{{ report.symptoms_text }}</div>
-
-                {% set ai_data = report.ai_prediction|from_json if report.ai_prediction else {} %}
-                {% if ai_data.ai_summary %}
-                <div class="ai-summary-box"
-                    style="margin-top: 1rem; padding: 0.75rem; background: rgba(196, 255, 13, 0.05); border-left: 3px solid var(--primary); border-radius: 0 var(--radius-md) var(--radius-md) 0;">
-                    <div
-                        style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); font-weight: 700; margin-bottom: 0.25rem;">
-                        <i class="fas fa-robot"></i> {{ 'Smart Summary' | translate }}
-                    </div>
-                    <div style="font-size: 0.9rem; color: var(--text-primary); line-height: 1.5;">
-                        {{ ai_data.ai_summary }}
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if report.image_path %}
-                <div class="symptom-image">
-                    <img src="{{ url_for('static', filename=report.image_path) }}" alt="Symptom image">
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- AI Analysis -->
-            {% if ai_analysis %}
-            <div class="review-card">
-                <div class="card-title">
-                    <i class="fas fa-brain"></i> {{ 'AI Analysis' | translate }}
-                </div>
-                <div class="ai-prediction">
-                    <div class="ai-disease">{{ ai_analysis.disease }}</div>
-                    <span class="ai-confidence">{{ (report.confidence_score * 100)|round|int if report.confidence_score
-                        else 70 }}% {{ 'Confidence' | translate }}</span>
-                    <p style="margin-top: 0.75rem; color: var(--text-secondary);">
-                        {{ ai_analysis.description or 'AI-generated preliminary diagnosis based on reported symptoms.' |
-                        translate
-                        }}
-                    </p>
-                </div>
-
-                {% if ai_analysis.warnings %}
-                <ul class="warnings-list">
-                    {% for warning in ai_analysis.warnings %}
-                    <li><i class="fas fa-exclamation-triangle"></i> {{ warning }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-
-                {% if ai_analysis.rural_medicines %}
-                <div style="margin-top: 1rem;">
-                    <div class="info-label">{{ 'Suggested Rural Medicines' | translate }}</div>
-                    {% for med in ai_analysis.rural_medicines %}
-                    <span class="badge badge-primary" style="margin: 0.25rem;">{{ med.name }}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-            {% endif %}
-
-            <!-- Approval Form -->
-            <form action="{{ url_for('doctor_approve', report_id=report.id) }}" method="POST" class="approval-form">
-                <div class="form-title">{{ 'Doctor Verification' | translate }}</div>
-
-                <div class="modify-section" id="modifySection">
-                    <label class="form-label">{{ 'Modified Diagnosis' | translate }}</label>
-                    <input type="text" name="modified_diagnosis" class="form-control"
-                        placeholder="{{ 'Enter your diagnosis if different from AI' | translate }}">
-                </div>
-
-                <label class="form-label">{{ 'Doctor Notes (optional)' | translate }}</label>
-                <textarea name="doctor_notes"
-                    placeholder="{{ 'Add any notes, observations, or recommendations...' | translate }}"></textarea>
-
-                <div class="action-buttons">
-                    <button type="submit" name="action" value="approve" class="btn btn-approve">
-                        <i class="fas fa-check"></i> {{ 'Approve AI Diagnosis' | translate }}
-                    </button>
-                    <button type="button" onclick="toggleModify()" class="btn btn-modify">
-                        <i class="fas fa-edit"></i> {{ 'Modify Diagnosis' | translate }}
-                    </button>
-                    <button type="submit" name="action" value="reject" class="btn btn-reject">
-                        <i class="fas fa-times"></i> {{ 'Reject' | translate }}
-                    </button>
-                </div>
-            </form>
+    <!-- Clinical Data -->
+    <div class="glass-card info-section animate">
+        <div class="section-title-box">
+            <i class="fas fa-stethoscope" style="color: #ec4899;"></i> <span data-i18n="Symptom Details">Symptom
+                Details</span>
         </div>
-    </main>
+        <div class="details-grid" style="margin-bottom: 2rem;">
+            <div class="detail-item">
+                <div class="detail-label" data-i18n="Location">Location</div>
+                <div class="detail-val">{{ report.affected_area or 'Not specified' | translate }}</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label" data-i18n="Severity">Severity</div>
+                <div class="detail-val">{{ report.severity }}/10</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label" data-i18n="Duration">Duration</div>
+                <div class="detail-val">{{ report.duration or 'Not specified' | translate }}</div>
+            </div>
+        </div>
+        <div class="glass-card"
+            style="padding: 1.5rem; background: rgba(255,255,255,0.02); border-color: var(--border);">
+            <div class="detail-label" style="margin-bottom: 10px;" data-i18n="Raw Symptom Text">Raw Symptom Text</div>
+            <p style="color: var(--text-primary); line-height: 1.7; font-style: italic; margin: 0;">"{{
+                report.symptoms_text }}"</p>
+        </div>
 
-    <script>
-        function toggleModify() {
-            const section = document.getElementById('modifySection');
-            section.classList.toggle('show');
-            if (section.classList.contains('show')) {
-                section.querySelector('input').focus();
-            }
+        {% if report.image_path %}
+        <div style="margin-top: 1.5rem;">
+            <div class="detail-label" style="margin-bottom: 10px;" data-i18n="Captured Evidence">Captured Evidence</div>
+            <div class="glass-card"
+                style="padding: 10px; overflow: hidden; max-height: 400px; display: flex; justify-content: center;">
+                <img src="{{ url_for('static', filename=report.image_path) }}"
+                    style="max-width: 100%; border-radius: 12px; object-fit: contain;" alt="Symptom image">
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- AI Insights -->
+    {% if ai_analysis %}
+    <div class="glass-card ai-showcase animate">
+        <div class="confidence-ring">
+            <i class="fas fa-robot"></i> <span>{{ (report.confidence_score * 100)|round|int if report.confidence_score
+                else 70 }}% <span data-i18n="Model Confidence">Model Confidence</span></span>
+        </div>
+        <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 1rem;">{{ ai_analysis.disease }}</h2>
+        <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 2rem;">{{
+            ai_analysis.description or 'Predictive analysis based on multi-modal symptom patterns.' | translate }}</p>
+
+        {% if ai_analysis.warnings %}
+        <div
+            style="background: rgba(239, 68, 68, 0.05); padding: 1rem; border-radius: 12px; border-left: 4px solid var(--error);">
+            {% for w in ai_analysis.warnings %}
+            <div style="color: var(--error); font-size: 0.9rem; margin-bottom: 4px; font-weight: 700;">
+                <i class="fas fa-triangle-exclamation"></i> {{ w }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Verification Actions -->
+    <div class="glass-card action-panel animate">
+        <h3 style="font-weight: 800; margin-bottom: 1.5rem;" data-i18n="Medical Verification">Medical Verification</h3>
+
+        <form action="{{ url_for('doctor_approve', report_id=report.id) }}" method="POST">
+            <div id="modifyBox" class="modify-inp-box">
+                <label style="font-weight: 800; font-size: 0.85rem; color: var(--primary);"
+                    data-i18n="Corrected Diagnosis">Corrected Diagnosis</label>
+                <input type="text" name="modified_diagnosis"
+                    style="width: 100%; background: rgba(59, 130, 246, 0.05); border: 1px solid var(--primary); border-radius: 12px; padding: 12px; color: var(--text-primary); font-weight: 700; outline: none; margin-top: 6px;"
+                    placeholder="Override AI diagnosis here...">
+            </div>
+
+            <label style="font-weight: 800; font-size: 0.85rem;" data-i18n="Clinical Notes">Clinical Notes</label>
+            <textarea name="doctor_notes" class="form-textarea"
+                placeholder="Add specific instructions, medication plan, or diagnostic notes..."></textarea>
+
+            <div class="btn-group">
+                <button type="submit" name="action" value="approve" class="btn-primary"
+                    style="padding: 16px; border-radius: 14px; font-size: 1rem;">
+                    <i class="fas fa-check-circle"></i> <span data-i18n="Finalize & Approve">Finalize & Approve</span>
+                </button>
+                <button type="button" onclick="toggleModify()" class="glass-card"
+                    style="padding: 16px; border-radius: 14px; font-weight: 800; color: var(--text-secondary);">
+                    <i class="fas fa-pen-to-square"></i> <span data-i18n="Modify Diagnosis">Modify Diagnosis</span>
+                </button>
+                <button type="submit" name="action" value="reject" class="glass-card"
+                    style="padding: 16px; border-radius: 14px; font-weight: 800; color: var(--error);">
+                    <i class="fas fa-ban"></i> <span data-i18n="Reject Report">Reject Report</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleModify() {
+        const box = document.getElementById('modifyBox');
+        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+        if (box.style.display === 'block') {
+            box.querySelector('input').focus();
         }
-    </script>
-    <script src="/static/js/app.js"></script>
-</body>
+    }
 
-</html>
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 80);
+        });
+    });
+</script>
+{% endblock %}

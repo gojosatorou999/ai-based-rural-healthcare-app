@@ -1,405 +1,370 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ patient.username }} - Patient Details</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        body {
-            background: var(--bg-primary);
-            padding: 2rem;
-        }
+{% block title %}{{ patient.username }} | Patient Detail{% endblock %}
 
-        .patient-profile {
-            background: linear-gradient(135deg, var(--bg-card), rgba(196, 255, 13, 0.05));
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-        }
+{% block extra_css %}
+<style>
+    .detail-hero {
+        padding: 2.5rem;
+        margin-bottom: 2.5rem;
+        display: flex;
+        align-items: center;
+        gap: 2.5rem;
+    }
 
-        .profile-avatar {
-            width: 120px;
-            height: 120px;
-            background: rgba(196, 255, 13, 0.15);
-            border-radius: var(--radius-xl);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: var(--primary);
-        }
+    .hero-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 24px;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    }
 
-        .profile-info h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-        }
+    .hero-info h1 {
+        font-size: 2.5rem;
+        font-weight: 900;
+        letter-spacing: -1.5px;
+        margin: 0 0 8px 0;
+    }
 
-        .profile-meta {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-            font-size: 0.9375rem;
-            color: var(--text-secondary);
-        }
+    .hero-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
 
-        .data-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
+    .data-card {
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
 
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-        }
+    .data-table-wrapper {
+        overflow-x: auto;
+        margin-top: 1.5rem;
+    }
 
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
+    .glass-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-        .section-title i {
-            color: var(--primary);
-        }
+    .glass-table th {
+        text-align: left;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 800;
+        border-bottom: 1px solid var(--border);
+    }
 
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    .glass-table td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+    }
 
-        .data-table th {
-            text-align: left;
-            padding: 0.75rem;
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 600;
-            font-size: 0.8125rem;
-            color: var(--text-tertiary);
-        }
+    .glass-table tr:last-child td {
+        border-bottom: none;
+    }
 
-        .data-table td {
-            padding: 1rem 0.75rem;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-primary);
-        }
+    .glass-table tr:hover {
+        background: rgba(255, 255, 255, 0.01);
+    }
 
-        .data-table tr:last-child td {
-            border-bottom: none;
-        }
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
 
-        .data-table tr:hover {
-            background: var(--bg-secondary);
-        }
+    .status-alert {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+    }
 
-        .badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: var(--radius-full);
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
+    .status-warn {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning);
+    }
 
-        .badge-success {
-            background: rgba(0, 255, 136, 0.15);
-            color: var(--success);
-        }
+    .status-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+    }
 
-        .badge-warning {
-            background: rgba(255, 184, 0, 0.15);
-            color: var(--warning);
-        }
+    .modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+</style>
+{% endblock %}
 
-        .badge-error {
-            background: rgba(255, 77, 77, 0.15);
-            color: var(--error);
-        }
+{% block content %}
+<div class="animate">
+    <div style="margin-bottom: 2rem;">
+        <a href="{{ url_for('admin_all_patients') }}"
+            style="color: var(--text-muted); text-decoration: none; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-arrow-left-long"></i> <span data-i18n="All Records">All Records</span>
+        </a>
+    </div>
 
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-tertiary);
-        }
-
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.3;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <!-- Back Button -->
-        <div style="margin-bottom: 1.5rem;">
-            <a href="{{ url_for('admin_all_patients') }}" class="btn btn-ghost">
-                <i class="fas fa-arrow-left"></i> Back to All Patients
-            </a>
+    <!-- Hero Section -->
+    <div class="glass-card detail-hero animate">
+        <div class="hero-avatar">
+            <i class="fas fa-user-cloak"></i>
         </div>
-
-        <!-- Patient Profile -->
-        <div class="patient-profile">
-            <div class="profile-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-            <div class="profile-info" style="flex: 1;">
-                <h1>{{ patient.username }}</h1>
-                <div class="profile-meta">
-                    <span><i class="fas fa-envelope"></i> {{ patient.email }}</span>
-                    {% if patient.age %}<span><i class="fas fa-birthday-cake"></i> {{ patient.age }} years</span>{%
-                    endif %}
-                    {% if patient.gender %}<span><i class="fas fa-venus-mars"></i> {{ patient.gender }}</span>{% endif
-                    %}
-                    <span><i class="fas fa-user-tag"></i> {{ patient.role|capitalize }}</span>
-                    {% if patient.whatsapp_number %}
-                    <span><i class="fab fa-whatsapp" style="color: var(--success);"></i> {{ patient.whatsapp_number
-                        }}</span>
-                    {% endif %}
-                </div>
-            </div>
-            <div>
-                {% if patient.whatsapp_number or patient.family_whatsapp %}
-                <button class="btn btn-primary" onclick="openWhatsAppModal()">
-                    <i class="fab fa-whatsapp"></i> Send WhatsApp Alert
-                </button>
-                {% else %}
-                <button class="btn btn-secondary" disabled title="No WhatsApp configured">
-                    <i class="fab fa-whatsapp"></i> WhatsApp Not Set
-                </button>
+        <div class="hero-info" style="flex: 1;">
+            <h1 data-i18n="{{ patient.username }}">{{ patient.username }}</h1>
+            <div class="hero-meta">
+                <span><i class="fas fa-envelope-circle-check"></i> {{ patient.email }}</span>
+                <span><i class="fas fa-venus-mars"></i> {{ patient.gender|default('?', true) }}</span>
+                <span><i class="fas fa-cake-candles"></i> {{ patient.age|default('?', true) }} <span
+                        data-i18n="years">years</span></span>
+                {% if patient.whatsapp_number %}
+                <span><i class="fab fa-whatsapp" style="color: #25D366;"></i> {{ patient.whatsapp_number }}</span>
                 {% endif %}
             </div>
         </div>
-
-        <!-- WhatsApp Alert Modal -->
-        <div id="whatsappModal"
-            style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
-            <div
-                style="background: var(--bg-card); border-radius: var(--radius-xl); padding: 2rem; max-width: 500px; width: 90%;">
-                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">
-                    <i class="fab fa-whatsapp"></i> Send WhatsApp Alert
-                </h2>
-                <form action="{{ url_for('whatsapp_send_alert') }}" method="POST">
-                    <input type="hidden" name="patient_id" value="{{ patient.id }}">
-
-                    <div style="margin-bottom: 1rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Send To:</label>
-                        <select name="recipient_type"
-                            style="width: 100%; padding: 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary);">
-                            {% if patient.whatsapp_number %}
-                            <option value="patient">Patient ({{ patient.whatsapp_number }})</option>
-                            {% endif %}
-                            {% if patient.family_whatsapp %}
-                            <option value="family">Family/Emergency Contact ({{ patient.family_whatsapp }})</option>
-                            {% endif %}
-                        </select>
-                    </div>
-
-                    <div style="margin-bottom: 1.5rem;">
-                        <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Message:</label>
-                        <textarea name="message" rows="4" required
-                            style="width: 100%; padding: 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); color: var(--text-primary); resize: vertical;"
-                            placeholder="Enter your message..."></textarea>
-                    </div>
-
-                    <div style="display: flex; gap: 0.75rem;">
-                        <button type="submit" class="btn btn-primary" style="flex: 1;">
-                            <i class="fas fa-paper-plane"></i> Send Message
-                        </button>
-                        <button type="button" class="btn btn-secondary" onclick="closeWhatsAppModal()">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <script>
-            function openWhatsAppModal() {
-                document.getElementById('whatsappModal').style.display = 'flex';
-            }
-
-            function closeWhatsAppModal() {
-                document.getElementById('whatsappModal').style.display = 'none';
-            }
-
-            // Close modal when clicking outside
-            document.getElementById('whatsappModal').addEventListener('click', function (e) {
-                if (e.target === this) {
-                    closeWhatsAppModal();
-                }
-            });
-        </script>
-
-
-        <!-- Symptom Reports -->
-        <div class="data-section">
-            <div class="section-header">
-                <div class="section-title">
-                    <i class="fas fa-notes-medical"></i>
-                    Symptom Reports ({{ symptoms|length }})
-                </div>
-            </div>
-
-            {% if symptoms %}
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Symptoms</th>
-                        <th>Affected Area</th>
-                        <th>Severity</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for symptom in symptoms %}
-                    <tr>
-                        <td>{{ symptom.created_at.strftime('%b %d, %Y %H:%M') }}</td>
-                        <td>{{ symptom.symptoms_text[:50] }}{% if symptom.symptoms_text|length > 50 %}...{% endif %}
-                        </td>
-                        <td>{{ symptom.affected_area or 'N/A' }}</td>
-                        <td>
-                            <span
-                                class="badge {% if symptom.severity >= 7 %}badge-error{% elif symptom.severity >= 4 %}badge-warning{% else %}badge-success{% endif %}">
-                                {{ symptom.severity or 'N/A' }}
-                            </span>
-                        </td>
-                        <td>
-                            {% if symptom.doctor_approved %}
-                            <span class="badge badge-success"><i class="fas fa-check"></i> Approved</span>
-                            {% else %}
-                            <span class="badge badge-warning"><i class="fas fa-clock"></i> Pending</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <a href="{{ url_for('doctor_review', report_id=symptom.id) }}" class="btn btn-sm btn-ghost">
-                                <i class="fas fa-eye"></i> Review
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-notes-medical"></i>
-                <p>No symptom reports yet</p>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Vital Records -->
-        <div class="data-section">
-            <div class="section-header">
-                <div class="section-title">
-                    <i class="fas fa-heartbeat"></i>
-                    Vital Signs ({{ vitals|length }})
-                </div>
-            </div>
-
-            {% if vitals %}
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Blood Pressure</th>
-                        <th>Glucose</th>
-                        <th>Temperature</th>
-                        <th>Heart Rate</th>
-                        <th>O2 Sat</th>
-                        <th>Alert Level</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for vital in vitals %}
-                    <tr>
-                        <td>{{ vital.created_at.strftime('%b %d, %Y %H:%M') }}</td>
-                        <td>{% if vital.bp_systolic %}{{ vital.bp_systolic }}/{{ vital.bp_diastolic }}{% else %}N/A{%
-                            endif %}</td>
-                        <td>{% if vital.blood_glucose %}{{ vital.blood_glucose }} mg/dL{% else %}N/A{% endif %}</td>
-                        <td>{% if vital.temperature %}{{ vital.temperature }}°F{% else %}N/A{% endif %}</td>
-                        <td>{% if vital.heart_rate %}{{ vital.heart_rate }} bpm{% else %}N/A{% endif %}</td>
-                        <td>{% if vital.oxygen_saturation %}{{ vital.oxygen_saturation }}%{% else %}N/A{% endif %}</td>
-                        <td>
-                            <span
-                                class="badge {% if vital.alert_level == 'critical' %}badge-error{% elif vital.alert_level == 'warning' %}badge-warning{% else %}badge-success{% endif %}">
-                                {{ vital.alert_level|capitalize }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-heartbeat"></i>
-                <p>No vital records yet</p>
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- Prescriptions -->
-        <div class="data-section">
-            <div class="section-header">
-                <div class="section-title">
-                    <i class="fas fa-file-prescription"></i>
-                    Prescriptions ({{ prescriptions|length }})
-                </div>
-            </div>
-
-            {% if prescriptions %}
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Doctor</th>
-                        <th>Medicines</th>
-                        <th>Language</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for prescription in prescriptions %}
-                    <tr>
-                        <td>{{ prescription.created_at.strftime('%b %d, %Y') }}</td>
-                        <td>{{ prescription.doctor_name or 'N/A' }}</td>
-                        <td>{{ prescription.medicines|length }} medicine(s)</td>
-                        <td>{{ prescription.language|capitalize if prescription.language else 'English' }}</td>
-                        <td>
-                            <a href="{{ url_for('static', filename=prescription.image_path) }}" target="_blank"
-                                class="btn btn-sm btn-ghost">
-                                <i class="fas fa-image"></i> View
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-file-prescription"></i>
-                <p>No prescriptions yet</p>
-            </div>
+        <div>
+            {% if patient.whatsapp_number or patient.family_whatsapp %}
+            <button onclick="openAlertModal()" class="btn-primary" style="padding: 12px 24px; border-radius: 14px;">
+                <i class="fas fa-tower-broadcast"></i> <span data-i18n="Critical Alert">Critical Alert</span>
+            </button>
             {% endif %}
         </div>
     </div>
-</body>
 
-</html>
+    <!-- Symptom History -->
+    <div class="glass-card data-card animate">
+        <h3 style="font-weight: 900; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-notes-medical" style="color: var(--primary);"></i> <span
+                data-i18n="Symptom History">Symptom History</span>
+            <span style="font-size: 0.8rem; font-weight: 500; opacity: 0.5;">({{ symptoms|length }})</span>
+        </h3>
+        <div class="data-table-wrapper">
+            <table class="glass-table">
+                <thead>
+                    <tr>
+                        <th data-i18n="Date">Date</th>
+                        <th data-i18n="Reported Concern">Reported Concern</th>
+                        <th data-i18n="Area">Area</th>
+                        <th data-i18n="Sev">Sev</th>
+                        <th data-i18n="Status">Status</th>
+                        <th data-i18n="Access">Access</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in symptoms %}
+                    <tr>
+                        <td style="white-space: nowrap; font-size: 0.8rem;">{{ s.created_at.strftime('%b %d, %y •
+                            %H:%M') }}</td>
+                        <td>{{ s.symptoms_text[:40] }}{% if s.symptoms_text|length > 40 %}...{% endif %}</td>
+                        <td>{{ s.affected_area or '—' }}</td>
+                        <td>
+                            <span
+                                class="status-badge {% if s.severity >= 7 %}status-alert{% elif s.severity >= 4 %}status-warn{% else %}status-success{% endif %}">
+                                {{ s.severity or '?' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if s.doctor_approved %}
+                            <span style="color: var(--success); font-weight: 800; font-size: 0.75rem;"><i
+                                    class="fas fa-check-double"></i> <span data-i18n="Verified">Verified</span></span>
+                            {% else %}
+                            <span style="color: var(--warning); font-weight: 800; font-size: 0.75rem;"><i
+                                    class="fas fa-hourglass-half"></i> <span data-i18n="Pending">Pending</span></span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('doctor_review', report_id=s.id) }}" style="color: var(--primary);"><i
+                                    class="fas fa-file-signature"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not symptoms %}
+            <div style="text-align: center; padding: 2rem; opacity: 0.5;" data-i18n="No clinical reports found.">No
+                clinical reports found.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Vitals History -->
+    <div class="glass-card data-card animate">
+        <h3 style="font-weight: 900; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-heart-pulse" style="color: #ec4899;"></i> <span data-i18n="Clinical Vitals">Clinical
+                Vitals</span>
+            <span style="font-size: 0.8rem; font-weight: 500; opacity: 0.5;">({{ vitals|length }})</span>
+        </h3>
+        <div class="data-table-wrapper">
+            <table class="glass-table">
+                <thead>
+                    <tr>
+                        <th data-i18n="Timestamp">Timestamp</th>
+                        <th data-i18n="BP">BP</th>
+                        <th data-i18n="Glucose">Glucose</th>
+                        <th data-i18n="Temp">Temp</th>
+                        <th data-i18n="Pulse">Pulse</th>
+                        <th data-i18n="SpO2">SpO2</th>
+                        <th data-i18n="Alert Level">Alert Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in vitals %}
+                    <tr>
+                        <td style="white-space: nowrap; font-size: 0.8rem;">{{ v.created_at.strftime('%b %d, %y •
+                            %H:%M') }}</td>
+                        <td>{{ v.bp_systolic|default('—', true) }}/{{ v.bp_diastolic|default('—', true) }}</td>
+                        <td>{{ v.blood_glucose|default('—', true) }}</td>
+                        <td>{{ v.temperature|default('—', true) }}°F</td>
+                        <td>{{ v.heart_rate|default('—', true) }}</td>
+                        <td>{{ v.oxygen_saturation|default('—', true) }}%</td>
+                        <td>
+                            <span
+                                class="status-badge {% if v.alert_level == 'critical' %}status-alert{% elif v.alert_level == 'warning' %}status-warn{% else %}status-success{% endif %}">
+                                {{ v.alert_level|capitalize }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not vitals %}
+            <div style="text-align: center; padding: 2rem; opacity: 0.5;" data-i18n="No vital recordings found.">No
+                vital recordings found.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Prescriptions -->
+    <div class="glass-card data-card animate">
+        <h3 style="font-weight: 900; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-pills" style="color: #f59e0b;"></i> <span data-i18n="Pharmacy History">Pharmacy
+                History</span>
+            <span style="font-size: 0.8rem; font-weight: 500; opacity: 0.5;">({{ prescriptions|length }})</span>
+        </h3>
+        <div class="data-table-wrapper">
+            <table class="glass-table">
+                <thead>
+                    <tr>
+                        <th data-i18n="Order Date">Order Date</th>
+                        <th data-i18n="Prescriber">Prescriber</th>
+                        <th data-i18n="Items">Items</th>
+                        <th data-i18n="Source Language">Source Language</th>
+                        <th data-i18n="View">View</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in prescriptions %}
+                    <tr>
+                        <td>{{ p.created_at.strftime('%b %d, %Y') }}</td>
+                        <td style="font-weight: 700;">{{ p.doctor_name or 'Auto-Detected' }}</td>
+                        <td>{{ p.medicines|length }} <span data-i18n="Medicines">Medicines</span></td>
+                        <td>{{ p.language|capitalize|default('English', true) }}</td>
+                        <td>
+                            <a href="{{ url_for('static', filename=p.image_path) }}" target="_blank"
+                                style="color: var(--primary);"><i class="fas fa-paperclip"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not prescriptions %}
+            <div style="text-align: center; padding: 2rem; opacity: 0.5;" data-i18n="No prescription archives.">No
+                prescription archives.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="alertModal" class="modal-backdrop">
+    <div class="glass-card animate" style="width: 100%; max-width: 500px; padding: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h3 style="font-weight: 900; margin: 0; display: flex; align-items: center; gap: 10px; color: #DC2626;">
+                <i class="fas fa-triangle-exclamation"></i> <span data-i18n="Emergency Broadcast">Emergency
+                    Broadcast</span>
+            </h3>
+            <button onclick="closeAlertModal()"
+                style="background:none; border:none; color: var(--text-muted); cursor:pointer;"><i
+                    class="fas fa-times"></i></button>
+        </div>
+
+        <form action="{{ url_for('whatsapp_send_alert') }}" method="POST">
+            <input type="hidden" name="patient_id" value="{{ patient.id }}">
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="font-weight: 800; font-size: 0.8rem; text-transform: uppercase;"
+                    data-i18n="Recipient Target">Recipient Target</label>
+                <select name="recipient_type"
+                    style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 12px; color: var(--text-primary); margin-top: 8px;">
+                    {% if patient.whatsapp_number %}
+                    <option value="patient">Patient ({{ patient.whatsapp_number }})</option>
+                    {% endif %}
+                    {% if patient.family_whatsapp %}
+                    <option value="family">Family ({{ patient.family_whatsapp }})</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <label style="font-weight: 800; font-size: 0.8rem; text-transform: uppercase;"
+                    data-i18n="Clinical Message">Clinical Message</label>
+                <textarea name="message"
+                    style="width: 100%; min-height: 120px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 16px; padding: 1rem; color: var(--text-primary); margin-top: 8px; outline: none;"
+                    placeholder="Enter specific medical instructions..."></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+                <button type="button" onclick="closeAlertModal()" class="glass-card"
+                    style="padding: 12px; font-weight: 800;" data-i18n="Cancel">Cancel</button>
+                <button type="submit" class="btn-primary"
+                    style="padding: 12px; border-radius: 12px; font-weight: 800;"><i class="fas fa-paper-plane"></i>
+                    <span data-i18n="Transmit Alert">Transmit Alert</span></button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openAlertModal() {
+        document.getElementById('alertModal').style.display = 'flex';
+    }
+    function closeAlertModal() {
+        document.getElementById('alertModal').style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 80);
+        });
+    });
+</script>
+{% endblock %}

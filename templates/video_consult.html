@@ -4,535 +4,399 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Video Consultation' | translate }} - Pristin Healthcare</title>
+    <title>{{ 'Video Consultation' | translate }} | Pristin Healthcare</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-
     <style>
-        body {
-            background: #000;
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+        :root {
+            --primary: #3b82f6;
+            --primary-gradient: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            --bg: #030711;
+            --glass: rgba(15, 23, 42, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
         }
 
-        .video-container {
-            flex: 1;
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .video-stage {
             position: relative;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #1a1a1a;
+            background: radial-gradient(circle at center, #111827 0%, #030711 100%);
         }
 
-        .remote-video {
+        #remoteVideo {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: none;
-            /* Hidden until connected */
+            transition: opacity 1s ease;
         }
 
-        .remote-placeholder {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        .placeholder-ui {
             text-align: center;
-            color: rgba(255, 255, 255, 0.5);
-            z-index: 0;
+            z-index: 5;
         }
 
-        .local-video {
-            position: absolute;
-            bottom: 120px;
-            right: 20px;
-            width: 160px;
-            height: 120px;
-            background: #000;
-            border-radius: var(--radius-md);
-            border: 2px solid var(--primary);
-            object-fit: cover;
-            z-index: 10;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        .pulse-icon {
+            font-size: 4rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            animation: pulse-ring 2s infinite;
         }
 
-        .video-controls {
-            height: 80px;
-            background: rgba(26, 26, 26, 0.9);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .control-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
-
-        .btn-danger {
-            background: #ef4444;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        .btn-active {
-            background: #fff;
-            color: #000;
-        }
-
-        .call-info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-full);
-            color: #fff;
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            z-index: 10;
-        }
-
-        /* Signaling Console */
-        .signaling-console {
-            position: fixed;
-            bottom: 120px;
-            left: 20px;
-            width: 300px;
-            max-height: 200px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            color: #0f0;
-            font-family: monospace;
-            font-size: 0.75rem;
-            padding: 10px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-            pointer-events: none;
-        }
-
-        .show-console .signaling-console {
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .signaling-console {
-                width: calc(100% - 40px);
-                bottom: 180px;
-            }
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
+        @keyframes pulse-ring {
             0% {
-                opacity: 1;
-                transform: scale(1);
+                transform: scale(0.95);
+                opacity: 0.8;
             }
 
             50% {
-                opacity: 0.5;
-                transform: scale(1.2);
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+        }
+
+        #localVideo {
+            position: absolute;
+            bottom: 110px;
+            right: 25px;
+            width: 200px;
+            height: 130px;
+            border-radius: 20px;
+            background: black;
+            border: 2px solid var(--border);
+            object-fit: cover;
+            z-index: 20;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            transition: all 0.3s;
+        }
+
+        .top-shelf {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            right: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 30;
+        }
+
+        .glass-pill {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
             }
 
             100% {
                 opacity: 1;
-                transform: scale(1);
             }
+        }
+
+        .control-hub {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border);
+            padding: 12px 25px;
+            border-radius: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            z-index: 40;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-round {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-round:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .btn-round.active {
+            background: white;
+            color: black;
+        }
+
+        .btn-end {
+            background: #ef4444 !important;
+            width: 64px;
+            height: 54px;
+            border-radius: 18px;
+        }
+
+        .btn-end:hover {
+            background: #dc2626 !important;
+            transform: scale(1.05) translateY(-2px);
+        }
+
+        .signaling-output {
+            position: absolute;
+            bottom: 120px;
+            left: 25px;
+            width: 320px;
+            max-height: 200px;
+            background: rgba(0, 0, 0, 0.85);
+            border-radius: 16px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #10b981;
+            overflow-y: auto;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            display: none;
+            z-index: 100;
         }
     </style>
 </head>
 
 <body>
-    <div class="video-container">
-        <!-- Call Info -->
-        <div class="call-info">
-            <span class="status-dot"></span>
-            <span>{{ 'Room:' | translate }} {{ room_id }}</span>
-            <span style="opacity: 0.5;">•</span>
-            <span id="timer">00:00</span>
+    <div class="video-stage">
+        <!-- Overlay UI -->
+        <div class="top-shelf">
+            <div class="glass-pill">
+                <div class="live-dot"></div>
+                <span id="callStatusText">{{ 'Connecting...' | translate }}</span>
+                <span style="opacity: 0.3;">|</span>
+                <span id="timer">00:00</span>
+            </div>
+            <div class="glass-pill">
+                <i class="fas fa-lock" style="color: #10b981;"></i>
+                <span>Room: {{ room_id }}</span>
+            </div>
         </div>
 
-        <!-- Remote Video (Placeholder) -->
-        <div class="remote-placeholder">
-            <i class="fas fa-user-md" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-            <h3>{% if current_user.role == 'doctor' %}{{ 'Waiting for patient...' | translate }}{% else %}{{ 'Waiting
-                for doctor...' | translate }}{% endif %}</h3>
-            <p>{{ 'Your unique room ID is' | translate }} {{ room_id }}</p>
-            <button class="btn btn-primary" style="margin-top: 1rem; padding: 0.5rem 1.5rem;" onclick="startCalling()">
-                <i class="fas fa-phone"></i> {{ 'Start Call' | translate }}
+        <!-- Waiting State -->
+        <div class="placeholder-ui" id="placeholderUI">
+            <i class="fas fa-hand-holding-medical pulse-icon"></i>
+            <h2 style="font-weight: 800; font-size: 2rem; margin: 0;">{% if current_user.role == 'doctor' %}Clinical
+                Presence Required{% else %}Consultant Incoming{% endif %}</h2>
+            <p style="opacity: 0.6; margin-top: 10px;">{{ 'Your secure channel' | translate }} #{{ room_id }} {{ 'is
+                active.' | translate }}</p>
+            <button onclick="startCalling()"
+                style="margin-top: 30px; padding: 14px 28px; border-radius: 14px; background: var(--primary-gradient); color: white; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);">
+                <i class="fas fa-video"></i> {{ 'Establish Connection' | translate }}
             </button>
         </div>
-        <!-- Remote Video -->
-        <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
 
-        <!-- Local Video -->
-        <video id="localVideo" class="local-video" autoplay playsinline muted></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="localVideo" autoplay playsinline muted></video>
+
+        <!-- Dynamic Controls -->
+        <div class="control-hub">
+            <button id="micBtn" class="btn-round" onclick="toggleMic()" title="Mic">
+                <i class="fas fa-microphone"></i>
+            </button>
+            <button id="camBtn" class="btn-round" onclick="toggleCam()" title="Camera">
+                <i class="fas fa-video"></i>
+            </button>
+            <button class="btn-round btn-end" onclick="endCall()" title="End">
+                <i class="fas fa-phone-slash"></i>
+            </button>
+            <button class="btn-round" onclick="shareScreen()" title="Screen">
+                <i class="fas fa-desktop"></i>
+            </button>
+            <button class="btn-round" onclick="toggleConsole()" title="Debug">
+                <i class="fas fa-terminal"></i>
+            </button>
+        </div>
+
+        <div id="signalingConsole" class="signaling-output"></div>
     </div>
-
-    <!-- Controls -->
-    <div class="video-controls">
-        <button id="micBtn" class="control-btn" onclick="toggleMic()" title="Toggle Microphone">
-            <i class="fas fa-microphone"></i>
-        </button>
-        <button id="camBtn" class="control-btn" onclick="toggleCam()" title="Toggle Camera">
-            <i class="fas fa-video"></i>
-        </button>
-        <button class="control-btn btn-danger" onclick="endCall()" title="End Consultation">
-            <i class="fas fa-phone-slash"></i>
-        </button>
-        <button class="control-btn" onclick="shareScreen()" title="Share Screen">
-            <i class="fas fa-desktop"></i>
-        </button>
-        <button class="control-btn" onclick="toggleConsole()" title="Toggle Debug Console">
-            <i class="fas fa-terminal"></i>
-        </button>
-    </div>
-
-    <div id="signalingConsole" class="signaling-console"></div>
 
     <!-- PeerJS -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-
     <script>
         const roomID = "{{ room_id }}";
-        const userRole = "{{ current_user.role }}"; // 'doctor', 'chw', 'patient'
+        const userRole = "{{ current_user.role }}";
         const isDoctor = ['doctor', 'chw'].includes(userRole);
-
         const myPeerID = `pristin-${roomID}-${isDoctor ? 'doc' : 'pat'}`.toLowerCase();
         const targetPeerID = `pristin-${roomID}-${isDoctor ? 'pat' : 'doc'}`.toLowerCase();
 
-        // Translated alerts
-        const MSG_INIT = "{{ 'Initializing connection...' | translate }}";
-        const MSG_WAITING_PATIENT = "{{ 'Waiting for patient...' | translate }}";
-        const MSG_WAITING_DOCTOR = "{{ 'Waiting for doctor...' | translate }}";
-        const MSG_CONNECTED = "{{ 'Connected' | translate }}";
-        const MSG_CALL_ENDED = "{{ 'Call Ended' | translate }}";
-        const MSG_CALL_LOST = "{{ 'Call ended or lost.' | translate }}";
-        const MSG_DISCONNECTED = "{{ 'Disconnected from signaling server.' | translate }}";
-        const MSG_ROOM_FULL = "{{ 'Room already active! Only one doctor and one patient allowed.' | translate }}";
-        const MSG_PERMISSION_DENIED = "{{ 'Camera/Microphone access denied. Please allow permissions.' | translate }}";
-
-        let peer;
-        let conn;
-        let localStream;
-        let currentCall;
-        let isConnected = false;
-        let isAudioMuted = false;
-        let isVideoOff = false;
-        let seconds = 0;
-        let timerInterval;
-        let callInterval;
+        let peer, localStream, currentCall, isConnected = false, isAudioMuted = false, isVideoOff = false, seconds = 0, timerInterval, callInterval;
 
         function log(msg) {
-            const consoleEl = document.getElementById('signalingConsole');
-            const entry = document.createElement('div');
-            entry.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            consoleEl.appendChild(entry);
-            consoleEl.scrollTop = consoleEl.scrollHeight;
+            const el = document.getElementById('signalingConsole');
+            const div = document.createElement('div');
+            div.textContent = `> ${msg}`;
+            el.appendChild(div);
+            el.scrollTop = el.scrollHeight;
             console.log(msg);
         }
 
-        function toggleConsole() {
-            document.body.classList.toggle('show-console');
-        }
-
         async function init() {
-            log("Checking secure context...");
-            if (!window.isSecureContext && location.hostname !== "localhost") {
-                log("ERROR: Not a secure context!");
-                alert("Video calls require a secure HTTPS connection. Please use the ngrok link provided.");
-                return;
-            }
-
             try {
-                log("Requesting media permissions...");
                 localStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        facingMode: "user",
-                        frameRate: { ideal: 30 }
-                    },
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true
-                    }
+                    video: { width: 1280, height: 720 },
+                    audio: true
                 });
-
-                log("Media stream acquired.");
                 document.getElementById('localVideo').srcObject = localStream;
-                updateStatus(MSG_INIT, "warning");
-
                 initializePeer();
-
             } catch (err) {
-                log(`PERMISSION ERROR: ${err.name} - ${err.message}`);
-                console.error("Failed to get local stream", err);
-                alert(MSG_PERMISSION_DENIED + " (" + err.name + ")");
+                alert("Hardware Access Denied: " + err.message);
             }
         }
 
         function initializePeer() {
-            log(`Starting PeerJS as ${myPeerID}...`);
-
-            if (peer) {
-                log("Destroying existing peer instance...");
-                peer.destroy();
-            }
-
             peer = new Peer(myPeerID, {
                 debug: 2,
-                config: {
-                    'iceServers': [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:stun3.l.google.com:19302' },
-                        { urls: 'stun:stun4.l.google.com:19302' }
-                    ],
-                    'sdpSemantics': 'unified-plan'
-                }
+                config: { 'iceServers': [{ urls: 'stun:stun.l.google.com:19302' }] }
             });
 
             peer.on('open', (id) => {
-                log(`Registered with PeerID: ${id}`);
-                updateStatus(isDoctor ? MSG_WAITING_PATIENT : MSG_WAITING_DOCTOR, "info");
+                log("ID Verified: " + id);
+                document.getElementById('callStatusText').textContent = "{{ 'Waiting...' | translate }}";
                 startCalling();
             });
 
             peer.on('call', (call) => {
-                log(`Incoming call from ${call.peer}`);
-                if (currentCall) {
-                    log("Replacing existing call...");
-                    currentCall.close();
-                }
-
                 call.answer(localStream);
                 handleCall(call);
-            });
-
-            peer.on('error', (err) => {
-                log(`PEER ERROR: ${err.type}`);
-                if (err.type === 'peer-unavailable') {
-                    // Normal during waiting phase
-                } else if (err.type === 'unavailable-id') {
-                    log("CRITICAL: ID already taken. Room occupied?");
-                    alert(MSG_ROOM_FULL);
-                } else {
-                    log(`Unexpected Error: ${err.message}`);
-                }
-
-                if (['disconnected', 'network', 'socket-error'].includes(err.type)) {
-                    log("Attempting auto-reconnect in 5s...");
-                    setTimeout(initializePeer, 5000);
-                }
-            });
-
-            peer.on('disconnected', () => {
-                log("Signaling server disconnected. Reconnecting...");
-                peer.reconnect();
             });
         }
 
         function startCalling() {
             if (callInterval) clearInterval(callInterval);
-            log(`Starting call loop to ${targetPeerID}...`);
-
-            connectToPeer();
             callInterval = setInterval(() => {
-                if (!isConnected) {
-                    connectToPeer();
+                if (!isConnected && peer && !peer.disconnected) {
+                    const call = peer.call(targetPeerID, localStream);
+                    if (call) handleCall(call);
                 } else {
                     clearInterval(callInterval);
                 }
             }, 3000);
         }
 
-        function connectToPeer() {
-            if (isConnected || !peer || peer.disconnected) return;
-
-            log(`Dialing ${targetPeerID}...`);
-            const call = peer.call(targetPeerID, localStream, {
-                metadata: { role: userRole }
-            });
-
-            if (call) {
-                handleCall(call);
-            }
-        }
-
         function handleCall(call) {
             currentCall = call;
-
-            call.on('stream', (remoteStream) => {
-                log("Remote stream active.");
-                const remoteVideo = document.getElementById('remoteVideo');
-
-                if (remoteVideo.srcObject !== remoteStream) {
-                    remoteVideo.srcObject = remoteStream;
-                    document.querySelector('.remote-placeholder').style.display = 'none';
-                    remoteVideo.style.display = 'block';
-
+            call.on('stream', (stream) => {
+                const remote = document.getElementById('remoteVideo');
+                if (remote.srcObject !== stream) {
+                    remote.srcObject = stream;
+                    document.getElementById('placeholderUI').style.display = 'none';
+                    remote.style.display = 'block';
                     isConnected = true;
-                    log("CONSULTATION CONNECTED.");
-                    updateStatus(MSG_CONNECTED, "success");
+                    document.getElementById('callStatusText').textContent = "{{ 'Encrypted Live' | translate }}";
                     startTimer();
                 }
             });
-
-            call.on('close', () => {
-                log("Remote hanging up.");
-                handleCallEnd();
-            });
-
-            call.on('error', (err) => {
-                log(`Call level error: ${err.message}`);
-                handleCallEnd();
-            });
-
-            // Timeout if no stream received
-            setTimeout(() => {
-                if (!isConnected && currentCall === call) {
-                    log("Call hang identified. Resetting...");
-                    handleCallEnd();
-                }
-            }, 10000);
+            call.on('close', handleCallEnd);
         }
 
         function handleCallEnd() {
-            if (isConnected) {
-                log("Closing session components...");
-            }
             isConnected = false;
-            currentCall = null;
-            document.getElementById('remoteVideo').srcObject = null;
             document.getElementById('remoteVideo').style.display = 'none';
-            document.querySelector('.remote-placeholder').style.display = 'flex';
-            updateStatus(MSG_CALL_LOST, "warning");
+            document.getElementById('placeholderUI').style.display = 'block';
+            document.getElementById('callStatusText').textContent = "{{ 'Call Disconnected' | translate }}";
             stopTimer();
-
-            // Resume calling
             startCalling();
         }
 
-        function updateStatus(msg, type) {
-            const statusBadge = document.querySelector('.call-info');
-            const statusDot = statusBadge.querySelector('.status-dot');
-            statusBadge.querySelector('span:nth-child(2)').textContent = msg;
-
-            const colors = {
-                'success': '#00ff88',
-                'warning': '#ffcc00',
-                'danger': '#ff4d4d',
-                'info': '#00d4ff'
-            };
-            statusDot.style.background = colors[type] || '#fff';
-        }
-
         function startTimer() {
-            if (timerInterval) clearInterval(timerInterval);
             seconds = 0;
             timerInterval = setInterval(() => {
                 seconds++;
-                const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
-                document.getElementById('timer').textContent =
-                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${m}:${s}`;
             }, 1000);
         }
 
-        function stopTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            document.getElementById('timer').textContent = "00:00";
-        }
+        function stopTimer() { clearInterval(timerInterval); }
 
-        // Controls
         function toggleMic() {
             isAudioMuted = !isAudioMuted;
-            if (localStream) localStream.getAudioTracks()[0].enabled = !isAudioMuted;
-            const btn = document.getElementById('micBtn');
-            btn.innerHTML = isAudioMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
-            btn.classList.toggle('btn-danger', isAudioMuted);
+            localStream.getAudioTracks()[0].enabled = !isAudioMuted;
+            document.getElementById('micBtn').classList.toggle('active', isAudioMuted);
+            document.getElementById('micBtn').innerHTML = isAudioMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
         }
 
         function toggleCam() {
             isVideoOff = !isVideoOff;
-            if (localStream) localStream.getVideoTracks()[0].enabled = !isVideoOff;
-            const btn = document.getElementById('camBtn');
-            btn.innerHTML = isVideoOff ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
-            btn.classList.toggle('btn-danger', isVideoOff);
+            localStream.getVideoTracks()[0].enabled = !isVideoOff;
+            document.getElementById('camBtn').classList.toggle('active', isVideoOff);
+            document.getElementById('camBtn').innerHTML = isVideoOff ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
         }
 
         function endCall() {
-            if (currentCall) currentCall.close();
-            if (peer) peer.destroy();
-            if (localStream) localStream.getTracks().forEach(track => track.stop());
+            window.location.href = "{{ url_for('dashboard') }}";
+        }
 
-            // Notify backend
-            fetch(`/video/end/${roomID}`, { method: 'POST' })
-                .then(() => window.location.href = "{{ url_for('dashboard') }}")
-                .catch(() => window.location.href = "{{ url_for('dashboard') }}");
+        function toggleConsole() {
+            const el = document.getElementById('signalingConsole');
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
         }
 
         function shareScreen() {
-            // Basic screen share implementation
-            navigator.mediaDevices.getDisplayMedia({ video: true })
-                .then(screenStream => {
-                    const videoTrack = screenStream.getVideoTracks()[0];
-                    if (currentCall && currentCall.peerConnection) {
-                        const sender = currentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
-                        sender.replaceTrack(videoTrack);
-
-                        videoTrack.onended = () => {
-                            sender.replaceTrack(localStream.getVideoTracks()[0]);
-                        };
-                    }
-                })
-                .catch(err => console.error("Screen share error:", err));
+            navigator.mediaDevices.getDisplayMedia({ video: true }).then(s => {
+                const track = s.getVideoTracks()[0];
+                const sender = currentCall.peerConnection.getSenders().find(s => s.track.kind === 'video');
+                sender.replaceTrack(track);
+                track.onended = () => sender.replaceTrack(localStream.getVideoTracks()[0]);
+            });
         }
 
-        function toggleChat() {
-            alert("Chat feature linked to consultation notes in Pro version");
-        }
-
-        // Start
-        window.addEventListener('load', init);
+        window.onload = init;
     </script>
 </body>
 

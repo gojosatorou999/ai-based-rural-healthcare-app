@@ -1,58 +1,127 @@
-<!DOCTYPE html>
-<html lang="{{ current_user.preferred_language if current_user.is_authenticated else 'en' }}">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ 'Book Appointment' | translate }} | Pristin Healthcare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
+{% block title %}Book Appointment | Pristin Healthcare{% endblock %}
 
-<body data-theme="dark">
-    <div class="container mx-auto px-4 py-8 max-w-lg">
-        <div class="flex items-center gap-4 mb-8">
-            <a href="{{ url_for('dashboard') }}" class="btn btn-icon btn-sm"
-                style="background: rgba(255,255,255,0.05);">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h1 class="text-2xl font-bold">{{ 'Book Appointment' | translate }}</h1>
-        </div>
+{% block extra_css %}
+<style>
+    .book-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding-bottom: 4rem;
+    }
 
-        <div class="card p-xl">
-            <form action="{{ url_for('book_appointment') }}" method="POST" class="flex flex-col gap-6">
-                <div class="form-group">
-                    <label class="block mb-2 text-sm text-secondary">{{ 'Preferred Date' | translate }}</label>
-                    <input type="date" name="date" class="form-control" required min="{{ now().strftime('%Y-%m-%d') }}">
-                </div>
+    .book-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
 
-                <div class="form-group">
-                    <label class="block mb-2 text-sm text-secondary">{{ 'Preferred Time' | translate }}</label>
-                    <input type="time" name="time" class="form-control" required>
-                </div>
+    .book-icon {
+        width: 72px;
+        height: 72px;
+        border-radius: 20px;
+        background: rgba(168, 85, 247, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        color: #a855f7;
+        margin: 0 auto 1.5rem auto;
+    }
 
-                <div class="form-group">
-                    <label class="block mb-2 text-sm text-secondary">{{ 'Reason for Consultation' | translate }}</label>
-                    <textarea name="reason" rows="3" class="form-control"
-                        placeholder="{{ 'Describe your symptoms or reason for visit...' | translate }}"
-                        required></textarea>
-                </div>
+    .form-group {
+        margin-bottom: 1.75rem;
+    }
 
-                <button type="submit" class="btn btn-primary w-full py-4">
-                    <i class="fas fa-calendar-check mr-2"></i> {{ 'Submit Request' | translate }}
-                </button>
-            </form>
-        </div>
+    .form-label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+    }
 
-        <div class="mt-8 p-md text-center text-muted text-xs">
-            <p><i class="fas fa-info-circle mr-1"></i> {{ 'Your request will be sent to our medical officers. You will
-                receive a WhatsApp confirmation link.' | translate }}</p>
-        </div>
+    .form-control {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        color: var(--text-primary);
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+        transition: all 0.2s;
+        outline: none;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary);
+        background: rgba(255, 255, 255, 0.06);
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator,
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        filter: invert(1) opacity(0.5);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="book-container animate">
+    <div class="book-header">
+        <div class="book-icon"><i class="fas fa-calendar-check"></i></div>
+        <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -1.5px; margin: 0;"
+            data-i18n="Schedule Consultation">Schedule Consultation</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.5rem;"
+            data-i18n="Initialize a clinical session with a medical officer.">Initialize a clinical session with a
+            medical officer.</p>
     </div>
 
-    <script src="/static/js/app.js"></script>
-</body>
+    <form action="{{ url_for('book_appointment') }}" method="POST" class="glass-card animate" style="padding: 3rem;">
+        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div class="form-group">
+                <label class="form-label" data-i18n="Selection Date">Selection Date</label>
+                <input type="date" name="date" class="form-control" required min="{{ now().strftime('%Y-%m-%d') }}">
+            </div>
 
-</html>
+            <div class="form-group">
+                <label class="form-label" data-i18n="Selection Time">Selection Time</label>
+                <input type="time" name="time" class="form-control" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" data-i18n="Reason for Visit">Reason for Visit</label>
+            <textarea name="reason" rows="4" class="form-control"
+                placeholder="Describe your symptoms or primary concern..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary"
+            style="width: 100%; justify-content: center; padding: 1.25rem; font-size: 1.1rem; border-radius: 16px; margin-top: 1rem;">
+            <span data-i18n="Provision Appointment">Provision Appointment</span> <i class="fas fa-arrow-right"
+                style="margin-left: 10px;"></i>
+        </button>
+
+        <div
+            style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 12px; display: flex; gap: 12px; align-items: flex-start;">
+            <i class="fas fa-info-circle" style="color: var(--primary); margin-top: 3px;"></i>
+            <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;"
+                data-i18n="Your request will be prioritized by the medical team. You will receive a WhatsApp confirmation link once approved.">
+                Your request will be prioritized by the medical team. You will receive a WhatsApp confirmation link once
+                approved.
+            </p>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 80);
+        });
+    });
+</script>
+{% endblock %}

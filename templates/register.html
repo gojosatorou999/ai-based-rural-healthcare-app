@@ -1,342 +1,209 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0A0A0A">
-    <meta name="description"
-        content="Register for Pristin Healthcare - Access AI-powered rural telemedicine and health tracking.">
-    <title>Register - Pristin Healthcare</title>
-    <script>
-        // Apply theme early to prevent flash
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
+{% block title %}Create Account | Pristin Healthcare{% endblock %}
 
-    <link rel="manifest" href="/static/manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+{% block extra_css %}
+<style>
+    .auth-stage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 80vh;
+        padding: 4rem 0;
+    }
 
-    <style>
-        body {
-            background: var(--bg-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 1rem;
-            position: relative;
+    .auth-box {
+        width: 100%;
+        max-width: 520px;
+        padding: 3.5rem;
+    }
+
+    .auth-lead {
+        text-align: center;
+        margin-bottom: 2.5rem;
+    }
+
+    .auth-lead h1 {
+        font-size: 2.25rem;
+        font-weight: 900;
+        letter-spacing: -1.5px;
+        margin-bottom: 8px;
+    }
+
+    .auth-lead p {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    .inp-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+    }
+
+    .inp-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .inp-label {
+        display: block;
+        font-size: 0.725rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .inp-wrap {
+        position: relative;
+    }
+
+    .inp-field {
+        width: 100%;
+        height: 52px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 0 1.25rem 0 2.75rem;
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        outline: none;
+    }
+
+    .inp-field:focus {
+        border-color: var(--primary);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .inp-icon {
+        position: absolute;
+        left: 1.1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+
+    select.inp-field {
+        appearance: none;
+    }
+
+    .auth-nav {
+        margin-top: 2.5rem;
+        text-align: center;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .auth-nav a {
+        color: var(--primary);
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    @media (max-width: 640px) {
+        .inp-grid {
+            grid-template-columns: 1fr;
         }
+    }
+</style>
+{% endblock %}
 
-        /* Gradient glow background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at 30% 20%, rgba(196, 255, 13, 0.15) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -30%;
-            right: -30%;
-            width: 80%;
-            height: 80%;
-            background: radial-gradient(circle at 70% 80%, rgba(196, 255, 13, 0.08) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: -1;
-        }
-
-
-        .auth-container {
-            width: 100%;
-            max-width: 480px;
-        }
-
-        .app-logo {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .logo-icon {
-            width: 64px;
-            height: 64px;
-            background: var(--primary);
-            border-radius: var(--radius-lg);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: var(--bg-primary);
-            margin-bottom: 0.75rem;
-            box-shadow: var(--glow-green);
-        }
-
-        .app-name {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--text-primary);
-        }
-
-        .auth-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-xl);
-            padding: 2rem;
-        }
-
-        .auth-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .auth-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .auth-subtitle {
-            font-size: 0.9375rem;
-            color: var(--text-secondary);
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .input-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-tertiary);
-            font-size: 1.125rem;
-        }
-
-        .form-control {
-            padding-left: 3rem;
-        }
-
-        .password-toggle {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-tertiary);
-            cursor: pointer;
-            font-size: 1.125rem;
-        }
-
-        .password-toggle:hover {
-            color: var(--primary);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-        }
-
-        .auth-footer {
-            text-align: center;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .auth-footer-text {
-            font-size: 0.9375rem;
-            color: var(--text-secondary);
-        }
-
-        .auth-footer-link {
-            color: var(--primary);
-            font-weight: 600;
-            margin-left: 0.25rem;
-        }
-
-        .auth-footer-link:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 640px) {
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-
-<body>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme"
-        style="position: absolute; top: 1rem; right: 1rem; z-index: 1000;">
-        <i class="fas fa-moon"></i>
-    </button>
-    <div class="auth-container">
-        <!-- App Logo -->
-        <div class="app-logo">
-            <a href="{{ url_for('home') }}" style="text-decoration: none;">
-                <div class="logo-icon">
-                    <i class="fas fa-heartbeat"></i>
-                </div>
-                <div class="app-name">Pristin Healthcare</div>
-            </a>
+{% block content %}
+<div class="auth-stage animate">
+    <div class="glass-card auth-box">
+        <div class="auth-lead">
+            <h1 data-i18n="Create Account">Create Account</h1>
+            <p data-i18n="Join the Pristin health network today.">Join the Pristin health network today.</p>
         </div>
 
-        <!-- Auth Card -->
-        <div class="auth-card">
-            <div class="auth-header">
-                <h1 class="auth-title">{{ 'Create Account' | translate }}</h1>
-                <p class="auth-subtitle">{{ 'Join us to access AI-powered healthcare' | translate }}</p>
+        <form action="{{ url_for('register') }}" method="POST">
+            <div class="inp-group">
+                <label class="inp-label" data-i18n="Full Name">Full Name</label>
+                <div class="inp-wrap">
+                    <i class="fas fa-user-tag inp-icon"></i>
+                    <input type="text" name="username" class="inp-field" placeholder="Enter your full name" required>
+                </div>
             </div>
 
-            <form action="{{ url_for('register') }}" method="POST">
-                <div class="form-group">
-                    <label class="form-label">{{ 'Full Name' | translate }}</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-user input-icon"></i>
-                        <input type="text" name="username" class="form-control" placeholder="John Doe" required
-                            autofocus>
+            <div class="inp-group">
+                <label class="inp-label" data-i18n="Email Address">Email Address</label>
+                <div class="inp-wrap">
+                    <i class="fas fa-at inp-icon"></i>
+                    <input type="email" name="email" class="inp-field" placeholder="yourname@email.com" required>
+                </div>
+            </div>
+
+            <div class="inp-grid">
+                <div class="inp-group">
+                    <label class="inp-label" data-i18n="Age">Age</label>
+                    <div class="inp-wrap">
+                        <i class="fas fa-calendar-day inp-icon"></i>
+                        <input type="number" name="age" class="inp-field" placeholder="Years">
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">{{ 'Email Address' | translate }}</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-envelope input-icon"></i>
-                        <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">{{ 'Phone Number (Optional)' | translate }}</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-phone input-icon"></i>
-                        <input type="tel" name="phone" class="form-control" placeholder="+91 98765 43210">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">{{ 'Age (Optional)' | translate }}</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-calendar input-icon"></i>
-                            <input type="number" name="age" class="form-control" placeholder="25" min="1" max="120">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">{{ 'Gender (Optional)' | translate }}</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-venus-mars input-icon"></i>
-                            <select name="gender" class="form-control">
-                                <option value="">{{ 'Select' | translate }}</option>
-                                <option value="male">{{ 'Male' | translate }}</option>
-                                <option value="female">{{ 'Female' | translate }}</option>
-                                <option value="other">{{ 'Other' | translate }}</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">{{ 'I am a...' | translate }}</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-user-tag input-icon"></i>
-                        <select name="role" class="form-control">
-                            <option value="patient">{{ 'Patient' | translate }}</option>
-                            <option value="doctor">{{ 'Doctor' | translate }}</option>
-                            <option value="chw">{{ 'Community Health Worker' | translate }}</option>
+                <div class="inp-group">
+                    <label class="inp-label" data-i18n="Gender">Gender</label>
+                    <div class="inp-wrap">
+                        <i class="fas fa-venus-mars inp-icon"></i>
+                        <select name="gender" class="inp-field">
+                            <option value="male" data-i18n="Male">Male</option>
+                            <option value="female" data-i18n="Female">Female</option>
+                            <option value="other" data-i18n="Other">Other</option>
                         </select>
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <label class="form-label">{{ 'Password' | translate }}</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock input-icon"></i>
-                        <input type="password" id="password" name="password" class="form-control"
-                            placeholder="{{ 'Create a strong password' | translate }}" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword()">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    <div class="form-help">{{ 'At least 8 characters recommended' | translate }}</div>
-                </div>
-
-                <button type="submit" class="btn btn-primary submit-btn">
-                    <i class="fas fa-user-plus"></i>
-                    {{ 'Create Account' | translate }}
-                </button>
-            </form>
-
-            <div class="auth-footer">
-                <span class="auth-footer-text">{{ 'Already have an account?' | translate }}</span>
-                <a href="{{ url_for('login') }}" class="auth-footer-link">{{ 'Login' | translate }}</a>
             </div>
+
+            <div class="inp-group">
+                <label class="inp-label" data-i18n="Designated Role">Designated Role</label>
+                <div class="inp-wrap">
+                    <i class="fas fa-user-gear inp-icon"></i>
+                    <select name="role" class="inp-field">
+                        <option value="patient" data-i18n="Patient">Patient</option>
+                        <option value="doctor" data-i18n="Medical Doctor">Medical Doctor</option>
+                        <option value="chw" data-i18n="Health Worker">Health Worker</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="inp-group">
+                <label class="inp-label" data-i18n="Password">Password</label>
+                <div class="inp-wrap">
+                    <i class="fas fa-lock inp-icon"></i>
+                    <input type="password" name="password" class="inp-field" placeholder="Choose a secure password" required>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary"
+                style="width: 100%; height: 52px; border-radius: 14px; justify-content: center; font-size: 1rem; margin-top: 1rem;">
+                <span data-i18n="Create Account">Create Account</span> <i class="fas fa-user-plus"
+                    style="margin-left: 10px;"></i>
+            </button>
+        </form>
+
+        <div class="auth-nav">
+            <span data-i18n="Already have an account?">Already have an account?</span>
+            <a href="{{ url_for('login') }}" data-i18n="Sign In">Sign In</a>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div id="notification-container" style="position: fixed; top: 2rem; right: 2rem; z-index: 1000; max-width: 400px;">
-        {% for category, message in messages %}
-        <div class="alert alert-{{ category }} slide-down">
-            <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-circle' }}"></i>
-            <div>{{ message }}</div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
-
-    <script>
-        function togglePassword() {
-            const input = document.getElementById('password');
-            const icon = input.nextElementSibling.querySelector('i');
-
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-
-        // Auto-hide flash messages
-        setTimeout(() => {
-            const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(alert => {
-                alert.style.animation = 'fadeOut 0.3s ease';
-                setTimeout(() => alert.remove(), 300);
-            });
-        }, 5000);
-    </script>
-
-    <script src="/static/js/app.js"></script>
-</body>
-
-</html>
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const items = document.querySelectorAll('.animate');
+        items.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.animation = `fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+            }, index * 60);
+        });
+    });
+</script>
+{% endblock %}
