@@ -6,7 +6,7 @@ A comprehensive telemedicine platform designed for low-bandwidth rural environme
 
 ---
 
-## ✨ Phase 1 Features Implemented
+--> Phase 1 Features Implemented
 
 ### 1. **Multimodal Symptom Input System** 📝
 - Text-based symptom description with structured fields (duration, severity, affected area)
