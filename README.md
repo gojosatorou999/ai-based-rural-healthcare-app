@@ -42,7 +42,7 @@ Pristin Healthcare is an advanced, multilingual telemedicine ecosystem designed 
 *   **WhatsApp Integration**: Automated WhatsApp alerts for critical health changes and doctor-approved reports using Twilio.
 *   **Bandwidth Optimization**: Automatic client-side image compression for fast uploads on 2G/3G networks.
 
----
+----------------------------------------
 
 ## 🛠️ Technical Architecture
 
