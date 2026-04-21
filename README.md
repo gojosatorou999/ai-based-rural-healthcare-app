@@ -1,4 +1,4 @@
-# 🏥 Pristin Healthcare - AI-Powered Rural Telemedicine Platform
+# 🏥 Pristin Healthcare: AI-Powered Rural Telemedicine Platform
 
 [![PWA Ready](https://img.shields.io/badge/PWA-Ready-brightgreen)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps)
 [![AI-Powered](https://img.shields.io/badge/AI-Gemini%20Flash-blue)](https://deepmind.google/technologies/gemini/flash/)
