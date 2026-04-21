@@ -4,7 +4,7 @@
 
 A comprehensive telemedicine platform designed for low-bandwidth rural environments, featuring AI-powered clinical recommendations, prescription OCR, and health tracking.
 
----
+------------------------------------------------------------------------------------------------------------------------------------------------
 
 --> Phase 1 Features Implemented
 
