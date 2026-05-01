@@ -17,11 +17,11 @@
 </div>
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
-####  Executive Summary
+##  Executive Summary
 
 Pristin Healthcare is an advanced, multilingual telemedicine ecosystem designed specifically for the challenges of rural healthcare in India. It combines modern web technologies (PWA) with cutting-edge AI (Google Gemini) to provide a seamless experience that works both online and offline.
 
--> Key Features
+## Key Features
 
 ### 1. 🔍 Advanced AI-Powered Diagnostics
 *   **Multimodal Symptom Checker**: Analyze symptoms using text or voice. Powered by **Gemini 1.5 Flash** for deep medical reasoning and multilingual support.
