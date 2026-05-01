@@ -7,6 +7,8 @@
 [![Twilio](https://img.shields.io/badge/Twilio-WhatsApp_API-F22F46?style=for-the-badge&logo=twilio&logoColor=white)](https://twilio.com)
 [![PWA](https://img.shields.io/badge/PWA-Installable-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+
+
 [![AI-Powered](https://img.shields.io/badge/AI-Gemini%20Flash-blue)](https://deepmind.google/technologies/gemini/flash/)
 [![Offline First](https://img.shields.io/badge/Offline-First-orange)](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
 
