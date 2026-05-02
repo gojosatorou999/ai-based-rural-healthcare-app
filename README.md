@@ -14,7 +14,7 @@
 
 > **Empowering rural communities with Grade-A Medical AI and Offline-First technology.**
 > *Pristin Healthcare bridges the gap between remote patients and medical professionals, ensuring quality care regardless of connectivity.*
-</div>
+</div> 
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##  Executive Summary
