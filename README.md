@@ -11,7 +11,7 @@
 
 [![AI-Powered](https://img.shields.io/badge/AI-Gemini%20Flash-blue)](https://deepmind.google/technologies/gemini/flash/)
 [![Offline First](https://img.shields.io/badge/Offline-First-orange)](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
-
+ 
 > **Empowering rural communities with Grade-A Medical AI and Offline-First technology.**
 > *Pristin Healthcare bridges the gap between remote patients and medical professionals, ensuring quality care regardless of connectivity.*
 </div> 
