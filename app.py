@@ -5,14 +5,19 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from datetime import datetime
 import json
 import os
-import cv2
 import base64
 import io
 from PIL import Image
 import logging
 import re
 import random
-import numpy as np
+try:
+    import cv2
+    import numpy as np
+    HAS_CV2 = True
+except ImportError:
+    HAS_CV2 = False
+    print("Warning: OpenCV not found. Image processing features will be disabled.")
 try:
     from tensorflow.keras.models import load_model
     from tensorflow.keras.preprocessing import image
@@ -34,7 +39,7 @@ except Exception as e:
     HAS_TRANSFORMERS = False
     print(f"Warning: Failed to load transformers: {e}")
 
-from pyngrok import ngrok
+# pyngrok is only used locally for tunneling, not imported at module level
 
 #---------------------------------------
 
@@ -50,8 +55,13 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "default-secret-key-for-dev-only"
 
 # Allowed image extensions
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-UPLOAD_FOLDER = "static/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# On Vercel, only /tmp is writable
+_IS_VERCEL_EARLY = os.environ.get("VERCEL") == "1"
+UPLOAD_FOLDER = "/tmp/uploads" if _IS_VERCEL_EARLY else "static/uploads"
+try:
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except OSError:
+    pass  # Read-only filesystem on Vercel, /tmp is handled separately
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
@@ -63,14 +73,23 @@ def allowed_file(filename):
 
 
 
-# Ensure upload folder exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Ensure upload folder exists (safe on read-only FS like Vercel)
+try:
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+except OSError:
+    pass
 
 
 # Initialize Flask app
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['UPLOAD_FOLDER'] = 'static/uploads/'
+# On Vercel, /tmp is the only writable dir; locally use instance/ folder
+_IS_VERCEL = os.environ.get("VERCEL") == "1"
+if _IS_VERCEL:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/database.db'
+    app.config['UPLOAD_FOLDER'] = '/tmp/uploads/'
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+    app.config['UPLOAD_FOLDER'] = 'static/uploads/'
 
 # Initialize extensions
 db = SQLAlchemy(app)
@@ -3173,3 +3192,12 @@ if __name__ == '__main__':
 
     app.run(debug=True, use_reloader=True, host='0.0.0.0', port=5000)
 
+
+
+# ── Module-level DB init for Vercel serverless cold starts ─────────────────
+# Vercel never calls __main__, so we must create tables at import time.
+with app.app_context():
+    try:
+        db.create_all()
+    except Exception as _db_init_e:
+        print(f"DB init warning: {_db_init_e}")

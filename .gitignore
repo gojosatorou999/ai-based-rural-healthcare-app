@@ -18,5 +18,8 @@ build/
 *.egg-info/
 .DS_Store
 ngrok.exe
+ngrok.zip
 static/uploads/
 *.log
+*.zip
+.vercel/
